@@ -1,116 +1,237 @@
 import type { Metadata } from "next";
-import { Container } from "@/components/container";
-import { Fact, Unpublished } from "@/components/page-intro/page-intro";
-import { contact, site } from "@/lib/data";
+import {
+  Activity,
+  ArrowUpRight,
+  BookOpen,
+  CalendarDays,
+  Compass,
+  FileText,
+  Globe,
+  GraduationCap,
+  Timer,
+  TrendingUp,
+} from "lucide-react";
 import Link from "next/link";
+import { ActivityStatusBadge, AgreementStatusBadge } from "@/components/internal/badges";
+import { LinkedList } from "@/components/internal/ui/detail";
+import { PageHeader, Panel, PanelHeader } from "@/components/internal/ui/page-header";
+import { DataNotice } from "@/components/internal/ui/source-badge";
+import { StatCard } from "@/components/internal/ui/stat-card";
+import { getOperationalSummary } from "@/lib/internal/data/reports";
+import { formatDate, formatRelativeDays } from "@/lib/internal/dates";
 
 export const metadata: Metadata = {
-  title: "Internal Portal",
-  description:
-    "An operational outline for DoIC and International Student Cell staff. The workspace is not open and shows no live records.",
+  title: "Dashboard",
 };
 
-const areas = [
-  {
-    index: "01",
-    area: "Directory maintenance",
-    holds: "A later working list of institutions and countries. The public directory remains the illustrative list.",
-  },
-  {
-    index: "02",
-    area: "Partnership records",
-    holds: "A file for correspondence with a university. Nothing is stored on this page.",
-  },
-  {
-    index: "03",
-    area: "Mobility records",
-    holds: "A place for outbound and incoming student files. There is no queue here.",
-  },
-  {
-    index: "04",
-    area: "Enquiries",
-    holds: "A place for questions that reach the cell. No inbox is connected, and this page cannot send a message.",
-  },
-] as const;
+export default async function DashboardPage() {
+  const summary = await getOperationalSummary();
+  const { institutions, agreements, programs, opportunities, activities } = summary;
 
-export default function InternalPortalPage() {
+  const liveAgreements = agreements.byStatus.active + agreements.byStatus["expiring-soon"];
+  const openCalls = opportunities.byStatus.open + opportunities.byStatus["closing-soon"];
+
+  const attention = [
+    {
+      label: "Agreements expiring soon",
+      count: agreements.byStatus["expiring-soon"],
+      href: "/internal/mous?status=expiring-soon",
+      icon: Timer,
+    },
+    {
+      label: "Calls closing soon",
+      count: opportunities.byStatus["closing-soon"],
+      href: "/internal/opportunities?status=closing-soon",
+      icon: Compass,
+    },
+    {
+      label: "Activities needing an update",
+      count: activities.byStatus["needs-update"],
+      href: "/internal/activities?status=needs-update",
+      icon: CalendarDays,
+    },
+    {
+      label: "Agreements in draft or review",
+      count: agreements.byStatus.draft + agreements.byStatus["under-review"],
+      href: "/internal/mous?status=under-review",
+      icon: FileText,
+    },
+  ];
+
   return (
-    <article className="border-t border-white/10 bg-[#080c16] pt-28 pb-20 sm:pt-32 sm:pb-28">
-      <Container>
-        <p className="font-mono text-[11px] tracking-[0.2em] text-muted-foreground uppercase">
-          Staff workspace · {site.shortName}
-        </p>
-        <h1 className="mt-4 max-w-3xl font-display text-[clamp(1.85rem,3.4vw,2.75rem)] leading-[1.05] font-medium tracking-[-0.035em] text-foreground">
-          What the internal side will hold.
-        </h1>
-        <p className="mt-4 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-[15px]">
-          {contact.office} and {contact.cell}. The rows below are the intended
-          areas of a later workspace. The status is the same on every row
-          because the workspace is not open. It is not an error, and it is not
-          a count.
-        </p>
-        <p className="mt-5 inline-flex min-h-11 items-center border border-white/20 px-2.5 font-mono text-[11px] tracking-[0.16em] text-[#d7e0ee] uppercase">
-          Not in this stage
-        </p>
+    <div className="space-y-8">
+      <PageHeader
+        title="Dashboard"
+        description={`Overview of collaboration records · Directorate of International Collaboration · ${formatDate(summary.today)}`}
+      />
 
-        <div className="mt-8 border-t border-white/10">
-          <div className="hidden border-b border-white/10 py-2 font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase md:grid md:grid-cols-[4.5rem_minmax(0,0.75fr)_minmax(0,1.3fr)_10rem] md:gap-6">
-            <span>No.</span>
-            <span>Area</span>
-            <span>Will hold</span>
-            <span>Status</span>
-          </div>
-          <ul>
-            {areas.map((item) => (
-              <li
-                key={item.index}
-                className="grid gap-2 border-b border-white/10 py-5 md:grid-cols-[4.5rem_minmax(0,0.75fr)_minmax(0,1.3fr)_10rem] md:items-baseline md:gap-6"
+      <DataNotice>
+        Counts are computed from the portal data layer. Institutions include the public
+        site&apos;s illustrative directory plus fictional sample institutions; agreements,
+        offerings, calls, and activities are sample data. None of these are official DoIC
+        figures.
+      </DataNotice>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Institutions"
+          value={institutions.total}
+          icon={GraduationCap}
+          href="/internal/universities"
+          hint={`${institutions.bySource.directory} directory · ${institutions.bySource.sample} sample`}
+        />
+        <StatCard
+          label="Countries"
+          value={institutions.countries}
+          icon={Globe}
+          accent="#9ec9d4"
+          href="/internal/reports"
+          hint={`Across ${institutions.byRegion.filter((r) => r.institutions > 0).length} regions`}
+        />
+        <StatCard
+          label="Live agreements"
+          value={liveAgreements}
+          icon={FileText}
+          accent="#9fd8b8"
+          href="/internal/mous"
+          hint={`${agreements.total} recorded in total`}
+        />
+        <StatCard
+          label="Open offerings"
+          value={programs.byAvailability.open}
+          icon={BookOpen}
+          accent="#c5daf8"
+          href="/internal/programs?availability=open"
+          hint={`${openCalls} open application calls`}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <Panel className="lg:col-span-3">
+          <PanelHeader
+            title="Upcoming activities"
+            icon={Activity}
+            action={
+              <Link
+                href="/internal/activities"
+                className="flex items-center gap-1 text-[12px] text-[#8a9ab4] transition-colors hover:text-foreground"
               >
-                <span className="font-mono text-[12px] tracking-[0.14em] text-[#7f93ab]">
-                  {item.index}
-                </span>
-                <h2 className="font-display text-[1.2rem] tracking-[-0.03em] text-foreground">
-                  {item.area}
-                </h2>
-                <p className="text-sm leading-relaxed text-muted-foreground">{item.holds}</p>
-                <p className="font-mono text-[11px] leading-5 tracking-[0.12em] text-[#c5d4e6] uppercase">
-                  Not in this stage
-                </p>
+                View all
+                <ArrowUpRight className="size-3.5" />
+              </Link>
+            }
+          />
+          <LinkedList
+            emptyTitle="Nothing scheduled"
+            emptyDescription="Upcoming visits, delegations, and events will appear here."
+            items={activities.upcoming.slice(0, 5).map((activity) => ({
+              key: activity.id,
+              href: `/internal/activities/${activity.id}`,
+              title: activity.title,
+              meta: `${formatDate(activity.startDate)} · ${formatRelativeDays(activity.daysFromToday)} · ${activity.institution?.name ?? activity.country}`,
+              badge: <ActivityStatusBadge status={activity.status} />,
+            }))}
+          />
+        </Panel>
+
+        <Panel className="lg:col-span-2">
+          <PanelHeader title="Needs attention" />
+          <ul className="divide-y divide-white/[0.06]">
+            {attention.map((item) => (
+              <li key={item.label}>
+                <Link
+                  href={item.href}
+                  className="group flex items-center gap-3.5 px-5 py-3.5 transition-colors hover:bg-white/[0.02]"
+                >
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#17243a] transition-colors group-hover:bg-[#1d2d48]">
+                    <item.icon className="size-4 text-[#8eb7ee]" />
+                  </div>
+                  <p className="min-w-0 flex-1 text-[13px] text-foreground">{item.label}</p>
+                  <span
+                    className={
+                      item.count > 0
+                        ? "font-display text-[1.25rem] leading-none text-[#f0d29c] tabular-nums"
+                        : "font-display text-[1.25rem] leading-none text-[#56657d] tabular-nums"
+                    }
+                  >
+                    {item.count}
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
+        </Panel>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <Panel className="lg:col-span-3">
+          <PanelHeader
+            title="Renewals due"
+            icon={Timer}
+            description="Agreements ending inside the renewal window."
+          />
+          <LinkedList
+            emptyTitle="No renewals due"
+            items={agreements.expiringSoon.map((agreement) => ({
+              key: agreement.id,
+              href: `/internal/mous/${agreement.id}`,
+              title: agreement.institution?.name ?? agreement.reference,
+              meta: `${agreement.reference} · ends ${formatDate(agreement.endDate)}`,
+              badge: <AgreementStatusBadge status={agreement.status} daysToExpiry={agreement.daysToExpiry} />,
+            }))}
+          />
+        </Panel>
+
+        <Panel className="lg:col-span-2">
+          <PanelHeader title="Quick links" />
+          <ul className="divide-y divide-white/[0.06]">
+            {[
+              { label: "Browse universities", href: "/internal/universities", icon: GraduationCap },
+              { label: "Open application calls", href: "/internal/opportunities?status=open", icon: Compass },
+              { label: "Upcoming activities", href: "/internal/activities?when=upcoming", icon: CalendarDays },
+              { label: "View reports", href: "/internal/reports", icon: TrendingUp },
+            ].map((action) => (
+              <li key={action.label}>
+                <Link
+                  href={action.href}
+                  className="group flex items-center gap-3.5 px-5 py-3.5 transition-colors hover:bg-white/[0.02]"
+                >
+                  <action.icon className="size-4 shrink-0 text-[#8eb7ee]" />
+                  <span className="text-[13px] text-foreground">{action.label}</span>
+                  <ArrowUpRight className="ml-auto size-4 shrink-0 text-[#4a5b73] transition-colors group-hover:text-[#8a9ab4]" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      </div>
+
+      <Panel>
+        <PanelHeader
+          title="Network by region"
+          description="Institutions in the portal directory, grouped by region."
+        />
+        <div className="grid grid-cols-1 divide-y divide-white/[0.06] sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4">
+          {institutions.byRegion.map((region) => (
+            <Link
+              key={region.region}
+              href={`/internal/universities?region=${encodeURIComponent(region.region)}`}
+              className="border-white/[0.06] px-5 py-4 transition-colors hover:bg-white/[0.02] sm:border-r sm:last:border-r-0"
+            >
+              <p className="font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
+                {region.region}
+              </p>
+              <p className="mt-2 font-display text-[1.6rem] leading-none font-medium tracking-[-0.03em] text-foreground tabular-nums">
+                {region.institutions}
+              </p>
+              <p className="mt-1 text-[12px] text-muted-foreground">
+                {region.countries} {region.countries === 1 ? "country" : "countries"} ·{" "}
+                {region.withAgreements} with agreements
+              </p>
+            </Link>
+          ))}
         </div>
-
-        <dl className="mt-10 max-w-3xl border-t border-white/10">
-          <Fact label="Agreement status">
-            <Unpublished />
-          </Fact>
-          <Fact label="Staff sign-in">
-            <Unpublished note="This page does not ask for a password." />
-          </Fact>
-          <Fact label="Live records">
-            <Unpublished />
-          </Fact>
-        </dl>
-
-        <p className="mt-8 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          Students should use the{" "}
-          <Link
-            href="/student-portal"
-            className="inline-flex min-h-11 items-center text-[#d7e4fb] hover:text-foreground"
-          >
-            student orientation
-          </Link>
-          . The public account of the office is on{" "}
-          <Link
-            href="/about"
-            className="inline-flex min-h-11 items-center text-[#d7e4fb] hover:text-foreground"
-          >
-            About DoIC
-          </Link>
-          .
-        </p>
-      </Container>
-    </article>
+      </Panel>
+    </div>
   );
 }

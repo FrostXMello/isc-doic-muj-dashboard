@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Syne } from "next/font/google";
-import { Footer } from "@/components/footer/footer";
-import { Navbar } from "@/components/navbar/navbar";
+import { PublicChrome } from "@/components/public-chrome";
 import { site } from "@/lib/data";
 import "./globals.css";
 
@@ -45,11 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <a href="#main" className="skip-link">
           Skip to content
         </a>
-        <Navbar />
-        <main id="main" className="flex-1">
-          {children}
-        </main>
-        <Footer />
+        <PublicChrome>{children}</PublicChrome>
       </body>
     </html>
   );

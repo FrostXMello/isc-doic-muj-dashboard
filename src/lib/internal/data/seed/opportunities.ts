@@ -1,0 +1,108 @@
+import type { Opportunity } from "@/lib/internal/types";
+
+/**
+ * SAMPLE DATA — fictional application calls for the portal workflow.
+ *
+ * Calls reference sample programme availability rows at fictional "Example …"
+ * institutions. Opening dates and deadlines are invented so that the derived
+ * statuses (opens soon, open, closing soon, closed) can be exercised. They are
+ * not published DoIC deadlines.
+ */
+export const opportunitySeed: readonly Opportunity[] = [
+  {
+    id: "opp-001",
+    title: "Spring semester exchange call (sample)",
+    programId: "semester-exchange",
+    availabilityId: "off-001",
+    institutionId: "smp-harbour",
+    opensOn: "2026-09-01",
+    deadline: "2026-10-31",
+    recordStatus: "published",
+    summary: "Sample call for a one-semester exchange place at a fictional partner.",
+    source: "sample",
+  },
+  {
+    id: "opp-002",
+    title: "Faculty-led summer visit (sample)",
+    programId: "academic-visits",
+    availabilityId: "off-003",
+    institutionId: "smp-alpine",
+    opensOn: "2026-09-15",
+    deadline: "2026-10-08",
+    recordStatus: "published",
+    summary: "Sample two-week academic visit call.",
+    source: "sample",
+  },
+  {
+    id: "opp-003",
+    title: "Spring semester exchange call (sample)",
+    programId: "semester-exchange",
+    availabilityId: "off-007",
+    institutionId: "smp-straits",
+    opensOn: "2026-08-15",
+    deadline: "2026-10-10",
+    recordStatus: "published",
+    summary: "Sample call for a one-semester exchange place at a fictional partner.",
+    source: "sample",
+  },
+  {
+    id: "opp-004",
+    title: "Full-year exchange call (sample)",
+    programId: "student-exchange",
+    availabilityId: "off-002",
+    institutionId: "smp-harbour",
+    opensOn: "2026-11-01",
+    deadline: "2027-01-31",
+    recordStatus: "published",
+    summary: "Sample call for a full academic year abroad.",
+    source: "sample",
+  },
+  {
+    id: "opp-005",
+    title: "Winter semester year exchange (sample)",
+    programId: "student-exchange",
+    availabilityId: "off-008",
+    institutionId: "smp-alpine",
+    opensOn: "2026-01-10",
+    deadline: "2026-03-15",
+    recordStatus: "published",
+    summary: "Sample call that has already closed.",
+    source: "sample",
+  },
+  {
+    id: "opp-006",
+    title: "Pathway programme information call (sample)",
+    programId: "pathway-programs",
+    availabilityId: "off-005",
+    institutionId: "smp-lakes",
+    opensOn: null,
+    deadline: null,
+    recordStatus: "draft",
+    summary: "Sample draft kept unpublished while the related proposal is reviewed.",
+    source: "sample",
+  },
+  {
+    id: "opp-007",
+    title: "Southern semester exchange (sample)",
+    programId: "semester-exchange",
+    availabilityId: "off-004",
+    institutionId: "smp-coastal",
+    opensOn: "2025-02-01",
+    deadline: "2025-03-31",
+    recordStatus: "archived",
+    summary: "Sample archived call from a previous cycle.",
+    source: "sample",
+  },
+  {
+    id: "opp-008",
+    title: "Academic visits interest register (sample)",
+    programId: "academic-visits",
+    availabilityId: null,
+    institutionId: null,
+    opensOn: "2026-09-20",
+    deadline: "2026-12-15",
+    recordStatus: "published",
+    summary: "Sample open register not tied to a single institution.",
+    source: "sample",
+  },
+];

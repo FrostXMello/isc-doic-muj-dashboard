@@ -1,0 +1,118 @@
+import { openDataContext } from "@/lib/internal/data/context";
+import { activityStatuses, activityTypes } from "@/lib/internal/data/activities";
+import { agreementStatuses, agreementTypes } from "@/lib/internal/data/agreements";
+import { documentStatuses, documentTypes } from "@/lib/internal/data/documents";
+import { partnershipStatuses } from "@/lib/internal/data/institutions";
+import { opportunityStatuses } from "@/lib/internal/data/opportunities";
+import { availabilityFilters } from "@/lib/internal/data/programs";
+import {
+  activitySeed,
+  agreementSeed,
+  availabilitySeed,
+  documentSeed,
+  institutionSeed,
+  opportunitySeed,
+  programSeed,
+  toActivityView,
+  toAgreementView,
+  toDocumentView,
+  toInstitutionView,
+  toOpportunityView,
+} from "@/lib/internal/data/views";
+import type { RecordSource, Region } from "@/lib/internal/types";
+
+function countBy<K extends string, T>(keys: readonly K[], rows: readonly T[], pick: (row: T) => K) {
+  const counts = Object.fromEntries(keys.map((key) => [key, 0])) as Record<K, number>;
+  for (const row of rows) counts[pick(row)] += 1;
+  return counts;
+}
+
+const regions: readonly Region[] = ["Europe", "Middle East", "Asia-Pacific", "North America"];
+const sources: readonly RecordSource[] = ["directory", "sample"];
+
+/**
+ * Operational summary computed from the repository rows.
+ * Every figure is a count of records in the data layer, not an official total.
+ */
+export async function getOperationalSummary() {
+  const { today } = await openDataContext();
+
+  const institutions = institutionSeed.map((row) => toInstitutionView(row, today));
+  const agreements = agreementSeed.map((row) => toAgreementView(row, today));
+  const opportunities = opportunitySeed.map((row) => toOpportunityView(row, today));
+  const activities = activitySeed.map((row) => toActivityView(row, today));
+  const documents = documentSeed.map(toDocumentView);
+
+  const byRegion = regions.map((region) => {
+    const inRegion = institutions.filter((row) => row.region === region);
+    return {
+      region,
+      institutions: inRegion.length,
+      countries: new Set(inRegion.map((row) => row.country)).size,
+      withAgreements: inRegion.filter((row) => row.agreementCount > 0).length,
+    };
+  });
+
+  return {
+    today,
+    institutions: {
+      total: institutions.length,
+      countries: new Set(institutions.map((row) => row.country)).size,
+      bySource: countBy(sources, institutions, (row) => row.source as (typeof sources)[number]),
+      byPartnership: countBy(partnershipStatuses, institutions, (row) => row.partnershipStatus),
+      byRegion,
+    },
+    agreements: {
+      total: agreements.length,
+      byStatus: countBy(agreementStatuses, agreements, (row) => row.status),
+      byType: countBy(agreementTypes, agreements, (row) => row.type),
+      expiringSoon: agreements
+        .filter((row) => row.status === "expiring-soon")
+        .sort((a, b) => (a.endDate ?? "").localeCompare(b.endDate ?? "")),
+    },
+    programs: {
+      total: programSeed.length,
+      offerings: availabilitySeed.length,
+      byProgram: programSeed.map((program) => {
+        const rows = availabilitySeed.filter((row) => row.programId === program.id);
+        return {
+          program,
+          total: rows.length,
+          byAvailability: countBy(availabilityFilters, rows, (row) => row.availability ?? "not-recorded"),
+        };
+      }),
+      byAvailability: countBy(
+        availabilityFilters,
+        availabilitySeed,
+        (row) => row.availability ?? "not-recorded",
+      ),
+    },
+    opportunities: {
+      total: opportunities.length,
+      byStatus: countBy(opportunityStatuses, opportunities, (row) => row.status),
+      closingSoon: opportunities
+        .filter((row) => row.status === "closing-soon" || row.status === "open")
+        .sort((a, b) => (a.deadline ?? "9999").localeCompare(b.deadline ?? "9999")),
+    },
+    activities: {
+      total: activities.length,
+      byStatus: countBy(activityStatuses, activities, (row) => row.status),
+      byType: countBy(activityTypes, activities, (row) => row.type),
+      upcoming: activities
+        .filter((row) => row.daysFromToday >= 0 && row.status !== "cancelled")
+        .sort((a, b) => a.startDate.localeCompare(b.startDate)),
+      recent: activities
+        .filter((row) => row.daysFromToday < 0)
+        .sort((a, b) => b.startDate.localeCompare(a.startDate)),
+    },
+    documents: {
+      total: documents.length,
+      byStatus: countBy(documentStatuses, documents, (row) => row.status),
+      byType: countBy(documentTypes, documents, (row) => row.type),
+      unlinked: documents.filter((row) => row.links.length === 0).length,
+      withFile: documents.filter((row) => row.storageKey !== null).length,
+    },
+  };
+}
+
+export type OperationalSummary = Awaited<ReturnType<typeof getOperationalSummary>>;
