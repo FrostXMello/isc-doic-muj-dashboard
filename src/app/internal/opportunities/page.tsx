@@ -65,23 +65,23 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
       </DataNotice>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Open" value={count("open")} accent="#9fd8b8" href="/internal/opportunities?status=open" />
+        <StatCard label="Open" value={count("open")} accent="var(--success)" href="/internal/opportunities?status=open" />
         <StatCard
           label="Closing soon"
           value={count("closing-soon")}
-          accent="#e9c27d"
+          accent="var(--warning)"
           href="/internal/opportunities?status=closing-soon"
         />
         <StatCard
           label="Opens soon"
           value={count("upcoming")}
-          accent="#8eb7ee"
+          accent="var(--glow)"
           href="/internal/opportunities?status=upcoming"
         />
         <StatCard
           label="Closed or archived"
           value={count("closed") + count("archived")}
-          accent="#a9b6cc"
+          accent="var(--muted-foreground)"
         />
       </div>
 
@@ -152,10 +152,10 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
               row.institution ? (
                 <span>
                   {row.institution.name}
-                  <span className="block text-[12px] text-[#6b7c96]">{row.institution.country}</span>
+                  <span className="block text-[12px] text-fg-faint">{row.institution.country}</span>
                 </span>
               ) : (
-                <span className="text-[#6b7c96]">Not institution-specific</span>
+                <span className="text-fg-faint">Not institution-specific</span>
               ),
           },
           {

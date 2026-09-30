@@ -76,7 +76,7 @@ export function RelativeDays({
   return (
     <span
       className={
-        days < 0 ? "text-[#f3c4c4]/80" : warn ? "text-[#f0d29c]" : "text-[#6b7c96]"
+        days < 0 ? "text-danger-fg/80" : warn ? "text-warning-fg" : "text-fg-faint"
       }
     >
       {days < 0 ? past : future} {formatRelativeDays(days)}

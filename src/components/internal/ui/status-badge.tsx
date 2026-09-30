@@ -3,34 +3,34 @@ import type { Tone } from "@/lib/internal/status";
 
 export const toneStyles: Record<Tone, { badge: string; dot: string; bar: string }> = {
   positive: {
-    badge: "border-[#9fd8b8]/25 bg-[#9fd8b8]/[0.07] text-[#b5e3c9]",
-    dot: "bg-[#9fd8b8]",
-    bar: "bg-[#9fd8b8]/70",
+    badge: "border-success/25 bg-success/[0.07] text-success-fg",
+    dot: "bg-success",
+    bar: "bg-success/70",
   },
   warning: {
-    badge: "border-[#e9c27d]/30 bg-[#e9c27d]/[0.08] text-[#f0d29c]",
-    dot: "bg-[#e9c27d]",
-    bar: "bg-[#e9c27d]/70",
+    badge: "border-warning/30 bg-warning/[0.08] text-warning-fg",
+    dot: "bg-warning",
+    bar: "bg-warning/70",
   },
   danger: {
-    badge: "border-[#f0b4b4]/30 bg-[#f0b4b4]/[0.07] text-[#f3c4c4]",
-    dot: "bg-[#f0b4b4]",
-    bar: "bg-[#f0b4b4]/70",
+    badge: "border-danger/30 bg-danger/[0.07] text-danger-fg",
+    dot: "bg-danger",
+    bar: "bg-danger/70",
   },
   info: {
-    badge: "border-[#8eb7ee]/30 bg-[#8eb7ee]/[0.07] text-[#b3cff5]",
-    dot: "bg-[#8eb7ee]",
-    bar: "bg-[#8eb7ee]/70",
+    badge: "border-glow/30 bg-glow/[0.07] text-glow-fg",
+    dot: "bg-glow",
+    bar: "bg-glow/70",
   },
   neutral: {
-    badge: "border-white/15 bg-white/[0.04] text-[#c3cedd]",
-    dot: "bg-[#a9b6cc]",
-    bar: "bg-[#a9b6cc]/60",
+    badge: "border-line-strong bg-overlay text-fg-soft",
+    dot: "bg-muted-foreground",
+    bar: "bg-muted-foreground/60",
   },
   muted: {
-    badge: "border-white/10 bg-transparent text-[#8a9ab4]",
-    dot: "bg-[#56657d]",
-    bar: "bg-[#56657d]",
+    badge: "border-line bg-transparent text-fg-subtle",
+    dot: "bg-fg-dim",
+    bar: "bg-fg-dim",
   },
 };
 

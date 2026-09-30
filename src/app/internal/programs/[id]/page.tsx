@@ -105,7 +105,7 @@ export default async function ProgramOfferingPage({ params }: IdParamsProp) {
               <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
                 {program.description}
               </p>
-              <p className="mt-3 text-[12px] text-[#6b7c96]">
+              <p className="mt-3 text-[12px] text-fg-faint">
                 General audience: {program.generalAudience ?? "not stated"}
               </p>
             </div>

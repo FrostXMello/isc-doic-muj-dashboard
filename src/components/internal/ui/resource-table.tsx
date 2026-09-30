@@ -37,23 +37,23 @@ export function ResourceTable<T>({
   empty: React.ReactNode;
 }) {
   if (rows.length === 0) {
-    return <div className="rounded-xl border border-white/10 bg-[#0d1526]">{empty}</div>;
+    return <div className="rounded-xl border border-line bg-card">{empty}</div>;
   }
 
   return (
     <>
-      <div className="hidden overflow-hidden rounded-xl border border-white/10 bg-[#0d1526] md:block">
+      <div className="hidden overflow-hidden rounded-xl border border-line bg-card md:block">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] border-collapse text-left">
             <caption className="sr-only">{caption}</caption>
             <thead>
-              <tr className="border-b border-white/10">
+              <tr className="border-b border-line">
                 {columns.map((column) => (
                   <th
                     key={column.key}
                     scope="col"
                     className={cn(
-                      "px-4 py-3 font-mono text-[10px] font-normal tracking-[0.12em] whitespace-nowrap text-[#6b7c96] uppercase first:pl-5",
+                      "px-4 py-3 font-mono text-[10px] font-normal tracking-[0.12em] whitespace-nowrap text-fg-faint uppercase first:pl-5",
                       column.headerClassName,
                     )}
                   >
@@ -65,17 +65,17 @@ export function ResourceTable<T>({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.06]">
+            <tbody className="divide-y divide-hairline">
               {rows.map((row) => (
                 <tr
                   key={getKey(row)}
-                  className="group relative transition-colors hover:bg-white/[0.025] focus-within:bg-white/[0.025]"
+                  className="group relative transition-colors hover:bg-overlay-subtle focus-within:bg-overlay-subtle"
                 >
                   {columns.map((column, index) => (
                     <td
                       key={column.key}
                       className={cn(
-                        "px-4 py-3.5 align-middle text-[13px] text-[#c3cedd] first:pl-5",
+                        "px-4 py-3.5 align-middle text-[13px] text-fg-soft first:pl-5",
                         column.interactive && "relative z-10",
                         column.className,
                       )}
@@ -83,7 +83,7 @@ export function ResourceTable<T>({
                       {index === 0 ? (
                         <Link
                           href={getHref(row)}
-                          className="rounded-sm text-foreground outline-offset-2 after:absolute after:inset-0 after:content-[''] hover:text-[#d7e4fb]"
+                          className="rounded-sm text-foreground outline-offset-2 after:absolute after:inset-0 after:content-[''] hover:text-primary"
                         >
                           {column.cell(row)}
                         </Link>
@@ -94,7 +94,7 @@ export function ResourceTable<T>({
                   ))}
                   <td className="px-4 py-3.5 text-right">
                     <ChevronRight
-                      className="ml-auto size-4 text-[#4a5b73] transition-colors group-hover:text-[#8a9ab4]"
+                      className="ml-auto size-4 text-fg-dim transition-colors group-hover:text-fg-subtle"
                       aria-hidden
                     />
                   </td>
@@ -111,7 +111,7 @@ export function ResourceTable<T>({
             <Link
               href={getHref(row)}
               aria-label={getRowLabel(row)}
-              className="block rounded-xl border border-white/10 bg-[#0d1526] p-4 transition-colors hover:border-white/20 hover:bg-[#0f1a2e]"
+              className="block rounded-xl border border-line bg-card p-4 transition-colors hover:border-line-bold hover:bg-surface-raised"
             >
               {renderCard(row)}
             </Link>
@@ -141,17 +141,17 @@ export function ResourceCard({
           <p className="text-[14px] font-medium text-foreground">{title}</p>
           {subtitle && <p className="mt-0.5 text-[12px] text-muted-foreground">{subtitle}</p>}
         </div>
-        <ChevronRight className="mt-0.5 size-4 shrink-0 text-[#4a5b73]" aria-hidden />
+        <ChevronRight className="mt-0.5 size-4 shrink-0 text-fg-dim" aria-hidden />
       </div>
       {badges && <div className="mt-2.5 flex flex-wrap gap-1.5">{badges}</div>}
       {meta && meta.length > 0 && (
-        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-white/[0.06] pt-3">
+        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-hairline pt-3">
           {meta.map((item) => (
             <div key={item.label} className="min-w-0">
-              <dt className="font-mono text-[10px] tracking-[0.1em] text-[#6b7c96] uppercase">
+              <dt className="font-mono text-[10px] tracking-[0.1em] text-fg-faint uppercase">
                 {item.label}
               </dt>
-              <dd className="mt-0.5 truncate text-[12px] text-[#c3cedd]">{item.value}</dd>
+              <dd className="mt-0.5 truncate text-[12px] text-fg-soft">{item.value}</dd>
             </div>
           ))}
         </dl>

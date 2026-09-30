@@ -120,7 +120,7 @@ export default async function OpportunityDetailPage({ params }: IdParamsProp) {
                   ]}
                 />
                 <KeyValueList
-                  className="border-t border-white/[0.06]"
+                  className="border-t border-hairline"
                   items={[
                     { label: "Duration", value: offering.duration ?? <NotRecorded /> },
                     { label: "Intake", value: offering.intake ?? <NotRecorded /> },
@@ -148,9 +148,9 @@ export default async function OpportunityDetailPage({ params }: IdParamsProp) {
                 { label: "Deadline", date: opportunity.deadline },
               ].map((step) => (
                 <li key={step.label} className="flex gap-3">
-                  <span className="mt-1.5 size-2 shrink-0 rounded-full bg-[#8eb7ee]" aria-hidden />
+                  <span className="mt-1.5 size-2 shrink-0 rounded-full bg-glow" aria-hidden />
                   <div>
-                    <p className="font-mono text-[10px] tracking-[0.12em] text-[#6b7c96] uppercase">
+                    <p className="font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">
                       {step.label}
                     </p>
                     <p className="text-[13px] text-foreground">{formatDate(step.date)}</p>

@@ -11,6 +11,7 @@ import {
   slerpLift,
   type Vec3,
 } from "@/lib/globe-geometry";
+import { readPaintedTheme, useResolvedTheme, type ResolvedTheme } from "@/lib/theme-store";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 
@@ -79,6 +80,63 @@ type Projected = {
 
 const INITIAL_ROTATION = rotationForLongitude(hub.lon);
 
+type Palette = {
+  atmosphere: [string, string, string];
+  sphere: [string, string, string];
+  land: (t: number) => string;
+  particle: (depth: number) => string;
+  graticule: string;
+  rim: string;
+  hubLabel: string;
+  hubSubLabel: string;
+  arc: { emphasized: string; quiet: string; idle: string };
+  pulse: { emphasized: string; idle: string };
+  hub: { ring: string; inner: string; core: string };
+  node: { ring: string; emphasized: string; idle: string };
+};
+
+const PALETTES: Record<ResolvedTheme, Palette> = {
+  dark: {
+    atmosphere: ["rgba(126, 168, 214, 0)", "rgba(126, 168, 214, 0.05)", "rgba(126, 168, 214, 0)"],
+    sphere: ["#1a2a44", "#10192c", "#070c16"],
+    land: (t) =>
+      `rgba(${170 + Math.round(50 * t)}, ${196 + Math.round(36 * t)}, ${220 + Math.round(24 * t)}, ${0.22 + t * 0.62})`,
+    particle: (depth) => `rgba(176, 198, 220, ${0.05 + depth * 0.12})`,
+    graticule: "rgba(168, 196, 226, 0.09)",
+    rim: "rgba(186, 210, 236, 0.38)",
+    hubLabel: "rgba(232, 240, 248, 0.94)",
+    hubSubLabel: "rgba(168, 186, 208, 0.88)",
+    arc: {
+      emphasized: "rgba(214, 228, 244, 0.9)",
+      quiet: "rgba(142, 176, 204, 0.07)",
+      idle: "rgba(150, 186, 214, 0.2)",
+    },
+    pulse: { emphasized: "rgba(232, 240, 252, 0.95)", idle: "rgba(186, 220, 232, 0.8)" },
+    hub: { ring: "rgba(198, 228, 234, 0.82)", inner: "rgba(198, 228, 234, 0.35)", core: "#f3fafb" },
+    node: { ring: "rgba(215, 228, 244, 0.7)", emphasized: "#f4f7fb", idle: "rgba(198, 214, 232, 0.9)" },
+  },
+  light: {
+    // Fades out before the canvas edge; a mid-ring peak shows as a clipped square on paper.
+    atmosphere: ["rgba(45, 95, 158, 0.07)", "rgba(45, 95, 158, 0)", "rgba(45, 95, 158, 0)"],
+    sphere: ["#ffffff", "#eef2f7", "#dde5ef"],
+    land: (t) =>
+      `rgba(${64 - Math.round(36 * t)}, ${96 - Math.round(44 * t)}, ${142 - Math.round(38 * t)}, ${0.28 + t * 0.6})`,
+    particle: (depth) => `rgba(45, 80, 130, ${0.05 + depth * 0.12})`,
+    graticule: "rgba(28, 53, 94, 0.09)",
+    rim: "rgba(28, 53, 94, 0.3)",
+    hubLabel: "rgba(13, 21, 38, 0.94)",
+    hubSubLabel: "rgba(69, 83, 107, 0.92)",
+    arc: {
+      emphasized: "rgba(28, 53, 94, 0.9)",
+      quiet: "rgba(45, 95, 158, 0.08)",
+      idle: "rgba(45, 95, 158, 0.3)",
+    },
+    pulse: { emphasized: "rgba(13, 21, 38, 0.95)", idle: "rgba(29, 103, 118, 0.8)" },
+    hub: { ring: "rgba(29, 103, 118, 0.85)", inner: "rgba(29, 103, 118, 0.35)", core: "#1d6776" },
+    node: { ring: "rgba(28, 53, 94, 0.65)", emphasized: "#1c355e", idle: "rgba(38, 66, 110, 0.85)" },
+  },
+};
+
 export function Globe() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -95,6 +153,11 @@ export function Globe() {
   const projectedRef = useRef<Projected[]>([]);
   const hintRef = useRef<HTMLParagraphElement>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const theme = useResolvedTheme();
+
+  useEffect(() => {
+    paintRef.current?.();
+  }, [theme]);
 
   useEffect(() => {
     activeRef.current = activeId;
@@ -163,6 +226,7 @@ export function Globe() {
       const radius = radiusRef.current;
       const rot = rotationRef.current;
       const now = performance.now();
+      const palette = PALETTES[readPaintedTheme()];
       context.clearRect(0, 0, width, height);
 
       const atmosphere = context.createRadialGradient(
@@ -173,9 +237,9 @@ export function Globe() {
         cy,
         radius * 1.28,
       );
-      atmosphere.addColorStop(0, "rgba(126, 168, 214, 0)");
-      atmosphere.addColorStop(0.72, "rgba(126, 168, 214, 0.05)");
-      atmosphere.addColorStop(1, "rgba(126, 168, 214, 0)");
+      atmosphere.addColorStop(0, palette.atmosphere[0]);
+      atmosphere.addColorStop(0.72, palette.atmosphere[1]);
+      atmosphere.addColorStop(1, palette.atmosphere[2]);
       context.fillStyle = atmosphere;
       context.beginPath();
       context.arc(cx, cy, radius * 1.28, 0, Math.PI * 2);
@@ -189,15 +253,15 @@ export function Globe() {
         cy,
         radius,
       );
-      sphere.addColorStop(0, "#1a2a44");
-      sphere.addColorStop(0.45, "#10192c");
-      sphere.addColorStop(1, "#070c16");
+      sphere.addColorStop(0, palette.sphere[0]);
+      sphere.addColorStop(0.45, palette.sphere[1]);
+      sphere.addColorStop(1, palette.sphere[2]);
       context.fillStyle = sphere;
       context.beginPath();
       context.arc(cx, cy, radius, 0, Math.PI * 2);
       context.fill();
 
-      drawGraticule(context, cx, cy, radius, rot);
+      drawGraticule(context, cx, cy, radius, rot, palette);
 
       bucketN.fill(0);
       for (let i = 0; i < LAND_COUNT; i += 1) {
@@ -215,7 +279,7 @@ export function Globe() {
         const count = bucketN[bucket];
         if (!count) continue;
         const t = (bucket + 1) / BUCKETS;
-        context.fillStyle = `rgba(${170 + Math.round(50 * t)}, ${196 + Math.round(36 * t)}, ${220 + Math.round(24 * t)}, ${0.22 + t * 0.62})`;
+        context.fillStyle = palette.land(t);
         const size = 1.05 + t * 1.15;
         for (let i = 0; i < count; i += 1) {
           context.fillRect(bucketX[bucket][i], bucketY[bucket][i], size, size);
@@ -237,6 +301,7 @@ export function Globe() {
           now,
           index,
           reduceRef.current,
+          palette,
         );
       });
 
@@ -246,7 +311,7 @@ export function Globe() {
           const [x, y, z] = latLonToVec(particle.lat, lon);
           const projected = projectVec(x, y, z, rot);
           if (projected.z < 0.35) continue;
-          context.fillStyle = `rgba(176, 198, 220, ${0.05 + projected.z * 0.12})`;
+          context.fillStyle = palette.particle(projected.z);
           context.fillRect(
             cx + projected.x * radius,
             cy - projected.y * radius,
@@ -271,7 +336,7 @@ export function Globe() {
         if (projected.z < 0.02) continue;
         const isHub = node.id === hub.id;
         const emphasized = isHub || active === node.id;
-        drawNode(context, point.x, point.y, emphasized, isHub, projected.z);
+        drawNode(context, point.x, point.y, emphasized, isHub, projected.z, palette);
       }
       projectedRef.current = projectedNodes;
 
@@ -286,10 +351,10 @@ export function Globe() {
         const placeRight = hubPoint.x + pad + labelWidth < width - 6;
         context.textAlign = placeRight ? "left" : "right";
         const labelX = placeRight ? hubPoint.x + pad : hubPoint.x - pad;
-        context.fillStyle = "rgba(232, 240, 248, 0.94)";
+        context.fillStyle = palette.hubLabel;
         context.fillText("MUJ", labelX, hubPoint.y - 1);
         context.font = "10px ui-sans-serif, system-ui, sans-serif";
-        context.fillStyle = "rgba(168, 186, 208, 0.88)";
+        context.fillStyle = palette.hubSubLabel;
         context.fillText("Jaipur", labelX, hubPoint.y + 12);
       }
 
@@ -306,7 +371,7 @@ export function Globe() {
 
       context.beginPath();
       context.arc(cx, cy, radius, 0, Math.PI * 2);
-      context.strokeStyle = "rgba(186, 210, 236, 0.38)";
+      context.strokeStyle = palette.rim;
       context.lineWidth = 1.15;
       context.stroke();
     };
@@ -465,7 +530,7 @@ export function Globe() {
           ref={labelRef}
           className="pointer-events-none absolute top-0 left-0 z-10 opacity-0 transition-opacity duration-200"
         >
-          <div className="rounded-md border border-white/15 bg-[#0b1220]/90 px-2.5 py-1.5 text-left shadow-none backdrop-blur-sm">
+          <div className="rounded-md border border-line-strong bg-surface/90 px-2.5 py-1.5 text-left shadow-none backdrop-blur-sm">
             <p
               ref={cityRef}
               className="text-[11px] tracking-[0.14em] text-cyan uppercase"
@@ -502,8 +567,8 @@ export function Globe() {
                 className={cn(
                   "border px-2.5 py-1 text-[12px] tracking-[0.01em] transition-colors duration-200",
                   selected
-                    ? "border-[#9ec9d4]/70 bg-white/10 text-foreground"
-                    : "border-white/10 text-muted-foreground hover:border-white/30 hover:text-foreground",
+                    ? "border-cyan/70 bg-line text-foreground"
+                    : "border-line text-muted-foreground hover:border-line-bold hover:text-foreground",
                 )}
               >
                 {partner.city}
@@ -522,9 +587,10 @@ function drawGraticule(
   cy: number,
   radius: number,
   rot: number,
+  palette: Palette,
 ) {
   context.lineWidth = 1;
-  context.strokeStyle = "rgba(168, 196, 226, 0.09)";
+  context.strokeStyle = palette.graticule;
   for (let lon = -150; lon <= 180; lon += 30) {
     traceRing(context, cx, cy, radius, rot, (step) => {
       const lat = -80 + step * 160;
@@ -581,6 +647,7 @@ function drawArc(
   now: number,
   index: number,
   reduced: boolean,
+  palette: Palette,
 ) {
   context.beginPath();
   let drawing = false;
@@ -606,10 +673,10 @@ function drawArc(
   context.lineCap = "round";
   context.lineJoin = "round";
   context.strokeStyle = emphasized
-    ? "rgba(214, 228, 244, 0.9)"
+    ? palette.arc.emphasized
     : quiet
-      ? "rgba(142, 176, 204, 0.07)"
-      : "rgba(150, 186, 214, 0.2)";
+      ? palette.arc.quiet
+      : palette.arc.idle;
   context.lineWidth = emphasized ? 1.35 : 0.85;
   context.stroke();
 
@@ -618,9 +685,7 @@ function drawArc(
   const pulseIndex = Math.min(screen.length - 1, Math.floor(t * (screen.length - 1)));
   const pulse = screen[pulseIndex];
   if (!pulse || pulse.z < 0.05) return;
-  context.fillStyle = emphasized
-    ? "rgba(232, 240, 252, 0.95)"
-    : "rgba(186, 220, 232, 0.8)";
+  context.fillStyle = emphasized ? palette.pulse.emphasized : palette.pulse.idle;
   context.beginPath();
   context.arc(pulse.x, pulse.y, emphasized ? 2.4 : 1.7, 0, Math.PI * 2);
   context.fill();
@@ -633,33 +698,34 @@ function drawNode(
   emphasized: boolean,
   isHub: boolean,
   depth: number,
+  palette: Palette,
 ) {
   const scale = 0.82 + depth * 0.22;
   if (isHub) {
     context.beginPath();
     context.arc(x, y, 6.2 * scale, 0, Math.PI * 2);
-    context.strokeStyle = "rgba(198, 228, 234, 0.82)";
+    context.strokeStyle = palette.hub.ring;
     context.lineWidth = 1;
     context.stroke();
     context.beginPath();
     context.arc(x, y, 3.4 * scale, 0, Math.PI * 2);
-    context.strokeStyle = "rgba(198, 228, 234, 0.35)";
+    context.strokeStyle = palette.hub.inner;
     context.stroke();
     context.beginPath();
     context.arc(x, y, 1.7 * scale, 0, Math.PI * 2);
-    context.fillStyle = "#f3fafb";
+    context.fillStyle = palette.hub.core;
     context.fill();
     return;
   }
   if (emphasized) {
     context.beginPath();
     context.arc(x, y, 6.2 * scale, 0, Math.PI * 2);
-    context.strokeStyle = "rgba(215, 228, 244, 0.7)";
+    context.strokeStyle = palette.node.ring;
     context.lineWidth = 1;
     context.stroke();
   }
   context.beginPath();
   context.arc(x, y, (emphasized ? 2.5 : 1.9) * scale, 0, Math.PI * 2);
-  context.fillStyle = emphasized ? "#f4f7fb" : "rgba(198, 214, 232, 0.9)";
+  context.fillStyle = emphasized ? palette.node.emphasized : palette.node.idle;
   context.fill();
 }

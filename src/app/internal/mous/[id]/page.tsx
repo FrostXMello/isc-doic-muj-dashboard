@@ -73,7 +73,7 @@ function TermProgress({ agreement, today }: { agreement: AgreementView; today: s
         <span>{formatDate(agreement.endDate)}</span>
       </div>
       <div
-        className="mt-2 h-2 overflow-hidden rounded-full bg-white/[0.05]"
+        className="mt-2 h-2 overflow-hidden rounded-full bg-overlay"
         role="progressbar"
         aria-label="Agreement term elapsed"
         aria-valuenow={percent}
@@ -162,7 +162,7 @@ export default async function AgreementDetailPage({ params }: IdParamsProp) {
                         {agreement.collaborationAreas.map((area) => (
                           <span
                             key={area}
-                            className="rounded-md border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[12px]"
+                            className="rounded-md border border-line bg-overlay-subtle px-2 py-0.5 text-[12px]"
                           >
                             {area}
                           </span>

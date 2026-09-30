@@ -16,7 +16,7 @@ export function ClassroomSection() {
               title="The world is your classroom."
               description="DoIC and the International Student Cell open MUJ to campuses beyond Jaipur — so a degree here can include time, teaching, and research elsewhere."
             />
-            <ol className="mt-10 divide-y divide-white/10 border-y border-white/10">
+            <ol className="mt-10 divide-y divide-line border-y border-line">
               {classroomPoints.map((point) => (
                 <li key={point.index} className="grid grid-cols-[auto_1fr] gap-4 py-5">
                   <span className="pt-0.5 font-display text-sm tracking-[0.14em] text-cyan">

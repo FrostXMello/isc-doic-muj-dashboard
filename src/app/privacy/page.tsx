@@ -24,7 +24,7 @@ export default function PrivacyPage() {
           >
             What this mock site does.
           </h2>
-          <dl className="mt-4 border-t border-white/10">
+          <dl className="mt-4 border-t border-line">
             <Fact label="Accounts">No sign-in is offered for students or for staff.</Fact>
             <Fact label="Applications">No form submits or stores an application.</Fact>
             <Fact label="Analytics">None run on this stage.</Fact>
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
           >
             Not published yet.
           </h2>
-          <dl className="mt-4 border-t border-white/10">
+          <dl className="mt-4 border-t border-line">
             <Fact label="Privacy notice">
               <Unpublished note="What would be collected, why, and how long it would be kept." />
             </Fact>

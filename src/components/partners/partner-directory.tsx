@@ -60,7 +60,7 @@ export function PartnerDirectory({
         Region, then country, then institution
       </p>
       <form
-        className="mt-3 grid gap-4 border-y border-white/10 py-5 md:grid-cols-3"
+        className="mt-3 grid gap-4 border-y border-line py-5 md:grid-cols-3"
         role="search"
         onSubmit={(event) => event.preventDefault()}
       >
@@ -75,7 +75,7 @@ export function PartnerDirectory({
             id={regionId}
             value={region}
             onChange={(event) => setRegion(event.target.value)}
-            className="mt-2 h-11 w-full max-w-full border border-white/15 bg-[#070b14] px-3 text-sm text-foreground outline-none focus-visible:border-[#9ec9d4]"
+            className="mt-2 h-11 w-full max-w-full border border-line-strong bg-background px-3 text-sm text-foreground outline-none focus-visible:border-cyan"
           >
             <option value="all">All regions</option>
             {directoryRegions.map((item) => (
@@ -96,7 +96,7 @@ export function PartnerDirectory({
             id={countryId}
             value={countryActive}
             onChange={(event) => setCountry(event.target.value)}
-            className="mt-2 h-11 w-full max-w-full border border-white/15 bg-[#070b14] px-3 text-sm text-foreground outline-none focus-visible:border-[#9ec9d4]"
+            className="mt-2 h-11 w-full max-w-full border border-line-strong bg-background px-3 text-sm text-foreground outline-none focus-visible:border-cyan"
           >
             <option value="all">All countries</option>
             {countries.map((item) => (
@@ -120,7 +120,7 @@ export function PartnerDirectory({
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by institution"
             autoComplete="off"
-            className="mt-2 h-11 w-full max-w-full border border-white/15 bg-transparent px-3 text-sm text-foreground outline-none placeholder:text-muted-foreground/70 focus-visible:border-[#9ec9d4]"
+            className="mt-2 h-11 w-full max-w-full border border-line-strong bg-transparent px-3 text-sm text-foreground outline-none placeholder:text-muted-foreground/70 focus-visible:border-cyan"
           />
         </div>
       </form>
@@ -137,14 +137,14 @@ export function PartnerDirectory({
               setRegion("all");
               setCountry("all");
             }}
-            className="inline-flex min-h-11 items-center px-1 text-[12px] tracking-[0.12em] text-[#d7e4fb] uppercase transition-colors hover:text-foreground"
+            className="inline-flex min-h-11 items-center px-1 text-[12px] tracking-[0.12em] text-primary uppercase transition-colors hover:text-foreground"
           >
             Clear filters
           </button>
         ) : null}
       </div>
 
-      <div className="mt-2 border-t border-white/10">
+      <div className="mt-2 border-t border-line">
         {visible.length === 0 ? (
           <div className="py-10">
             <p className="font-display text-xl tracking-[-0.03em] text-foreground">
@@ -164,7 +164,7 @@ export function PartnerDirectory({
                 setRegion("all");
                 setCountry("all");
               }}
-              className="mt-4 inline-flex min-h-11 items-center border border-white/20 px-4 text-[12px] tracking-[0.12em] text-foreground uppercase"
+              className="mt-4 inline-flex min-h-11 items-center border border-line-bold px-4 text-[12px] tracking-[0.12em] text-foreground uppercase"
             >
               Clear filters
             </button>
@@ -185,7 +185,7 @@ export function PartnerDirectory({
                 </h2>
                 {regionGroup.countries.map((countryGroup) => (
                   <div key={countryGroup.country} className="mt-4">
-                    <h3 className="border-b border-white/10 pb-2 font-display text-[1.2rem] tracking-[-0.03em] text-[#d7e4fb]">
+                    <h3 className="border-b border-line pb-2 font-display text-[1.2rem] tracking-[-0.03em] text-primary">
                       {countryGroup.country}
                     </h3>
                     <ul>
@@ -193,14 +193,14 @@ export function PartnerDirectory({
                         number += 1;
                         const label = String(number).padStart(2, "0");
                         return (
-                          <li key={institution.slug} className="border-b border-white/10">
+                          <li key={institution.slug} className="border-b border-line">
                             <Link
                               href={`/partners/${institution.slug}`}
                               className={cn(
-                                "group grid min-h-11 grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-x-3 px-1 py-4 transition-[background-color,box-shadow] duration-200 hover:bg-white/[0.025] hover:shadow-[inset_2px_0_0_#9ec9d4] sm:px-2",
+                                "group grid min-h-11 grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-x-3 px-1 py-4 transition-[background-color,box-shadow] duration-200 hover:bg-overlay-subtle hover:shadow-[inset_2px_0_0_var(--cyan)] sm:px-2",
                               )}
                             >
-                              <span className="font-mono text-[12px] tracking-[0.14em] text-[#7f93ab] transition-colors duration-200 group-hover:text-[#d7e4fb]">
+                              <span className="font-mono text-[12px] tracking-[0.14em] text-fg-subtle transition-colors duration-200 group-hover:text-primary">
                                 {label}
                               </span>
                               <span className="min-w-0">
@@ -212,7 +212,7 @@ export function PartnerDirectory({
                                 </span>
                               </span>
                               <ArrowRight
-                                className="size-4 text-[#8ea0b8] transition-transform duration-200 group-hover:text-[#d7e4fb] motion-safe:group-hover:translate-x-0.5"
+                                className="size-4 text-muted-foreground transition-transform duration-200 group-hover:text-primary motion-safe:group-hover:translate-x-0.5"
                                 aria-hidden="true"
                               />
                             </Link>

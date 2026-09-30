@@ -50,19 +50,19 @@ export function PartnerPreview() {
               title="From Jaipur to partner campuses."
               description="Select a country to see where it sits relative to MUJ, and the sample institutions placed there."
             />
-            <p className="border border-white/15 px-2.5 py-1 text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
+            <p className="border border-line-strong px-2.5 py-1 text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
               Illustrative partners
             </p>
           </div>
         </Reveal>
 
         <Reveal delay={80}>
-          <div className="mt-12 grid border border-white/10 lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)]">
+          <div className="mt-12 grid border border-line lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)]">
             <div
               role="tablist"
               aria-label="Partner countries by region"
               aria-orientation="vertical"
-              className="flex flex-col gap-0 border-b border-white/10 p-3 lg:max-h-[560px] lg:overflow-y-auto lg:border-r lg:border-b-0"
+              className="flex flex-col gap-0 border-b border-line p-3 lg:max-h-[560px] lg:overflow-y-auto lg:border-r lg:border-b-0"
               onKeyDown={(event) => {
                 if (event.key === "ArrowDown" || event.key === "ArrowRight") {
                   event.preventDefault();
@@ -88,9 +88,9 @@ export function PartnerPreview() {
               {regionOrder.map((region) => (
                 <div
                   key={region}
-                  className="mt-3 border-t border-white/10 pt-3 first:mt-0 first:border-t-0 first:pt-1"
+                  className="mt-3 border-t border-line pt-3 first:mt-0 first:border-t-0 first:pt-1"
                 >
-                  <p className="px-2 pb-1.5 text-[11px] tracking-[0.18em] text-[#c5d4e6] uppercase">
+                  <p className="px-2 pb-1.5 text-[11px] tracking-[0.18em] text-fg-soft uppercase">
                     {region}
                   </p>
                   {orderedPartners
@@ -110,13 +110,13 @@ export function PartnerPreview() {
                           className={cn(
                             "flex w-full items-baseline justify-between gap-3 border-l px-2 py-2 text-left transition-colors duration-200",
                             selected
-                              ? "border-[#9ec9d4] text-foreground"
+                              ? "border-cyan text-foreground"
                               : "border-transparent text-muted-foreground hover:text-foreground",
                           )}
                         >
                           <span>
                             <span className="block text-sm">{partner.country}</span>
-                            <span className="mt-0.5 block text-[12px] text-[#8ea0b8]">
+                            <span className="mt-0.5 block text-[12px] text-muted-foreground">
                               {partner.city}
                             </span>
                           </span>
@@ -131,7 +131,7 @@ export function PartnerPreview() {
               role="tabpanel"
               id={`${baseId}-panel`}
               aria-labelledby={`${baseId}-tab-${active.id}`}
-              className="flex min-h-[340px] flex-col justify-between bg-[#0b1220] p-6 sm:p-8"
+              className="flex min-h-[340px] flex-col justify-between bg-surface p-6 sm:p-8"
             >
               <div>
                 <p className="text-[11px] tracking-[0.2em] text-cyan uppercase">
@@ -140,12 +140,12 @@ export function PartnerPreview() {
                 <h3 className="mt-3 font-display text-[clamp(1.85rem,3.2vw,3rem)] leading-[1.02] tracking-[-0.04em] text-foreground">
                   {active.country}
                 </h3>
-                <p className="mt-2 text-sm text-[#c5d4e6]">{active.city}</p>
+                <p className="mt-2 text-sm text-fg-soft">{active.city}</p>
                 <p className="mt-4 max-w-lg text-sm leading-7 text-muted-foreground sm:text-[15px]">
                   {active.summary}
                 </p>
                 <Bearing city={active.city} lat={active.lat} lon={active.lon} />
-                <ul className="mt-8 divide-y divide-white/10 border-y border-white/10">
+                <ul className="mt-8 divide-y divide-line border-y border-line">
                   {active.universities.map((name) => (
                     <li
                       key={name}
@@ -167,7 +167,7 @@ export function PartnerPreview() {
                   href="/partners"
                   className={cn(
                     buttonVariants({ variant: "outline", size: "lg" }),
-                    "h-10 rounded-none border-white/20 bg-transparent px-4 text-foreground hover:bg-white/5",
+                    "h-10 rounded-none border-line-bold bg-transparent px-4 text-foreground hover:bg-overlay",
                   )}
                 >
                   View partner directory
@@ -194,14 +194,14 @@ function Bearing({ city, lat, lon }: { city: string; lat: number; lon: number })
         longitude from Jaipur
       </figcaption>
       <svg viewBox="0 0 480 36" aria-hidden="true" className="mt-2 h-7 w-full">
-        <line x1="16" y1="14" x2="464" y2="14" stroke="rgba(168,196,226,0.22)" strokeWidth="1" />
-        <circle cx={origin} cy="14" r="2.5" fill="#b7e0e8" />
-        <text x={origin - 16} y="30" fill="#8ea0b8" fontSize="10" fontFamily="inherit">
+        <line x1="16" y1="14" x2="464" y2="14" className="stroke-line-strong" strokeWidth="1" />
+        <circle cx={origin} cy="14" r="2.5" className="fill-viz-node" />
+        <text x={origin - 16} y="30" className="fill-muted-foreground" fontSize="10" fontFamily="inherit">
           Jaipur
         </text>
-        <line x1={origin} y1="14" x2={x} y2="14" stroke="rgba(184,206,226,0.7)" strokeWidth="1" />
-        <circle cx={x} cy="14" r="2.5" fill="#d7e4fb" />
-        <text x={Math.min(x, 410)} y="8" fill="#c5d4e6" fontSize="10" fontFamily="inherit">
+        <line x1={origin} y1="14" x2={x} y2="14" className="stroke-viz-route" strokeWidth="1" />
+        <circle cx={x} cy="14" r="2.5" className="fill-primary" />
+        <text x={Math.min(x, 410)} y="8" className="fill-fg-soft" fontSize="10" fontFamily="inherit">
           {city}
         </text>
       </svg>

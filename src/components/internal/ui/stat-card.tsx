@@ -6,13 +6,14 @@ export function StatCard({
   value,
   hint,
   icon: Icon,
-  accent = "#8eb7ee",
+  accent = "var(--glow)",
   href,
 }: {
   label: string;
   value: number | string;
   hint?: React.ReactNode;
   icon?: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  /** Any CSS color; pass a theme token such as `var(--cyan)` so it follows the theme. */
   accent?: string;
   href?: string;
 }) {
@@ -20,7 +21,10 @@ export function StatCard({
     <>
       <div
         className="stat-glow pointer-events-none absolute -top-6 -right-6 size-24 rounded-full blur-2xl"
-        style={{ backgroundColor: accent, opacity: 0.08 }}
+        style={{
+          backgroundColor: `color-mix(in srgb, ${accent} var(--stat-glow-strength), transparent)`,
+          opacity: 0.08,
+        }}
       />
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -29,20 +33,20 @@ export function StatCard({
             {value}
           </p>
         </div>
-        {Icon && <Icon className="size-5 shrink-0" style={{ color: `${accent}90` }} />}
+        {Icon && <Icon className="size-5 shrink-0" style={{ color: `color-mix(in srgb, ${accent} 56%, transparent)` }} />}
       </div>
       {hint && <div className="relative mt-3 text-[12px] text-muted-foreground/80">{hint}</div>}
     </>
   );
 
   const className =
-    "group relative block overflow-hidden rounded-xl border border-white/10 bg-[#0d1526] p-5";
+    "group relative block overflow-hidden rounded-xl border border-line bg-card p-5";
 
   if (href) {
     return (
       <Link
         href={href}
-        className={cn(className, "transition-all duration-300 hover:border-white/20 hover:bg-[#0f1a2e]")}
+        className={cn(className, "transition-all duration-300 hover:border-line-bold hover:bg-surface-raised")}
       >
         {body}
       </Link>

@@ -26,11 +26,11 @@ export function EmptyState({
     >
       <div
         className={cn(
-          "flex items-center justify-center rounded-xl border border-white/10 bg-[#101a2d]",
+          "flex items-center justify-center rounded-xl border border-line bg-surface-raised",
           compact ? "mb-3 size-10" : "mb-4 size-12",
         )}
       >
-        <Icon className={cn("text-[#6b7c96]", compact ? "size-4" : "size-5")} />
+        <Icon className={cn("text-fg-faint", compact ? "size-4" : "size-5")} />
       </div>
       <p className="font-display text-[15px] font-medium tracking-[-0.02em] text-foreground">
         {title}

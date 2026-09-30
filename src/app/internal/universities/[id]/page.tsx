@@ -131,7 +131,7 @@ export default async function UniversityDetailPage({ params }: IdParamsProp) {
               }))}
             />
             {opportunities.length > 0 && (
-              <p className="border-t border-white/[0.06] px-5 py-3 text-[12px] text-muted-foreground">
+              <p className="border-t border-hairline px-5 py-3 text-[12px] text-muted-foreground">
                 {opportunities.length} application{" "}
                 {opportunities.length === 1 ? "call references" : "calls reference"} this
                 institution.
@@ -168,7 +168,7 @@ export default async function UniversityDetailPage({ params }: IdParamsProp) {
                     institution.latitude !== null && institution.longitude !== null ? (
                       <span>
                         {institution.latitude.toFixed(2)}, {institution.longitude.toFixed(2)}
-                        <span className="block text-[12px] text-[#6b7c96]">
+                        <span className="block text-[12px] text-fg-faint">
                           Country pin only — not a checked campus location.
                         </span>
                       </span>

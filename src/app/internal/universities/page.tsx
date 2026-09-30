@@ -122,7 +122,7 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
             cell: (row) => (
               <span>
                 {row.country}
-                <span className="block text-[12px] text-[#6b7c96]">{row.region}</span>
+                <span className="block text-[12px] text-fg-faint">{row.region}</span>
               </span>
             ),
           },
@@ -137,11 +137,11 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
             className: "tabular-nums",
             cell: (row) =>
               row.agreementCount === 0 ? (
-                <span className="text-[#6b7c96]">—</span>
+                <span className="text-fg-faint">—</span>
               ) : (
                 <span>
                   {row.activeAgreementCount} active
-                  <span className="text-[#6b7c96]"> / {row.agreementCount}</span>
+                  <span className="text-fg-faint"> / {row.agreementCount}</span>
                 </span>
               ),
           },
@@ -150,7 +150,7 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
             header: "Next expiry",
             className: "whitespace-nowrap",
             cell: (row) =>
-              row.nextExpiry ? formatDate(row.nextExpiry) : <span className="text-[#6b7c96]">—</span>,
+              row.nextExpiry ? formatDate(row.nextExpiry) : <span className="text-fg-faint">—</span>,
           },
           {
             key: "source",

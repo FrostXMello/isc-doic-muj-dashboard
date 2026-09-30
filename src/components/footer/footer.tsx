@@ -6,7 +6,7 @@ import Link from "next/link";
 export function Footer() {
   const year = new Date().getFullYear();
   return (
-    <footer className="border-t border-white/10 bg-[#060910]">
+    <footer className="border-t border-line bg-sunken">
       <Container className="py-14">
         <div className="grid gap-12 md:grid-cols-12">
           <div className="md:col-span-5">
@@ -48,7 +48,7 @@ export function Footer() {
           </div>
         </div>
       </Container>
-      <div className="border-t border-white/10">
+      <div className="border-t border-line">
         <Container className="flex flex-col gap-3 py-5 text-[12px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>
             © {year} {site.university}. {site.managedBy}.

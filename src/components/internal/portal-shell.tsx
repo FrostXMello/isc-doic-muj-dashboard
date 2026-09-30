@@ -63,7 +63,7 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
   }, [mobileOpen, closeMobile]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#070b14]">
+    <div className="flex h-screen overflow-hidden bg-background">
       {/* Desktop sidebar */}
       <div className="hidden lg:block">
         <Sidebar collapsed={collapsed} onToggle={toggleCollapsed} />
@@ -74,7 +74,7 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 z-50 lg:hidden">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-scrim backdrop-blur-[2px]"
             onClick={closeMobile}
             aria-hidden
           />
@@ -83,7 +83,7 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
             <Sidebar collapsed={false} onToggle={closeMobile} />
             <button
               onClick={closeMobile}
-              className="absolute right-3 top-4 rounded-lg p-1.5 text-[#8a9ab4] transition-colors hover:bg-white/[0.04] hover:text-foreground"
+              className="absolute right-3 top-4 rounded-lg p-1.5 text-fg-subtle transition-colors hover:bg-overlay hover:text-foreground"
               aria-label="Close navigation"
             >
               <X className="size-5" />

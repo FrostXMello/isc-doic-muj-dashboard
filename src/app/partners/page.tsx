@@ -22,13 +22,13 @@ export default function PartnersPage() {
           lede="Browse the sample universities used on the home globe. Filter by region or country, or search by institution name. These are not confirmed partnerships of Manipal University Jaipur."
           meta="Illustrative partners"
         />
-        <p className="mt-6 max-w-2xl border-l border-white/20 pl-4 text-sm leading-6 text-muted-foreground">
+        <p className="mt-6 max-w-2xl border-l border-line-bold pl-4 text-sm leading-6 text-muted-foreground">
           Institutions only. Agreement status: Not published yet. Which
           programme applies to an institution: Not published yet. For the
           four descriptions of ways to study, read{" "}
           <Link
             href="/opportunities"
-            className="text-[#d7e4fb] underline-offset-4 hover:text-foreground hover:underline"
+            className="text-primary underline-offset-4 hover:text-foreground hover:underline"
           >
             opportunities
           </Link>

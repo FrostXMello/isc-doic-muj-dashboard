@@ -65,20 +65,20 @@ export default async function AgreementsPage({ searchParams }: SearchParamsProp)
       </DataNotice>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Active" value={count("active")} accent="#9fd8b8" href="/internal/mous?status=active" />
+        <StatCard label="Active" value={count("active")} accent="var(--success)" href="/internal/mous?status=active" />
         <StatCard
           label="Expiring soon"
           value={count("expiring-soon")}
-          accent="#e9c27d"
+          accent="var(--warning)"
           href="/internal/mous?status=expiring-soon"
         />
         <StatCard
           label="In progress"
           value={count("draft") + count("under-review") + count("pending-start")}
           hint="Draft, review, or not started"
-          accent="#8eb7ee"
+          accent="var(--glow)"
         />
-        <StatCard label="Expired" value={count("expired")} accent="#f0b4b4" href="/internal/mous?status=expired" />
+        <StatCard label="Expired" value={count("expired")} accent="var(--danger)" href="/internal/mous?status=expired" />
       </div>
 
       <FilterBar
@@ -138,7 +138,7 @@ export default async function AgreementsPage({ searchParams }: SearchParamsProp)
             cell: (row) => (
               <span>
                 <span className="font-medium">{row.institution?.name ?? "Unknown institution"}</span>
-                <span className="block font-mono text-[11px] text-[#6b7c96]">{row.reference}</span>
+                <span className="block font-mono text-[11px] text-fg-faint">{row.reference}</span>
               </span>
             ),
           },

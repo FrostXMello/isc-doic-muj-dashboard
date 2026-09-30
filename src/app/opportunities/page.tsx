@@ -33,15 +33,15 @@ export default function OpportunitiesPage() {
           meta="Descriptions only"
         />
 
-        <nav aria-label="Opportunity types" className="mt-10 border-t border-white/10">
+        <nav aria-label="Opportunity types" className="mt-10 border-t border-line">
           <ol>
             {opportunities.map((item, index) => (
-              <li key={item.id} className="border-b border-white/10">
+              <li key={item.id} className="border-b border-line">
                 <Link
                   href={`#${item.id}`}
                   className="grid min-h-11 grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-3 py-3 sm:px-2"
                 >
-                  <span className="font-mono text-[12px] tracking-[0.14em] text-[#7f93ab]">
+                  <span className="font-mono text-[12px] tracking-[0.14em] text-fg-subtle">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <span className="font-display text-[1.25rem] tracking-[-0.03em] text-foreground">
@@ -59,9 +59,9 @@ export default function OpportunitiesPage() {
               key={item.id}
               id={item.id}
               aria-labelledby={`${item.id}-title`}
-              className="scroll-mt-28 border-t border-white/10 py-8 sm:py-10"
+              className="scroll-mt-28 border-t border-line py-8 sm:py-10"
             >
-              <p className="font-mono text-[12px] tracking-[0.16em] text-[#7f93ab]">
+              <p className="font-mono text-[12px] tracking-[0.16em] text-fg-subtle">
                 {String(index + 1).padStart(2, "0")}
               </p>
               <h2
@@ -86,19 +86,19 @@ export default function OpportunitiesPage() {
                   <span className="flex flex-col sm:flex-row sm:flex-wrap sm:gap-x-6">
                     <Link
                       href="/partners"
-                      className="inline-flex min-h-11 items-center text-[#d7e4fb] hover:text-foreground"
+                      className="inline-flex min-h-11 items-center text-primary hover:text-foreground"
                     >
                       Compare institutions
                     </Link>
                     <Link
                       href="/about"
-                      className="inline-flex min-h-11 items-center text-[#d7e4fb] hover:text-foreground"
+                      className="inline-flex min-h-11 items-center text-primary hover:text-foreground"
                     >
                       Contact DoIC
                     </Link>
                     <Link
                       href="/student-portal"
-                      className="inline-flex min-h-11 items-center text-[#d7e4fb] hover:text-foreground"
+                      className="inline-flex min-h-11 items-center text-primary hover:text-foreground"
                     >
                       Student orientation
                     </Link>

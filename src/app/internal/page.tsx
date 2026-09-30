@@ -84,7 +84,7 @@ export default async function DashboardPage() {
           label="Countries"
           value={institutions.countries}
           icon={Globe}
-          accent="#9ec9d4"
+          accent="var(--cyan)"
           href="/internal/reports"
           hint={`Across ${institutions.byRegion.filter((r) => r.institutions > 0).length} regions`}
         />
@@ -92,7 +92,7 @@ export default async function DashboardPage() {
           label="Live agreements"
           value={liveAgreements}
           icon={FileText}
-          accent="#9fd8b8"
+          accent="var(--success)"
           href="/internal/mous"
           hint={`${agreements.total} recorded in total`}
         />
@@ -100,7 +100,7 @@ export default async function DashboardPage() {
           label="Open offerings"
           value={programs.byAvailability.open}
           icon={BookOpen}
-          accent="#c5daf8"
+          accent="var(--ring)"
           href="/internal/programs?availability=open"
           hint={`${openCalls} open application calls`}
         />
@@ -114,7 +114,7 @@ export default async function DashboardPage() {
             action={
               <Link
                 href="/internal/activities"
-                className="flex items-center gap-1 text-[12px] text-[#8a9ab4] transition-colors hover:text-foreground"
+                className="flex items-center gap-1 text-[12px] text-fg-subtle transition-colors hover:text-foreground"
               >
                 View all
                 <ArrowUpRight className="size-3.5" />
@@ -136,22 +136,22 @@ export default async function DashboardPage() {
 
         <Panel className="lg:col-span-2">
           <PanelHeader title="Needs attention" />
-          <ul className="divide-y divide-white/[0.06]">
+          <ul className="divide-y divide-hairline">
             {attention.map((item) => (
               <li key={item.label}>
                 <Link
                   href={item.href}
-                  className="group flex items-center gap-3.5 px-5 py-3.5 transition-colors hover:bg-white/[0.02]"
+                  className="group flex items-center gap-3.5 px-5 py-3.5 transition-colors hover:bg-overlay-subtle"
                 >
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#17243a] transition-colors group-hover:bg-[#1d2d48]">
-                    <item.icon className="size-4 text-[#8eb7ee]" />
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent transition-colors group-hover:bg-accent-strong">
+                    <item.icon className="size-4 text-glow" />
                   </div>
                   <p className="min-w-0 flex-1 text-[13px] text-foreground">{item.label}</p>
                   <span
                     className={
                       item.count > 0
-                        ? "font-display text-[1.25rem] leading-none text-[#f0d29c] tabular-nums"
-                        : "font-display text-[1.25rem] leading-none text-[#56657d] tabular-nums"
+                        ? "font-display text-[1.25rem] leading-none text-warning-fg tabular-nums"
+                        : "font-display text-[1.25rem] leading-none text-fg-dim tabular-nums"
                     }
                   >
                     {item.count}
@@ -184,7 +184,7 @@ export default async function DashboardPage() {
 
         <Panel className="lg:col-span-2">
           <PanelHeader title="Quick links" />
-          <ul className="divide-y divide-white/[0.06]">
+          <ul className="divide-y divide-hairline">
             {[
               { label: "Browse universities", href: "/internal/universities", icon: GraduationCap },
               { label: "Open application calls", href: "/internal/opportunities?status=open", icon: Compass },
@@ -194,11 +194,11 @@ export default async function DashboardPage() {
               <li key={action.label}>
                 <Link
                   href={action.href}
-                  className="group flex items-center gap-3.5 px-5 py-3.5 transition-colors hover:bg-white/[0.02]"
+                  className="group flex items-center gap-3.5 px-5 py-3.5 transition-colors hover:bg-overlay-subtle"
                 >
-                  <action.icon className="size-4 shrink-0 text-[#8eb7ee]" />
+                  <action.icon className="size-4 shrink-0 text-glow" />
                   <span className="text-[13px] text-foreground">{action.label}</span>
-                  <ArrowUpRight className="ml-auto size-4 shrink-0 text-[#4a5b73] transition-colors group-hover:text-[#8a9ab4]" />
+                  <ArrowUpRight className="ml-auto size-4 shrink-0 text-fg-dim transition-colors group-hover:text-fg-subtle" />
                 </Link>
               </li>
             ))}
@@ -211,12 +211,12 @@ export default async function DashboardPage() {
           title="Network by region"
           description="Institutions in the portal directory, grouped by region."
         />
-        <div className="grid grid-cols-1 divide-y divide-white/[0.06] sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4">
+        <div className="grid grid-cols-1 divide-y divide-hairline sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4">
           {institutions.byRegion.map((region) => (
             <Link
               key={region.region}
               href={`/internal/universities?region=${encodeURIComponent(region.region)}`}
-              className="border-white/[0.06] px-5 py-4 transition-colors hover:bg-white/[0.02] sm:border-r sm:last:border-r-0"
+              className="border-hairline px-5 py-4 transition-colors hover:bg-overlay-subtle sm:border-r sm:last:border-r-0"
             >
               <p className="font-mono text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
                 {region.region}

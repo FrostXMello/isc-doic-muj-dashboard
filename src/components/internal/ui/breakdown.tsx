@@ -29,13 +29,13 @@ export function Breakdown({
         const content = (
           <>
             <div className="flex items-baseline justify-between gap-3 text-[13px]">
-              <span className="truncate text-[#c3cedd]">{row.label}</span>
+              <span className="truncate text-fg-soft">{row.label}</span>
               <span className="shrink-0 text-foreground tabular-nums">
                 {row.count}
-                <span className="ml-1.5 text-[11px] text-[#6b7c96]">{percent}%</span>
+                <span className="ml-1.5 text-[11px] text-fg-faint">{percent}%</span>
               </span>
             </div>
-            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/[0.05]">
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-overlay">
               <div
                 className={cn("h-full rounded-full", toneStyles[row.tone ?? "info"].bar)}
                 style={{ width: `${percent}%` }}
@@ -48,7 +48,7 @@ export function Breakdown({
             {row.href ? (
               <Link
                 href={row.href}
-                className="-mx-2 block rounded-md px-2 py-1 transition-colors hover:bg-white/[0.03]"
+                className="-mx-2 block rounded-md px-2 py-1 transition-colors hover:bg-overlay-subtle"
               >
                 {content}
               </Link>

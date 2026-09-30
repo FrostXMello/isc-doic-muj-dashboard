@@ -26,7 +26,7 @@ export function PageIntro({
         {lede}
       </p>
       {meta ? (
-        <p className="mt-5 inline-block border border-white/20 px-2.5 py-1 text-[11px] tracking-[0.16em] text-[#d7e0ee] uppercase">
+        <p className="mt-5 inline-block border border-line-bold px-2.5 py-1 text-[11px] tracking-[0.16em] text-fg-soft uppercase">
           {meta}
         </p>
       ) : null}
@@ -42,11 +42,11 @@ export function Fact({
   children: ReactNode;
 }) {
   return (
-    <div className="border-b border-white/10 py-4">
+    <div className="border-b border-line py-4">
       <dt className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
         {label}
       </dt>
-      <dd className="mt-1.5 max-w-2xl text-[15px] leading-7 text-[#d5deec]">{children}</dd>
+      <dd className="mt-1.5 max-w-2xl text-[15px] leading-7 text-fg-soft">{children}</dd>
     </div>
   );
 }
@@ -55,7 +55,7 @@ export function Fact({
 export function Unpublished({ note }: { note?: string }) {
   return (
     <span className="block">
-      <span className="text-[#e7eef8]">Not published yet</span>
+      <span className="text-foreground">Not published yet</span>
       {note ? (
         <span className="mt-1 block text-sm leading-6 text-muted-foreground">{note}</span>
       ) : null}

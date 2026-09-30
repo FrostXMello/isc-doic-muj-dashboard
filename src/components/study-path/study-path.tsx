@@ -42,16 +42,16 @@ export function StudyPath({
       <p className="text-[11px] tracking-[0.18em] text-muted-foreground uppercase">
         {label}
       </p>
-      <ol className="mt-3 border-t border-white/10">
+      <ol className="mt-3 border-t border-line">
         {steps.map((step) => {
           const active = step.href === current;
           const className = cn(
             "grid min-h-11 grid-cols-[2.5rem_minmax(0,1fr)] gap-x-3 px-1 py-4 sm:grid-cols-[3rem_minmax(0,12rem)_minmax(0,1fr)] sm:items-baseline sm:gap-x-6 sm:px-2",
-            active && "shadow-[inset_2px_0_0_#9ec9d4]",
+            active && "shadow-[inset_2px_0_0_var(--cyan)]",
           );
           const body = (
             <>
-              <span className="font-mono text-[12px] tracking-[0.14em] text-[#7f93ab]">
+              <span className="font-mono text-[12px] tracking-[0.14em] text-fg-subtle">
                 {step.index}
               </span>
               <span className="font-display text-[1.15rem] tracking-[-0.03em] text-foreground sm:text-[1.25rem]">
@@ -63,7 +63,7 @@ export function StudyPath({
             </>
           );
           return (
-            <li key={step.href} className="border-b border-white/10">
+            <li key={step.href} className="border-b border-line">
               {active ? (
                 <div className={className} aria-current="page">
                   {body}
@@ -73,7 +73,7 @@ export function StudyPath({
                   href={step.href}
                   className={cn(
                     className,
-                    "transition-colors duration-200 hover:bg-white/[0.025]",
+                    "transition-colors duration-200 hover:bg-overlay-subtle",
                   )}
                 >
                   {body}

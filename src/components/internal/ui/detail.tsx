@@ -25,7 +25,7 @@ export function DetailHeader({
     <header className="space-y-4">
       <Link
         href={backHref}
-        className="inline-flex min-h-9 items-center gap-1.5 text-[13px] text-[#8a9ab4] transition-colors hover:text-foreground"
+        className="inline-flex min-h-9 items-center gap-1.5 text-[13px] text-fg-subtle transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" aria-hidden />
         {backLabel}
@@ -33,7 +33,7 @@ export function DetailHeader({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           {eyebrow && (
-            <p className="font-mono text-[11px] tracking-[0.14em] text-[#6b7c96] uppercase">
+            <p className="font-mono text-[11px] tracking-[0.14em] text-fg-faint uppercase">
               {eyebrow}
             </p>
           )}
@@ -89,14 +89,14 @@ export function KeyValueList({
         <div
           key={item.label}
           className={cn(
-            "border-b border-white/[0.06] px-5 py-3.5 last:border-b-0",
+            "border-b border-hairline px-5 py-3.5 last:border-b-0",
             item.wide && "sm:col-span-2",
           )}
         >
-          <dt className="font-mono text-[10px] tracking-[0.12em] text-[#6b7c96] uppercase">
+          <dt className="font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">
             {item.label}
           </dt>
-          <dd className="mt-1 text-[13px] leading-relaxed text-[#d2dcea]">{item.value}</dd>
+          <dd className="mt-1 text-[13px] leading-relaxed text-fg-soft">{item.value}</dd>
         </div>
       ))}
     </dl>
@@ -125,12 +125,12 @@ export function LinkedList({
     return <EmptyState compact title={emptyTitle} description={emptyDescription} />;
   }
   return (
-    <ul className="divide-y divide-white/[0.06]">
+    <ul className="divide-y divide-hairline">
       {items.map((item) => (
         <li key={item.key}>
           <Link
             href={item.href}
-            className="group flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-white/[0.02]"
+            className="group flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-overlay-subtle"
           >
             <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] text-foreground">{item.title}</p>
@@ -140,7 +140,7 @@ export function LinkedList({
             </div>
             {item.badge}
             <ChevronRight
-              className="size-4 shrink-0 text-[#4a5b73] transition-colors group-hover:text-[#8a9ab4]"
+              className="size-4 shrink-0 text-fg-dim transition-colors group-hover:text-fg-subtle"
               aria-hidden
             />
           </Link>

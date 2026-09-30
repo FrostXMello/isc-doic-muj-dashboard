@@ -34,14 +34,14 @@ export default function ProgramsPage() {
             one shows that wording. It does not show which institution, if any,
             is involved.
           </p>
-          <ol className="mt-6 border-t border-white/10">
+          <ol className="mt-6 border-t border-line">
             {opportunities.map((item, index) => (
-              <li key={item.id} className="border-b border-white/10">
+              <li key={item.id} className="border-b border-line">
                 <Link
                   href={`/opportunities#${item.id}`}
-                  className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 py-5 transition-colors hover:bg-white/[0.025] sm:grid-cols-[3rem_minmax(0,14rem)_minmax(0,1fr)] sm:items-baseline sm:gap-6 sm:px-2"
+                  className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 py-5 transition-colors hover:bg-overlay-subtle sm:grid-cols-[3rem_minmax(0,14rem)_minmax(0,1fr)] sm:items-baseline sm:gap-6 sm:px-2"
                 >
-                  <span className="font-mono text-[12px] tracking-[0.14em] text-[#7f93ab]">
+                  <span className="font-mono text-[12px] tracking-[0.14em] text-fg-subtle">
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <span className="font-display text-[1.3rem] tracking-[-0.03em] text-foreground">
@@ -63,7 +63,7 @@ export default function ProgramsPage() {
           >
             Unpublished.
           </h2>
-          <dl className="mt-4 border-t border-white/10">
+          <dl className="mt-4 border-t border-line">
             <Fact label="Which programme applies to a student">
               <Unpublished />
             </Fact>

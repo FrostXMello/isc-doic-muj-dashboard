@@ -8,10 +8,10 @@ export function Cta() {
   return (
     <section aria-labelledby="cta-heading" className="bg-background pb-20 sm:pb-28">
       <Container>
-        <div className="relative overflow-hidden border border-white/10 bg-[#0c1528] px-6 py-14 sm:px-12 sm:py-20">
+        <div className="relative overflow-hidden border border-line bg-surface-raised px-6 py-14 sm:px-12 sm:py-20">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute -top-24 right-[-10%] h-64 w-64 rounded-full bg-[#7ea0d4]/10 blur-3xl"
+            className="pointer-events-none absolute -top-24 right-[-10%] h-64 w-64 rounded-full bg-glow/10 blur-3xl"
           />
           <p className="text-[11px] font-medium tracking-[0.22em] text-cyan uppercase">
             Directorate of International Collaboration
@@ -35,7 +35,7 @@ export function Cta() {
               href="/partners"
               className={cn(
                 buttonVariants({ variant: "outline", size: "xl" }),
-                "border-white/20 bg-transparent text-foreground hover:bg-white/5",
+                "border-line-bold bg-transparent text-foreground hover:bg-overlay",
               )}
             >
               View Global Partners

@@ -49,13 +49,13 @@ export function PlaceholderAction({
           "inline-flex items-center gap-1.5 rounded-lg border font-medium whitespace-nowrap transition-colors",
           size === "sm" ? "h-8 px-2.5 text-[12px]" : "h-9 px-3 text-[13px]",
           variant === "primary"
-            ? "border-[#d7e4fb]/30 bg-[#d7e4fb]/10 text-[#d7e4fb] hover:bg-[#d7e4fb]/15"
-            : "border-white/10 bg-transparent text-[#a9b6cc] hover:border-white/20 hover:text-foreground",
+            ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
+            : "border-line bg-transparent text-muted-foreground hover:border-line-bold hover:text-foreground",
         )}
       >
         <Icon className="size-3.5" aria-hidden />
         {label}
-        <Lock className="size-3 text-[#6b7c96]" aria-label="Unavailable" />
+        <Lock className="size-3 text-fg-faint" aria-label="Unavailable" />
       </button>
 
       <dialog
@@ -64,12 +64,12 @@ export function PlaceholderAction({
         onClick={(event) => {
           if (event.target === event.currentTarget) event.currentTarget.close();
         }}
-        className="m-auto w-[min(92vw,26rem)] rounded-xl border border-white/10 bg-[#0d1526] p-0 text-foreground shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-[2px]"
+        className="m-auto w-[min(92vw,26rem)] rounded-xl border border-line bg-card p-0 text-foreground shadow-2xl backdrop:bg-scrim backdrop:backdrop-blur-[2px]"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4">
+        <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-[#17243a]">
-              <Lock className="size-4 text-[#9ec9d4]" aria-hidden />
+            <div className="flex size-8 items-center justify-center rounded-lg bg-accent">
+              <Lock className="size-4 text-cyan" aria-hidden />
             </div>
             <h2 id={titleId} className="font-display text-[15px] font-medium tracking-[-0.02em]">
               {label} is not available yet
@@ -78,7 +78,7 @@ export function PlaceholderAction({
           <button
             type="button"
             onClick={() => dialogRef.current?.close()}
-            className="rounded-lg p-1 text-[#8a9ab4] hover:bg-white/[0.04] hover:text-foreground"
+            className="rounded-lg p-1 text-fg-subtle hover:bg-overlay hover:text-foreground"
             aria-label="Close"
           >
             <X className="size-4" />
@@ -86,15 +86,15 @@ export function PlaceholderAction({
         </div>
         <div className="space-y-3 px-5 py-4 text-[13px] leading-relaxed text-muted-foreground">
           <p>{reason}</p>
-          <p className="font-mono text-[10px] tracking-[0.1em] text-[#6b7c96] uppercase">
+          <p className="font-mono text-[10px] tracking-[0.1em] text-fg-faint uppercase">
             Frontend preview · no data was changed
           </p>
         </div>
-        <div className="flex justify-end border-t border-white/10 px-5 py-3">
+        <div className="flex justify-end border-t border-line px-5 py-3">
           <button
             type="button"
             onClick={() => dialogRef.current?.close()}
-            className="h-9 rounded-lg border border-white/10 px-3 text-[13px] text-foreground hover:bg-white/[0.04]"
+            className="h-9 rounded-lg border border-line px-3 text-[13px] text-foreground hover:bg-overlay"
           >
             Understood
           </button>

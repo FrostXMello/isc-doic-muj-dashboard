@@ -25,7 +25,7 @@ export default function TermsPage() {
           >
             What the pages actually show.
           </h2>
-          <dl className="mt-4 border-t border-white/10">
+          <dl className="mt-4 border-t border-line">
             <Fact label="Institution names">
               Sample names on an illustrative network. They are not a published
               list of agreements.
@@ -46,7 +46,7 @@ export default function TermsPage() {
           >
             Not published yet.
           </h2>
-          <dl className="mt-4 border-t border-white/10">
+          <dl className="mt-4 border-t border-line">
             <Fact label="Terms of use">
               <Unpublished note="How the public pages, and later the portals, may be used." />
             </Fact>
@@ -55,7 +55,7 @@ export default function TermsPage() {
         <p className="mt-8">
           <Link
             href="/privacy"
-            className="inline-flex min-h-11 items-center text-sm text-[#d7e4fb] hover:text-foreground"
+            className="inline-flex min-h-11 items-center text-sm text-primary hover:text-foreground"
           >
             Privacy
           </Link>

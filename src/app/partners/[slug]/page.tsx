@@ -56,7 +56,7 @@ export default async function PartnerDetailPage({ params }: Props) {
           meta="Illustrative partner"
         />
 
-        <dl className="mt-10 max-w-3xl border-t border-white/10">
+        <dl className="mt-10 max-w-3xl border-t border-line">
           <Fact label="Region">{institution.region}</Fact>
           <Fact label="Country">{institution.country}</Fact>
           <Fact label="City">{institution.city}</Fact>
@@ -64,7 +64,7 @@ export default async function PartnerDetailPage({ params }: Props) {
             <span className="text-sm text-muted-foreground">
               {formatCoord(institution.lat, "N", "S")},{" "}
               {formatCoord(institution.lon, "E", "W")}
-              <span className="text-white/30"> · </span>
+              <span className="text-fg-dim"> · </span>
               {longitudeFromJaipur(institution.lon)}° of longitude from Jaipur.
               City position only, not a confirmed campus address.
             </span>
@@ -80,7 +80,7 @@ export default async function PartnerDetailPage({ params }: Props) {
           </Fact>
         </dl>
 
-        <aside className="mt-8 max-w-2xl border-l border-white/15 pl-4">
+        <aside className="mt-8 max-w-2xl border-l border-line-strong pl-4">
           <p className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
             Country note · illustrative
           </p>
@@ -92,7 +92,7 @@ export default async function PartnerDetailPage({ params }: Props) {
         <p className="mt-8 text-sm leading-relaxed text-muted-foreground">
           <Link
             href="/opportunities"
-            className="inline-flex min-h-11 items-center text-[#d7e4fb] hover:text-foreground"
+            className="inline-flex min-h-11 items-center text-primary hover:text-foreground"
           >
             Read opportunity descriptions
           </Link>
@@ -110,12 +110,12 @@ export default async function PartnerDetailPage({ params }: Props) {
               No other sample institution is listed for {institution.country}.
             </p>
           ) : (
-            <ul className="mt-4 border-t border-white/10">
+            <ul className="mt-4 border-t border-line">
               {peers.map((peer) => (
-                <li key={peer.slug} className="border-b border-white/10">
+                <li key={peer.slug} className="border-b border-line">
                   <Link
                     href={`/partners/${peer.slug}`}
-                    className="group flex min-h-11 items-center justify-between gap-4 py-4 text-foreground transition-colors hover:text-[#d7e4fb]"
+                    className="group flex min-h-11 items-center justify-between gap-4 py-4 text-foreground transition-colors hover:text-primary"
                   >
                     <span>
                       <span className="block font-display text-xl tracking-[-0.03em]">
@@ -126,7 +126,7 @@ export default async function PartnerDetailPage({ params }: Props) {
                       </span>
                     </span>
                     <ArrowRight
-                      className="size-4 shrink-0 text-[#8ea0b8] motion-safe:group-hover:translate-x-0.5"
+                      className="size-4 shrink-0 text-muted-foreground motion-safe:group-hover:translate-x-0.5"
                       aria-hidden="true"
                     />
                   </Link>

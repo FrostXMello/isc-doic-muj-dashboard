@@ -74,33 +74,33 @@ export default async function ReportsPage() {
         </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
           <StatCard label="Institutions" value={institutions.total} icon={GraduationCap} href="/internal/universities" />
-          <StatCard label="Countries" value={institutions.countries} icon={Globe} accent="#9ec9d4" />
+          <StatCard label="Countries" value={institutions.countries} icon={Globe} accent="var(--cyan)" />
           <StatCard
             label="Live agreements"
             value={liveAgreements}
             icon={FileText}
-            accent="#9fd8b8"
+            accent="var(--success)"
             href="/internal/mous?status=active"
           />
           <StatCard
             label="Open offerings"
             value={programs.byAvailability.open}
             icon={BookOpen}
-            accent="#c5daf8"
+            accent="var(--ring)"
             href="/internal/programs?availability=open"
           />
           <StatCard
             label="Open calls"
             value={openCalls}
             icon={Compass}
-            accent="#e9c27d"
+            accent="var(--warning)"
             href="/internal/opportunities?status=open"
           />
           <StatCard
             label="Upcoming activities"
             value={activities.upcoming.length}
             icon={CalendarDays}
-            accent="#a9b6cc"
+            accent="var(--muted-foreground)"
             href="/internal/activities?when=upcoming"
           />
         </div>
@@ -122,7 +122,7 @@ export default async function ReportsPage() {
               href: `/internal/universities?status=${status}`,
             }))}
           />
-          <p className="border-t border-white/[0.06] px-5 py-3 text-[12px] text-muted-foreground">
+          <p className="border-t border-hairline px-5 py-3 text-[12px] text-muted-foreground">
             {institutions.bySource.directory} from the public directory ·{" "}
             {institutions.bySource.sample} sample institutions
           </p>
@@ -133,27 +133,27 @@ export default async function ReportsPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[360px] text-left text-[13px]">
               <thead>
-                <tr className="border-b border-white/10 font-mono text-[10px] tracking-[0.12em] text-[#6b7c96] uppercase">
+                <tr className="border-b border-line font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">
                   <th scope="col" className="px-5 py-3 font-normal">Region</th>
                   <th scope="col" className="px-4 py-3 text-right font-normal">Institutions</th>
                   <th scope="col" className="px-4 py-3 text-right font-normal">Countries</th>
                   <th scope="col" className="px-5 py-3 text-right font-normal">With agreements</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.06] tabular-nums">
+              <tbody className="divide-y divide-hairline tabular-nums">
                 {institutions.byRegion.map((row) => (
                   <tr key={row.region}>
                     <th scope="row" className="px-5 py-3 font-normal text-foreground">
                       <Link
                         href={`/internal/universities?region=${encodeURIComponent(row.region)}`}
-                        className="hover:text-[#d7e4fb]"
+                        className="hover:text-primary"
                       >
                         {row.region}
                       </Link>
                     </th>
-                    <td className="px-4 py-3 text-right text-[#c3cedd]">{row.institutions}</td>
-                    <td className="px-4 py-3 text-right text-[#c3cedd]">{row.countries}</td>
-                    <td className="px-5 py-3 text-right text-[#c3cedd]">{row.withAgreements}</td>
+                    <td className="px-4 py-3 text-right text-fg-soft">{row.institutions}</td>
+                    <td className="px-4 py-3 text-right text-fg-soft">{row.countries}</td>
+                    <td className="px-5 py-3 text-right text-fg-soft">{row.withAgreements}</td>
                   </tr>
                 ))}
               </tbody>
@@ -177,8 +177,8 @@ export default async function ReportsPage() {
               href: `/internal/mous?status=${status}`,
             }))}
           />
-          <div className="border-t border-white/[0.06] px-5 py-3">
-            <p className="font-mono text-[10px] tracking-[0.12em] text-[#6b7c96] uppercase">By type</p>
+          <div className="border-t border-hairline px-5 py-3">
+            <p className="font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">By type</p>
             <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
               {agreementTypes
                 .filter((type) => agreements.byType[type] > 0)
@@ -219,7 +219,7 @@ export default async function ReportsPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-left text-[13px]">
               <thead>
-                <tr className="border-b border-white/10 font-mono text-[10px] tracking-[0.12em] text-[#6b7c96] uppercase">
+                <tr className="border-b border-line font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">
                   <th scope="col" className="px-5 py-3 font-normal">Programme</th>
                   <th scope="col" className="px-4 py-3 text-right font-normal">Offerings</th>
                   {(["open", "closed", "suspended", "not-recorded"] as const).map((key) => (
@@ -229,17 +229,17 @@ export default async function ReportsPage() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.06] tabular-nums">
+              <tbody className="divide-y divide-hairline tabular-nums">
                 {programs.byProgram.map((row) => (
                   <tr key={row.program.id}>
                     <th scope="row" className="px-5 py-3 font-normal text-foreground">
-                      <Link href={`/internal/programs?program=${row.program.id}`} className="hover:text-[#d7e4fb]">
+                      <Link href={`/internal/programs?program=${row.program.id}`} className="hover:text-primary">
                         {row.program.name}
                       </Link>
                     </th>
                     <td className="px-4 py-3 text-right text-foreground">{row.total}</td>
                     {(["open", "closed", "suspended", "not-recorded"] as const).map((key) => (
-                      <td key={key} className="px-4 py-3 text-right text-[#c3cedd] last:pr-5">
+                      <td key={key} className="px-4 py-3 text-right text-fg-soft last:pr-5">
                         {row.byAvailability[key]}
                       </td>
                     ))}
@@ -266,8 +266,8 @@ export default async function ReportsPage() {
               href: `/internal/opportunities?status=${status}`,
             }))}
           />
-          <div className="border-t border-white/[0.06]">
-            <p className="px-5 pt-3 font-mono text-[10px] tracking-[0.12em] text-[#6b7c96] uppercase">
+          <div className="border-t border-hairline">
+            <p className="px-5 pt-3 font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">
               Next deadlines
             </p>
             <LinkedList
@@ -299,8 +299,8 @@ export default async function ReportsPage() {
               href: `/internal/activities?status=${status}`,
             }))}
           />
-          <div className="border-t border-white/[0.06] px-5 py-3">
-            <p className="font-mono text-[10px] tracking-[0.12em] text-[#6b7c96] uppercase">By type</p>
+          <div className="border-t border-hairline px-5 py-3">
+            <p className="font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">By type</p>
             <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-muted-foreground">
               {activityTypes
                 .filter((type) => activities.byType[type] > 0)
@@ -312,8 +312,8 @@ export default async function ReportsPage() {
                 ))}
             </ul>
           </div>
-          <div className="border-t border-white/[0.06]">
-            <p className="px-5 pt-3 font-mono text-[10px] tracking-[0.12em] text-[#6b7c96] uppercase">
+          <div className="border-t border-hairline">
+            <p className="px-5 pt-3 font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">
               Coming up
             </p>
             <LinkedList
@@ -335,14 +335,14 @@ export default async function ReportsPage() {
             icon={FolderOpen}
             description={`${documents.total} document records · ${documents.withFile} with a stored file · ${documents.unlinked} not linked to any record`}
           />
-          <div className="grid grid-cols-2 divide-white/[0.06] sm:grid-cols-4 sm:divide-x">
+          <div className="grid grid-cols-2 divide-hairline sm:grid-cols-4 sm:divide-x">
             {documentStatuses.map((status) => (
               <Link
                 key={status}
                 href={`/internal/documents?status=${status}`}
-                className="px-5 py-4 transition-colors hover:bg-white/[0.02]"
+                className="px-5 py-4 transition-colors hover:bg-overlay-subtle"
               >
-                <p className="font-mono text-[10px] tracking-[0.12em] text-[#6b7c96] uppercase">
+                <p className="font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">
                   {documentStatusMeta[status].label}
                 </p>
                 <p className="mt-1.5 font-display text-[1.5rem] leading-none text-foreground tabular-nums">

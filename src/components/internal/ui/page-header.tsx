@@ -41,7 +41,7 @@ export function Panel({
 }: React.ComponentProps<"section">) {
   return (
     <section
-      className={cn("rounded-xl border border-white/10 bg-[#0d1526]", className)}
+      className={cn("rounded-xl border border-line bg-card", className)}
       {...props}
     >
       {children}
@@ -61,9 +61,9 @@ export function PanelHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4">
+    <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
       <div className="flex min-w-0 items-start gap-2.5">
-        {Icon && <Icon className="mt-0.5 size-4 shrink-0 text-[#8eb7ee]" />}
+        {Icon && <Icon className="mt-0.5 size-4 shrink-0 text-glow" />}
         <div className="min-w-0">
           <h2 className="font-display text-[15px] font-medium tracking-[-0.02em] text-foreground">
             {title}
@@ -81,5 +81,5 @@ export function PanelHeader({
 }
 
 export function NotRecorded({ children = "Not recorded" }: { children?: React.ReactNode }) {
-  return <span className="text-[#6b7c96] italic">{children}</span>;
+  return <span className="text-fg-faint italic">{children}</span>;
 }

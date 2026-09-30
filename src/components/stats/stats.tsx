@@ -41,15 +41,15 @@ function StatFigure({
 }) {
   const current = useCount(value, active);
   return (
-    <div className="flex h-full flex-col bg-[#080e1c] px-5 py-6 sm:px-6 sm:py-7">
+    <div className="flex h-full flex-col bg-surface px-5 py-6 sm:px-6 sm:py-7">
       <span className="font-mono text-[11px] tracking-[0.18em] text-muted-foreground">
         {String(index + 1).padStart(2, "0")}
       </span>
       <dd className="mt-6 font-display text-[clamp(2rem,2.5vw,2.7rem)] leading-none tracking-[-0.04em] text-foreground tabular-nums">
         {current}
-        <span className="text-[#9ec9d4]">{suffix}</span>
+        <span className="text-cyan">{suffix}</span>
       </dd>
-      <dt className="mt-3 text-[13px] leading-snug text-[#d5deec]">{label}</dt>
+      <dt className="mt-3 text-[13px] leading-snug text-fg-soft">{label}</dt>
       <p className="mt-auto pt-5 text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
         Illustrative
       </p>
@@ -82,7 +82,7 @@ export function Stats() {
       ref={ref}
       id="network"
       aria-labelledby="network-heading"
-      className="border-y border-white/10 bg-[#080e1c]"
+      className="border-y border-line bg-surface"
     >
       <Container className="py-12 sm:py-16">
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -98,7 +98,7 @@ export function Stats() {
             </h2>
           </div>
           <div className="ml-auto max-w-[16rem] sm:text-right">
-            <p className="border border-white/20 px-2.5 py-1 text-[11px] tracking-[0.18em] text-[#d7e0ee] uppercase">
+            <p className="border border-line-bold px-2.5 py-1 text-[11px] tracking-[0.18em] text-fg-soft uppercase">
               Demo figures
             </p>
             <p className="mt-2 text-[12px] leading-5 text-muted-foreground">
@@ -106,7 +106,7 @@ export function Stats() {
             </p>
           </div>
         </div>
-        <dl className="mt-8 grid gap-px bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
+        <dl className="mt-8 grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-4">
           {networkStats.map((stat, index) => (
             <StatFigure
               key={stat.id}

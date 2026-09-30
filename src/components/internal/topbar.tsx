@@ -1,5 +1,6 @@
 "use client";
 
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { internalNav } from "@/lib/internal-nav";
 import { Bell, Search, Menu, ChevronRight } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -43,11 +44,11 @@ export function Topbar({
   const pageTitle = getPageTitle(pathname);
 
   return (
-    <header className="flex h-16 shrink-0 items-center gap-4 border-b border-white/10 bg-[#0a1020]/80 px-4 backdrop-blur-sm sm:px-6">
+    <header className="flex h-16 shrink-0 items-center gap-4 border-b border-line bg-surface/80 px-4 backdrop-blur-sm sm:px-6">
       {/* Mobile menu toggle */}
       <button
         onClick={onMobileMenuToggle}
-        className="rounded-lg p-2 text-[#8a9ab4] transition-colors hover:bg-white/[0.04] hover:text-foreground lg:hidden"
+        className="rounded-lg p-2 text-fg-subtle transition-colors hover:bg-overlay hover:text-foreground lg:hidden"
         aria-label="Toggle navigation"
       >
         <Menu className="size-5" />
@@ -58,7 +59,7 @@ export function Topbar({
         {breadcrumbs.map((crumb, idx) => (
           <span key={crumb.href} className="flex items-center gap-1.5">
             {idx > 0 && (
-              <ChevronRight className="size-3.5 text-[#4a5b73]" aria-hidden />
+              <ChevronRight className="size-3.5 text-fg-dim" aria-hidden />
             )}
             {idx === breadcrumbs.length - 1 ? (
               <span className="text-[13px] font-medium tracking-[0.01em] text-foreground">
@@ -67,7 +68,7 @@ export function Topbar({
             ) : (
               <Link
                 href={crumb.href}
-                className="text-[13px] tracking-[0.01em] text-[#8a9ab4] transition-colors hover:text-foreground"
+                className="text-[13px] tracking-[0.01em] text-fg-subtle transition-colors hover:text-foreground"
               >
                 {crumb.label}
               </Link>
@@ -77,7 +78,7 @@ export function Topbar({
       </nav>
 
       {/* Page title — mobile */}
-      <h1 className="font-display text-[15px] tracking-[-0.02em] text-foreground lg:hidden">
+      <h1 className="min-w-0 truncate font-display text-[15px] tracking-[-0.02em] text-foreground lg:hidden">
         {pageTitle}
       </h1>
 
@@ -85,10 +86,12 @@ export function Topbar({
       <div className="flex-1" />
 
       {/* Right actions */}
-      <div className="flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1">
+        <ThemeToggle className="mr-1" />
+
         {/* Search (placeholder) */}
         <button
-          className="rounded-lg p-2 text-[#6b7c96] transition-colors hover:bg-white/[0.04] hover:text-[#9aa8bc]"
+          className="hidden rounded-lg p-2 text-fg-faint transition-colors hover:bg-overlay hover:text-muted-foreground sm:inline-flex"
           aria-label="Search"
           title="Search — coming soon"
         >
@@ -97,18 +100,18 @@ export function Topbar({
 
         {/* Notifications (placeholder) */}
         <button
-          className="relative rounded-lg p-2 text-[#6b7c96] transition-colors hover:bg-white/[0.04] hover:text-[#9aa8bc]"
+          className="relative hidden rounded-lg p-2 text-fg-faint transition-colors hover:bg-overlay hover:text-muted-foreground sm:inline-flex"
           aria-label="Notifications"
           title="Notifications — coming soon"
         >
           <Bell className="size-[18px]" />
           {/* Unread dot placeholder */}
-          <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-[#9ec9d4] opacity-0" />
+          <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-cyan opacity-0" />
         </button>
 
         {/* User avatar placeholder */}
         <div
-          className="ml-2 flex size-8 items-center justify-center rounded-full bg-[#17243a] text-[11px] font-medium tracking-[0.04em] text-[#9ec9d4]"
+          className="ml-2 flex size-8 items-center justify-center rounded-full bg-accent text-[11px] font-medium tracking-[0.04em] text-cyan"
           aria-label="User profile — not connected"
           title="Sign-in not connected"
         >

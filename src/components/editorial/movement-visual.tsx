@@ -9,7 +9,7 @@ const routes = [
 
 export function MovementVisual() {
   return (
-    <figure className="relative overflow-hidden border border-white/10 bg-[#0b1220]">
+    <figure className="relative overflow-hidden border border-line bg-surface">
       <svg
         viewBox="0 0 640 500"
         role="img"
@@ -21,32 +21,31 @@ export function MovementVisual() {
           cy="260"
           r="188"
           fill="none"
-          stroke="rgba(168,196,226,0.12)"
+          className="stroke-line"
         />
         <circle
           cx="300"
           cy="260"
           r="118"
           fill="none"
-          stroke="rgba(168,196,226,0.08)"
+          className="stroke-hairline"
         />
         {routes.map((route) => (
           <path
             key={route.city}
             d={route.d}
             fill="none"
-            stroke="#8eb4d4"
             strokeWidth="1.15"
-            className="route-flow"
+            className="route-flow stroke-viz-route"
           />
         ))}
         <g>
-          <circle cx="118" cy="268" r="11" fill="rgba(158,201,212,0.16)" className="node-pulse" />
-          <circle cx="118" cy="268" r="4.5" fill="#b7e0e8" />
-          <text x="132" y="264" fill="#e7eef8" fontSize="13" fontFamily="inherit">
+          <circle cx="118" cy="268" r="11" className="node-pulse fill-viz-halo" />
+          <circle cx="118" cy="268" r="4.5" className="fill-viz-node" />
+          <text x="132" y="264" className="fill-foreground" fontSize="13" fontFamily="inherit">
             Jaipur
           </text>
-          <text x="132" y="280" fill="#9ec9d4" fontSize="10" letterSpacing="1.4" fontFamily="inherit">
+          <text x="132" y="280" className="fill-cyan" fontSize="10" letterSpacing="1.4" fontFamily="inherit">
             MUJ
           </text>
         </g>
@@ -54,11 +53,11 @@ export function MovementVisual() {
           const end = routeEnd(route.d);
           return (
             <g key={route.city}>
-              <circle cx={end.x} cy={end.y} r="3" fill="#d7e4fb" />
+              <circle cx={end.x} cy={end.y} r="3" className="fill-primary" />
               <text
                 x={route.x}
                 y={route.y}
-                fill="#c5d2e6"
+                className="fill-fg-soft"
                 fontSize="12"
                 fontFamily="inherit"
               >
@@ -68,7 +67,7 @@ export function MovementVisual() {
           );
         })}
       </svg>
-      <figcaption className="border-t border-white/10 px-5 py-3 text-[12px] tracking-[0.04em] text-muted-foreground">
+      <figcaption className="border-t border-line px-5 py-3 text-[12px] tracking-[0.04em] text-muted-foreground">
         Movement between campuses — an illustration, not a flight map.
       </figcaption>
     </figure>

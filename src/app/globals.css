@@ -2,11 +2,39 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-fg-soft: var(--fg-soft);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-fg-faint: var(--fg-faint);
+  --color-fg-dim: var(--fg-dim);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-sunken: var(--sunken);
+  --color-accent-strong: var(--accent-strong);
+  --color-hairline: var(--hairline);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-line-bold: var(--line-bold);
+  --color-overlay-subtle: var(--overlay-subtle);
+  --color-overlay: var(--overlay);
+  --color-scrim: var(--scrim);
+  --color-success: var(--success);
+  --color-success-fg: var(--success-fg);
+  --color-warning: var(--warning);
+  --color-warning-fg: var(--warning-fg);
+  --color-danger: var(--danger);
+  --color-danger-fg: var(--danger-fg);
+  --color-glow-fg: var(--glow-fg);
+  --color-sample: var(--sample);
+  --color-sample-fg: var(--sample-fg);
+  --color-viz-route: var(--viz-route);
+  --color-viz-node: var(--viz-node);
+  --color-viz-halo: var(--viz-halo);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-display);
@@ -40,8 +68,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --color-glow: #8eb7ee;
-  --color-cyan: #9ec9d4;
+  --color-glow: var(--glow);
+  --color-cyan: var(--cyan);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -51,13 +79,27 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
+/*
+ * Theme tokens. Dark is the default (and the fallback when no preference or
+ * system signal exists); the inline script in the root layout sets
+ * data-theme on <html> before first paint.
+ */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
   --background: #070b14;
   --foreground: #e7eef8;
+  --fg-soft: #c3cedd;
+  --fg-subtle: #8a9ab4;
+  --fg-faint: #73849e;
+  --fg-dim: #4a5b73;
   --card: #0d1526;
   --card-foreground: #e7eef8;
   --popover: #10192c;
   --popover-foreground: #e7eef8;
+  --surface: #0b1220;
+  --surface-raised: #0f1a2e;
+  --sunken: #060910;
   --primary: #d7e4fb;
   --primary-foreground: #08111f;
   --secondary: #162033;
@@ -65,11 +107,37 @@
   --muted: #121a2b;
   --muted-foreground: #a9b6cc;
   --accent: #17243a;
+  --accent-strong: #1d2d48;
   --accent-foreground: #e7eef8;
   --destructive: #f0b4b4;
   --border: rgba(198, 214, 240, 0.14);
   --input: rgba(198, 214, 240, 0.2);
   --ring: #c5daf8;
+  --hairline: rgba(255, 255, 255, 0.06);
+  --line: rgba(255, 255, 255, 0.1);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --line-bold: rgba(255, 255, 255, 0.22);
+  --overlay-subtle: rgba(255, 255, 255, 0.025);
+  --overlay: rgba(255, 255, 255, 0.045);
+  --scrim: rgba(0, 0, 0, 0.6);
+  --glow: #8eb7ee;
+  --glow-fg: #b3cff5;
+  --cyan: #9ec9d4;
+  --success: #9fd8b8;
+  --success-fg: #b5e3c9;
+  --warning: #e9c27d;
+  --warning-fg: #f0d29c;
+  --danger: #f0b4b4;
+  --danger-fg: #f3c4c4;
+  --sample: #c9a8f0;
+  --sample-fg: #d5bdf3;
+  --viz-route: #8eb4d4;
+  --viz-node: #b7e0e8;
+  --viz-halo: rgba(158, 201, 212, 0.16);
+  --hero-glow: rgba(92, 140, 196, 0.11);
+  --stat-glow-strength: 100%;
+  --selection: rgba(158, 190, 240, 0.32);
+  --selection-foreground: #f7fbff;
   --chart-1: #8eb7ee;
   --chart-2: #9ec9d4;
   --chart-3: #a9b6cc;
@@ -87,38 +155,72 @@
   --header-h: 4.5rem;
 }
 
-.dark {
-  --background: #070b14;
-  --foreground: #e7eef8;
-  --card: #0d1526;
-  --card-foreground: #e7eef8;
-  --popover: #10192c;
-  --popover-foreground: #e7eef8;
-  --primary: #d7e4fb;
-  --primary-foreground: #08111f;
-  --secondary: #162033;
-  --secondary-foreground: #e7eef8;
-  --muted: #121a2b;
-  --muted-foreground: #a9b6cc;
-  --accent: #17243a;
-  --accent-foreground: #e7eef8;
-  --destructive: #f0b4b4;
-  --border: rgba(198, 214, 240, 0.14);
-  --input: rgba(198, 214, 240, 0.2);
-  --ring: #c5daf8;
-  --chart-1: #8eb7ee;
-  --chart-2: #9ec9d4;
-  --chart-3: #a9b6cc;
-  --chart-4: #d7e4fb;
+[data-theme="light"] {
+  color-scheme: light;
+  --background: #f6f4ef;
+  --foreground: #0d1526;
+  --fg-soft: #27354c;
+  --fg-subtle: #4d5b71;
+  --fg-faint: #58667c;
+  --fg-dim: #8a94a5;
+  --card: #ffffff;
+  --card-foreground: #0d1526;
+  --popover: #ffffff;
+  --popover-foreground: #0d1526;
+  --surface: #fbfaf7;
+  --surface-raised: #f1eee7;
+  --sunken: #eeebe4;
+  --primary: #1c355e;
+  --primary-foreground: #f8f7f3;
+  --secondary: #ebe8e1;
+  --secondary-foreground: #0d1526;
+  --muted: #efece6;
+  --muted-foreground: #45536b;
+  --accent: #e5ebf4;
+  --accent-strong: #d8e1ee;
+  --accent-foreground: #0d1526;
+  --destructive: #b3261e;
+  --border: rgba(13, 21, 38, 0.13);
+  --input: rgba(13, 21, 38, 0.2);
+  --ring: #2d5f9e;
+  --hairline: rgba(13, 21, 38, 0.075);
+  --line: rgba(13, 21, 38, 0.12);
+  --line-strong: rgba(13, 21, 38, 0.18);
+  --line-bold: rgba(13, 21, 38, 0.3);
+  --overlay-subtle: rgba(28, 53, 94, 0.035);
+  --overlay: rgba(28, 53, 94, 0.06);
+  --scrim: rgba(13, 21, 38, 0.38);
+  --glow: #2d5f9e;
+  --glow-fg: #234d85;
+  --cyan: #1d6776;
+  --success: #2f8a5b;
+  --success-fg: #1c6a42;
+  --warning: #c08a1f;
+  --warning-fg: #855400;
+  --danger: #c24848;
+  --danger-fg: #a02c2c;
+  --sample: #8657c4;
+  --sample-fg: #6639a8;
+  --viz-route: #4f7cab;
+  --viz-node: #1d6776;
+  --viz-halo: rgba(29, 103, 118, 0.14);
+  --hero-glow: rgba(45, 95, 158, 0.09);
+  --stat-glow-strength: 28%;
+  --selection: rgba(45, 95, 158, 0.2);
+  --selection-foreground: #0d1526;
+  --chart-1: #2d5f9e;
+  --chart-2: #1d6776;
+  --chart-3: #45536b;
+  --chart-4: #1c355e;
   --chart-5: #6e8eb8;
-  --sidebar: #0d1526;
-  --sidebar-foreground: #e7eef8;
-  --sidebar-primary: #d7e4fb;
-  --sidebar-primary-foreground: #08111f;
-  --sidebar-accent: #17243a;
-  --sidebar-accent-foreground: #e7eef8;
-  --sidebar-border: rgba(198, 214, 240, 0.14);
-  --sidebar-ring: #c5daf8;
+  --sidebar: #fbfaf7;
+  --sidebar-foreground: #0d1526;
+  --sidebar-primary: #1c355e;
+  --sidebar-primary-foreground: #f8f7f3;
+  --sidebar-accent: #e5ebf4;
+  --sidebar-accent-foreground: #0d1526;
+  --sidebar-border: rgba(13, 21, 38, 0.13);
+  --sidebar-ring: #2d5f9e;
 }
 
 @layer base {
@@ -129,15 +231,14 @@
     @apply font-sans;
     scroll-behavior: smooth;
     scroll-padding-top: var(--header-h);
-    color-scheme: dark;
   }
   body {
     @apply bg-background text-foreground;
     text-rendering: optimizeLegibility;
   }
   ::selection {
-    background: rgba(158, 190, 240, 0.32);
-    color: #f7fbff;
+    background: var(--selection);
+    color: var(--selection-foreground);
   }
   a:focus-visible,
   button:focus-visible,
@@ -149,8 +250,8 @@
 
 .hero-glow {
   background:
-    radial-gradient(ellipse 42% 38% at 68% 48%, rgba(92, 140, 196, 0.11), transparent 64%),
-    #070b14;
+    radial-gradient(ellipse 42% 38% at 68% 48%, var(--hero-glow), transparent 64%),
+    var(--background);
 }
 
 .reveal {
@@ -213,8 +314,8 @@
   z-index: 80;
   transform: translateY(-160%);
   border-radius: 999px;
-  background: #d7e4fb;
-  color: #08111f;
+  background: var(--primary);
+  color: var(--primary-foreground);
   padding: 0.55rem 1rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -270,7 +371,7 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(142, 183, 238, 0.06) 50%,
+    color-mix(in srgb, var(--glow) 7%, transparent) 50%,
     transparent 100%
   );
   background-size: 200% 100%;

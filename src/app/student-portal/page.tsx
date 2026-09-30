@@ -29,7 +29,7 @@ export default function StudentPortalPage() {
           >
             Not on this page.
           </h2>
-          <dl className="mt-4 border-t border-white/10">
+          <dl className="mt-4 border-t border-line">
             <Fact label="Sign-in">
               <Unpublished note="There is no account on this stage." />
             </Fact>

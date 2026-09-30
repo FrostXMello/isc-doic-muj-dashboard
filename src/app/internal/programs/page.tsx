@@ -75,8 +75,8 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
                 className={cn(
                   "block h-full rounded-xl border p-4 transition-colors",
                   active
-                    ? "border-[#9ec9d4]/40 bg-[#9ec9d4]/[0.06]"
-                    : "border-white/10 bg-[#0d1526] hover:border-white/20 hover:bg-[#0f1a2e]",
+                    ? "border-cyan/40 bg-cyan/[0.06]"
+                    : "border-line bg-card hover:border-line-bold hover:bg-surface-raised",
                 )}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -86,7 +86,7 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
                 <p className="mt-2 line-clamp-3 text-[12px] leading-relaxed text-muted-foreground">
                   {program.description}
                 </p>
-                <p className="mt-3 text-[12px] text-[#8a9ab4]">
+                <p className="mt-3 text-[12px] text-fg-subtle">
                   <span className="text-foreground tabular-nums">{program.offeringCount}</span>{" "}
                   {program.offeringCount === 1 ? "offering" : "offerings"} ·{" "}
                   <span className="text-foreground tabular-nums">{program.openCount}</span> open
@@ -161,7 +161,7 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
           {
             key: "duration",
             header: "Duration",
-            cell: (row) => row.duration ?? <span className="text-[#6b7c96]">Not recorded</span>,
+            cell: (row) => row.duration ?? <span className="text-fg-faint">Not recorded</span>,
           },
           {
             key: "window",
@@ -171,7 +171,7 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
               row.applicationStart || row.applicationEnd ? (
                 formatDateRange(row.applicationStart, row.applicationEnd)
               ) : (
-                <span className="text-[#6b7c96]">Not recorded</span>
+                <span className="text-fg-faint">Not recorded</span>
               ),
           },
         ]}

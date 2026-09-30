@@ -1,6 +1,7 @@
 "use client";
 
 import { Wordmark } from "@/components/brand/wordmark";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { portalNav, primaryNav } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -52,7 +53,7 @@ export function Navbar() {
       className={cn(
         "fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,backdrop-filter] duration-300 ease-out",
         scrolled || open
-          ? "border-white/10 bg-[#070b14]/94 backdrop-blur-[2px]"
+          ? "border-line bg-background/94 backdrop-blur-[2px]"
           : "border-transparent bg-transparent",
       )}
     >
@@ -81,8 +82,8 @@ export function Navbar() {
                 className={cn(
                   "py-1 text-[13px] tracking-[0.01em] transition-colors duration-200",
                   active
-                    ? "text-foreground shadow-[inset_0_-1px_0_0_#9ec9d4]"
-                    : "text-[#9aa8bc] hover:text-foreground",
+                    ? "text-foreground shadow-[inset_0_-1px_0_0_var(--cyan)]"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {item.label}
@@ -92,12 +93,13 @@ export function Navbar() {
         </nav>
 
         <div className="hidden items-center gap-2.5 lg:flex">
+          <ThemeToggle square />
           <Link
             href={portalNav[0].href}
             aria-current={isActive(pathname, portalNav[0].href) ? "page" : undefined}
             className={cn(
-              "border border-[#d7e4fb] bg-[#d7e4fb] px-3 py-[0.4rem] text-[12px] font-medium tracking-[0.01em] text-[#08111f] transition-colors duration-200 hover:bg-[#eef3fb]",
-              isActive(pathname, portalNav[0].href) && "shadow-[inset_0_-2px_0_0_#08111f]",
+              "border border-primary bg-primary px-3 py-[0.4rem] text-[12px] font-medium tracking-[0.01em] text-primary-foreground transition-colors duration-200 hover:bg-primary/90",
+              isActive(pathname, portalNav[0].href) && "shadow-[inset_0_-2px_0_0_var(--primary-foreground)]",
             )}
           >
             {portalNav[0].label}
@@ -108,8 +110,8 @@ export function Navbar() {
             className={cn(
               "border px-3 py-[0.4rem] text-[11px] tracking-[0.14em] uppercase transition-colors duration-200",
               isActive(pathname, portalNav[1].href)
-                ? "border-[#9ec9d4]/80 text-foreground"
-                : "border-white/18 text-[#9aa8bc] hover:border-white/40 hover:text-foreground",
+                ? "border-cyan/80 text-foreground"
+                : "border-line-strong text-muted-foreground hover:border-line-bold hover:text-foreground",
             )}
           >
             {portalNav[1].label}
@@ -119,7 +121,7 @@ export function Navbar() {
         <Button
           variant="outline"
           size="icon"
-          className="border-white/15 bg-transparent text-foreground hover:bg-white/5 lg:hidden"
+          className="border-line-strong bg-transparent text-foreground hover:bg-overlay lg:hidden"
           aria-expanded={open}
           aria-controls={menuId}
           onClick={() => setOpen((value) => !value)}
@@ -133,20 +135,20 @@ export function Navbar() {
         <nav
           id={menuId}
           aria-label="Mobile"
-          className="max-h-[calc(100svh-4.75rem)] overflow-y-auto border-t border-white/10 bg-[#070b14] px-5 py-6 lg:hidden"
+          className="max-h-[calc(100svh-4.75rem)] overflow-y-auto border-t border-line bg-background px-5 py-6 lg:hidden"
         >
           <ul className="flex flex-col">
             {primaryNav.map((item) => {
               const active = isActive(pathname, item.href);
               return (
-                <li key={item.href} className="border-b border-white/10">
+                <li key={item.href} className="border-b border-line">
                   <Link
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
                       "block py-3.5 font-display text-[1.65rem] tracking-[-0.03em]",
                       active
-                        ? "text-foreground shadow-[inset_0_-1px_0_0_#9ec9d4]"
+                        ? "text-foreground shadow-[inset_0_-1px_0_0_var(--cyan)]"
                         : "text-muted-foreground",
                     )}
                   >
@@ -156,13 +158,19 @@ export function Navbar() {
               );
             })}
           </ul>
+          <div className="mt-6">
+            <p className="mb-2 text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
+              Theme
+            </p>
+            <ThemeToggle variant="labeled" square />
+          </div>
           <div className="mt-6 flex flex-col gap-3">
             <Link
               href={portalNav[0].href}
               aria-current={isActive(pathname, portalNav[0].href) ? "page" : undefined}
               className={cn(
-                "bg-[#d7e4fb] px-4 py-3 text-center text-sm font-medium text-[#08111f]",
-                isActive(pathname, portalNav[0].href) && "shadow-[inset_0_-2px_0_0_#08111f]",
+                "bg-primary px-4 py-3 text-center text-sm font-medium text-primary-foreground",
+                isActive(pathname, portalNav[0].href) && "shadow-[inset_0_-2px_0_0_var(--primary-foreground)]",
               )}
             >
               {portalNav[0].label}
@@ -173,8 +181,8 @@ export function Navbar() {
               className={cn(
                 "border px-4 py-3 text-center text-[12px] tracking-[0.14em] uppercase",
                 isActive(pathname, portalNav[1].href)
-                  ? "border-[#9ec9d4]/80 text-foreground"
-                  : "border-white/20 text-muted-foreground",
+                  ? "border-cyan/80 text-foreground"
+                  : "border-line-bold text-muted-foreground",
               )}
             >
               {portalNav[1].label}

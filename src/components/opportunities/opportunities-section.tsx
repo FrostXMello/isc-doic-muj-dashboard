@@ -9,7 +9,7 @@ export function OpportunitiesSection() {
     <section
       id="opportunities"
       aria-labelledby="opportunities-heading"
-      className="bg-[#090f1c]"
+      className="bg-surface"
     >
       <Container className="py-20 sm:py-28">
         <Reveal>
@@ -20,7 +20,7 @@ export function OpportunitiesSection() {
             description="A first look at the kinds of international experience DoIC and the International Student Cell will publish in full."
           />
         </Reveal>
-        <div className="mt-12 border-t border-white/10">
+        <div className="mt-12 border-t border-line">
           {opportunities.map((item, index) => (
             <Reveal key={item.id} delay={index * 60}>
               <OpportunityCard

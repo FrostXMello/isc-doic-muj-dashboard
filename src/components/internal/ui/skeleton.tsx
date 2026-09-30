@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("portal-shimmer rounded-md bg-white/[0.04]", className)} aria-hidden />;
+  return <div className={cn("portal-shimmer rounded-md bg-overlay", className)} aria-hidden />;
 }
 
 export function ListPageSkeleton() {
@@ -16,14 +16,14 @@ export function ListPageSkeleton() {
         <Skeleton className="h-10 lg:w-40" />
         <Skeleton className="h-10 lg:w-40" />
       </div>
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-[#0d1526]">
-        <div className="border-b border-white/10 px-5 py-3">
+      <div className="overflow-hidden rounded-xl border border-line bg-card">
+        <div className="border-b border-line px-5 py-3">
           <Skeleton className="h-3 w-1/3" />
         </div>
         {Array.from({ length: 6 }, (_, index) => (
           <div
             key={index}
-            className="flex items-center gap-4 border-b border-white/[0.06] px-5 py-4 last:border-b-0"
+            className="flex items-center gap-4 border-b border-hairline px-5 py-4 last:border-b-0"
           >
             <Skeleton className="h-4 flex-1" />
             <Skeleton className="hidden h-4 w-24 md:block" />

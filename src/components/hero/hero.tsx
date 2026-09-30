@@ -12,8 +12,8 @@ export function Hero() {
         <div className="max-w-xl lg:max-w-[34rem]">
           <p className="hero-rise max-w-md text-[10px] leading-5 font-medium tracking-[0.12em] text-cyan uppercase sm:text-[11px] sm:tracking-[0.16em]">
             {site.university}
-            <span className="mx-2 text-white/25">/</span>
-            <span className="text-[#c5d4e6]">
+            <span className="mx-2 text-fg-dim">/</span>
+            <span className="text-fg-soft">
               {site.directorate} × {site.cell}
             </span>
           </p>
@@ -22,12 +22,12 @@ export function Hero() {
             style={{ animationDelay: "80ms" }}
           >
             Connecting MUJ
-            <span className="mt-[0.14em] block text-[0.72em] leading-[1.02] font-medium tracking-[-0.028em] text-[#b7c6dc]">
+            <span className="mt-[0.14em] block text-[0.72em] leading-[1.02] font-medium tracking-[-0.028em] text-fg-soft">
               to the World.
             </span>
           </h1>
           <p
-            className="hero-rise mt-5 max-w-md text-[15px] leading-7 text-[#c5d0e2] sm:mt-6 sm:text-base sm:leading-relaxed lg:text-[17px]"
+            className="hero-rise mt-5 max-w-md text-[15px] leading-7 text-fg-soft sm:mt-6 sm:text-base sm:leading-relaxed lg:text-[17px]"
             style={{ animationDelay: "150ms" }}
           >
             Discover international opportunities, explore MUJ&apos;s global
@@ -51,7 +51,7 @@ export function Hero() {
               href="/partners"
               className={cn(
                 buttonVariants({ variant: "outline", size: "xl" }),
-                "rounded-none border-white/20 bg-transparent text-foreground hover:bg-white/5",
+                "rounded-none border-line-bold bg-transparent text-foreground hover:bg-overlay",
               )}
             >
               Explore Global Partners

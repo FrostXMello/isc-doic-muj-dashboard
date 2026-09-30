@@ -29,7 +29,7 @@ function Location({ row }: { row: ActivityView }) {
   return (
     <span>
       {row.institution?.name ?? row.country}
-      <span className="block text-[12px] text-[#6b7c96]">
+      <span className="block text-[12px] text-fg-faint">
         {[row.city, row.institution ? row.country : null].filter(Boolean).join(" · ") || "—"}
       </span>
     </span>
@@ -77,15 +77,15 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
       </DataNotice>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Upcoming" value={upcoming} accent="#8eb7ee" href="/internal/activities?when=upcoming" />
+        <StatCard label="Upcoming" value={upcoming} accent="var(--glow)" href="/internal/activities?when=upcoming" />
         <StatCard
           label="Needs update"
           value={needsUpdate}
-          accent="#e9c27d"
+          accent="var(--warning)"
           href="/internal/activities?status=needs-update"
         />
-        <StatCard label="Completed" value={completed} accent="#9fd8b8" href="/internal/activities?status=completed" />
-        <StatCard label="Total recorded" value={all.length} accent="#a9b6cc" />
+        <StatCard label="Completed" value={completed} accent="var(--success)" href="/internal/activities?status=completed" />
+        <StatCard label="Total recorded" value={all.length} accent="var(--muted-foreground)" />
       </div>
 
       <FilterBar
@@ -151,7 +151,7 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
             cell: (row) => (
               <span>
                 {formatDateRange(row.startDate, row.endDate)}
-                <span className="block text-[12px] text-[#6b7c96]">
+                <span className="block text-[12px] text-fg-faint">
                   {formatRelativeDays(row.daysFromToday)}
                 </span>
               </span>

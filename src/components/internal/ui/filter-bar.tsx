@@ -96,7 +96,7 @@ export function FilterBar({
             {searchPlaceholder}
           </label>
           <Search
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#6b7c96]"
+            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-faint"
             aria-hidden
           />
           <input
@@ -105,13 +105,13 @@ export function FilterBar({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={searchPlaceholder}
-            className="h-10 w-full rounded-lg border border-white/10 bg-[#0d1526] pr-9 pl-9 text-[13px] text-foreground placeholder:text-[#6b7c96] focus:border-[#8eb7ee]/50 focus:outline-none"
+            className="h-10 w-full rounded-lg border border-line bg-card pr-9 pl-9 text-[13px] text-foreground placeholder:text-fg-faint focus:border-glow/50 focus:outline-none"
           />
           {query && (
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 text-[#6b7c96] hover:text-foreground"
+              className="absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 text-fg-faint hover:text-foreground"
               aria-label="Clear search"
             >
               <X className="size-3.5" />
@@ -140,7 +140,7 @@ export function FilterBar({
           {totalCount === 1 ? noun.singular : noun.plural}
         </p>
         {pending && (
-          <span className="inline-flex items-center gap-1.5 text-[#8eb7ee]">
+          <span className="inline-flex items-center gap-1.5 text-glow">
             <LoaderCircle className="size-3.5 animate-spin" aria-hidden />
             Updating
           </span>
@@ -149,7 +149,7 @@ export function FilterBar({
           <button
             type="button"
             onClick={clearAll}
-            className="inline-flex items-center gap-1 rounded text-[#8eb7ee] hover:text-foreground"
+            className="inline-flex items-center gap-1 rounded text-glow hover:text-foreground"
           >
             <X className="size-3.5" aria-hidden />
             Clear filters
@@ -181,8 +181,8 @@ function FilterSelectControl({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className={cn(
-          "h-10 w-full appearance-none rounded-lg border bg-[#0d1526] pr-9 pl-3 text-[13px] focus:border-[#8eb7ee]/50 focus:outline-none lg:min-w-40",
-          isSet ? "border-[#8eb7ee]/40 text-foreground" : "border-white/10 text-[#a9b6cc]",
+          "h-10 w-full appearance-none rounded-lg border bg-card pr-9 pl-3 text-[13px] focus:border-glow/50 focus:outline-none lg:min-w-40",
+          isSet ? "border-glow/40 text-foreground" : "border-line text-muted-foreground",
         )}
       >
         {select.allLabel && <option value="">{select.allLabel}</option>}
@@ -193,7 +193,7 @@ function FilterSelectControl({
         ))}
       </select>
       <ChevronDown
-        className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-[#6b7c96]"
+        className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-fg-faint"
         aria-hidden
       />
     </div>

@@ -11,7 +11,7 @@ export function Wordmark({
 }) {
   return (
     <span className={cn("flex items-center gap-3", className)}>
-      <Mark className="size-8 shrink-0 text-[#d5e4fb]" />
+      <Mark className="size-8 shrink-0 text-primary" />
       <span className="min-w-0 text-left">
         <span className="block font-display text-[15px] leading-none tracking-[0.18em] text-foreground">
           {site.shortName}

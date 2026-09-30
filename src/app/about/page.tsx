@@ -27,13 +27,13 @@ export default function AboutPage() {
           >
             What the office is for.
           </h2>
-          <ol className="mt-6 border-t border-white/10">
+          <ol className="mt-6 border-t border-line">
             {classroomPoints.map((point) => (
               <li
                 key={point.index}
-                className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 border-b border-white/10 py-5 sm:grid-cols-[3rem_minmax(0,14rem)_minmax(0,1fr)] sm:gap-6 sm:px-2"
+                className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 border-b border-line py-5 sm:grid-cols-[3rem_minmax(0,14rem)_minmax(0,1fr)] sm:gap-6 sm:px-2"
               >
-                <span className="font-mono text-[12px] tracking-[0.14em] text-[#7f93ab]">
+                <span className="font-mono text-[12px] tracking-[0.14em] text-fg-subtle">
                   {point.index}
                 </span>
                 <h3 className="font-display text-[1.3rem] tracking-[-0.03em] text-foreground">
@@ -54,7 +54,7 @@ export default function AboutPage() {
           >
             How to find the office.
           </h2>
-          <dl className="mt-4 border-t border-white/10">
+          <dl className="mt-4 border-t border-line">
             <Fact label="Directorate">{contact.office}</Fact>
             <Fact label="Cell">{contact.cell}</Fact>
             <Fact label="University">{contact.university}</Fact>

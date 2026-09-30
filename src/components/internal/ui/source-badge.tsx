@@ -13,8 +13,8 @@ export function SourceBadge({ source, className }: { source: RecordSource; class
       className={cn(
         "inline-flex shrink-0 items-center gap-1 rounded-md border px-1.5 py-0.5 font-mono text-[10px] leading-4 tracking-[0.08em] whitespace-nowrap uppercase",
         sample
-          ? "border-[#c9a8f0]/25 bg-[#c9a8f0]/[0.06] text-[#d5bdf3]"
-          : "border-white/10 text-[#8a9ab4]",
+          ? "border-sample/25 bg-sample/[0.06] text-sample-fg"
+          : "border-line text-fg-subtle",
         className,
       )}
     >
@@ -27,9 +27,9 @@ export function SourceBadge({ source, className }: { source: RecordSource; class
 /** Page-level notice explaining which records are sample data. */
 export function DataNotice({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex gap-3 rounded-lg border border-[#c9a8f0]/20 bg-[#c9a8f0]/[0.04] px-4 py-3">
-      <Info className="mt-0.5 size-4 shrink-0 text-[#d5bdf3]" aria-hidden />
-      <p className="text-[13px] leading-relaxed text-[#cdbbe6]">{children}</p>
+    <div className="flex gap-3 rounded-lg border border-sample/20 bg-sample/[0.04] px-4 py-3">
+      <Info className="mt-0.5 size-4 shrink-0 text-sample-fg" aria-hidden />
+      <p className="text-[13px] leading-relaxed text-sample-fg">{children}</p>
     </div>
   );
 }

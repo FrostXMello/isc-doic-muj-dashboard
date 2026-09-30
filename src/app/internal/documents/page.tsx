@@ -33,12 +33,12 @@ const linkFilterLabel: Record<DocumentLinkFilter, string> = {
 };
 
 function LinkSummary({ doc }: { doc: DocumentView }) {
-  if (doc.links.length === 0) return <span className="text-[#6b7c96]">Not linked</span>;
+  if (doc.links.length === 0) return <span className="text-fg-faint">Not linked</span>;
   const [first, ...rest] = doc.links;
   return (
     <span className="text-[12px]">
       {first.label}
-      {rest.length > 0 && <span className="text-[#6b7c96]"> +{rest.length} more</span>}
+      {rest.length > 0 && <span className="text-fg-faint"> +{rest.length} more</span>}
     </span>
   );
 }

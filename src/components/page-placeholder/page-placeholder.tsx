@@ -44,9 +44,9 @@ export function PagePlaceholder({
 
         <section
           aria-labelledby="coming-next"
-          className="mt-14 border border-white/10 bg-[#0c1424]"
+          className="mt-14 border border-line bg-surface"
         >
-          <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-white/10 px-6 py-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line px-6 py-4">
             <h2 id="coming-next" className="font-display text-xl tracking-[-0.03em]">
               Coming next
             </h2>
@@ -58,7 +58,7 @@ export function PagePlaceholder({
             {next.map((item, index) => (
               <li
                 key={item.title}
-                className="grid grid-cols-[auto_1fr] gap-4 border-b border-white/10 px-6 py-5 last:border-b-0"
+                className="grid grid-cols-[auto_1fr] gap-4 border-b border-line px-6 py-5 last:border-b-0"
               >
                 <span className="pt-0.5 font-display text-sm tracking-[0.14em] text-cyan">
                   {String(index + 1).padStart(2, "0")}
@@ -82,7 +82,7 @@ export function PagePlaceholder({
                 href={item.href}
                 className={cn(
                   buttonVariants({ variant: "outline", size: "lg" }),
-                  "h-10 rounded-full border-white/20 bg-transparent px-4 text-foreground hover:bg-white/5",
+                  "h-10 rounded-full border-line-bold bg-transparent px-4 text-foreground hover:bg-overlay",
                 )}
               >
                 {item.label}
