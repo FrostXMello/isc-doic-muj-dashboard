@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     template: "%s · Internal Portal · DoIC MUJ",
   },
   description:
-    "Staff workspace for the Directorate of International Collaboration at Manipal University Jaipur.",
+    "Staff workspace for the Directorate of International Collaborations (DoIC) at Manipal University Jaipur.",
   robots: { index: false, follow: false },
 };
 

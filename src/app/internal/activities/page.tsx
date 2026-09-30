@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getDataMode } from "@/lib/internal/data/context";
 import { SearchX } from "lucide-react";
 import { ActivityStatusBadge } from "@/components/internal/badges";
 import { EmptyState } from "@/components/internal/ui/empty-state";
@@ -38,7 +39,7 @@ function Location({ row }: { row: ActivityView }) {
 
 export default async function ActivitiesPage({ searchParams }: SearchParamsProp) {
   const params = await searchParams;
-  const options = await getActivityFilterOptions();
+  const [options, mode] = await Promise.all([getActivityFilterOptions(), getDataMode()]);
 
   const [rows, all] = await Promise.all([
     listActivities({
@@ -71,9 +72,12 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
       />
 
       <DataNotice>
-        All activities are <strong className="font-medium">sample data</strong>: generic,
-        fictional visits and events used to demonstrate the log. They do not record real
-        delegations or events.
+        Activities are recorded only where an official MUJ page documents them (news, event, and
+        programme pages), with the source linked on each record. Details the page does not state,
+        such as participants or outcomes, are left <em>Not recorded</em>.
+        {mode.sampleData
+          ? " Fictional sample activities are included because INTERNAL_SAMPLE_DATA is on."
+          : null}
       </DataNotice>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

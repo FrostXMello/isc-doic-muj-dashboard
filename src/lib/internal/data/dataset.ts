@@ -1,9 +1,21 @@
 import { activitySeed } from "@/lib/internal/data/seed/activities";
 import { agreementSeed } from "@/lib/internal/data/seed/agreements";
 import { documentLinkSeed, documentSeed } from "@/lib/internal/data/seed/documents";
-import { institutionSeed } from "@/lib/internal/data/seed/institutions";
+import {
+  legacyDirectoryInstitutions,
+  sampleInstitutions,
+} from "@/lib/internal/data/seed/institutions";
 import { opportunitySeed } from "@/lib/internal/data/seed/opportunities";
-import { availabilitySeed, programSeed } from "@/lib/internal/data/seed/programs";
+import { availabilitySeed } from "@/lib/internal/data/seed/programs";
+import {
+  officialActivities,
+  officialAvailability,
+  officialDocumentLinks,
+  officialDocuments,
+  officialOpportunities,
+  officialPrograms,
+} from "@/lib/official/internationalization";
+import { officialAgreementRecords, officialInstitutionRecords } from "@/lib/official/records";
 import type {
   Activity,
   Agreement,
@@ -27,14 +39,48 @@ export type Dataset = {
   activities: readonly Activity[];
 };
 
-/** The typed seed modules in ./seed — the default source. */
-export const staticDataset: Dataset = {
-  institutions: institutionSeed,
+/** Official MUJ records plus earlier directory names kept for review. */
+export const officialDataset: Dataset = {
+  institutions: [...officialInstitutionRecords, ...legacyDirectoryInstitutions],
+  agreements: officialAgreementRecords,
+  programs: officialPrograms,
+  availability: officialAvailability,
+  opportunities: officialOpportunities,
+  documents: officialDocuments,
+  documentLinks: officialDocumentLinks,
+  activities: officialActivities,
+};
+
+/** Fictional rows for demonstrating the workflow (INTERNAL_SAMPLE_DATA=true). */
+export const sampleDataset: Omit<Dataset, "programs"> = {
+  institutions: sampleInstitutions,
   agreements: agreementSeed,
-  programs: programSeed,
   availability: availabilitySeed,
   opportunities: opportunitySeed,
   documents: documentSeed,
   documentLinks: documentLinkSeed,
   activities: activitySeed,
 };
+
+/**
+ * Sample rows are off unless INTERNAL_SAMPLE_DATA is exactly "true", and never
+ * on the Vercel production deployment, whatever the variable says.
+ */
+export function sampleDataEnabled() {
+  if (process.env.VERCEL_ENV === "production") return false;
+  return process.env.INTERNAL_SAMPLE_DATA === "true";
+}
+
+export function staticDataset(includeSamples = sampleDataEnabled()): Dataset {
+  if (!includeSamples) return officialDataset;
+  return {
+    institutions: [...officialDataset.institutions, ...sampleDataset.institutions],
+    agreements: [...officialDataset.agreements, ...sampleDataset.agreements],
+    programs: officialDataset.programs,
+    availability: [...officialDataset.availability, ...sampleDataset.availability],
+    opportunities: [...officialDataset.opportunities, ...sampleDataset.opportunities],
+    documents: [...officialDataset.documents, ...sampleDataset.documents],
+    documentLinks: [...officialDataset.documentLinks, ...sampleDataset.documentLinks],
+    activities: [...officialDataset.activities, ...sampleDataset.activities],
+  };
+}

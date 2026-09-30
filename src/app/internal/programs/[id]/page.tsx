@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BookOpen, ClipboardList, Compass, FileText, FolderOpen, GraduationCap } from "lucide-react";
+import { BookOpen, ClipboardList, Compass, FileText, FolderOpen, GraduationCap, Link2 } from "lucide-react";
 import { notFound } from "next/navigation";
 import {
   AgreementStatusBadge,
@@ -13,6 +13,7 @@ import {
   PlaceholderAction,
   unavailableReasons,
 } from "@/components/internal/ui/placeholder-action";
+import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getOffering } from "@/lib/internal/data/programs";
 import { formatDate, formatDateRange } from "@/lib/internal/dates";
@@ -50,11 +51,14 @@ export default async function ProgramOfferingPage({ params }: IdParamsProp) {
         backLabel="All programs"
         eyebrow={program.name}
         title={institution ? `${program.name} · ${institution.name}` : program.name}
-        subtitle={institution ? `${institution.city} · ${institution.country}` : undefined}
+        subtitle={
+          institution ? [institution.city, institution.country].filter(Boolean).join(" · ") : undefined
+        }
         badges={
           <>
             <AvailabilityBadge availability={offering.availability} />
             <SourceBadge source={offering.source} />
+            <VerificationBadge status={offering.verification} />
           </>
         }
         actions={
@@ -111,6 +115,10 @@ export default async function ProgramOfferingPage({ params }: IdParamsProp) {
             </div>
           </DetailSection>
 
+          <DetailSection title="Provenance" icon={Link2}>
+            <KeyValueList items={provenanceItems(offering)} />
+          </DetailSection>
+
           <DetailSection title="Application calls" icon={Compass}>
             <LinkedList
               emptyTitle="No application calls for this offering"
@@ -126,7 +134,7 @@ export default async function ProgramOfferingPage({ params }: IdParamsProp) {
         </div>
 
         <div className="space-y-6">
-          <DetailSection title="Partner university" icon={GraduationCap}>
+          <DetailSection title="Institution" icon={GraduationCap}>
             {institution ? (
               <LinkedList
                 emptyTitle=""
@@ -135,7 +143,7 @@ export default async function ProgramOfferingPage({ params }: IdParamsProp) {
                     key: institution.id,
                     href: `/internal/universities/${institution.id}`,
                     title: institution.name,
-                    meta: `${institution.city} · ${institution.country}`,
+                    meta: [institution.city, institution.country].filter(Boolean).join(" · "),
                     badge: <SourceBadge source={institution.source} />,
                   },
                 ]}

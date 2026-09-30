@@ -1,5 +1,5 @@
 import "server-only";
-import type { Dataset } from "@/lib/internal/data/dataset";
+import { type Dataset, sampleDataEnabled } from "@/lib/internal/data/dataset";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   Activity,
@@ -14,6 +14,7 @@ import type {
   DocumentStatus,
   DocumentType,
   Institution,
+  InstitutionContact,
   Opportunity,
   OpportunityRecordStatus,
   Program,
@@ -22,6 +23,8 @@ import type {
   RecordSource,
   Region,
   RenewalMode,
+  VerificationStatus,
+  Provenance,
 } from "@/lib/internal/types";
 
 /**
@@ -36,19 +39,33 @@ import type {
 
 type Ref<K extends string> = { [key in K]: string } | null;
 
+type ProvenanceRow = {
+  source_url: string | null;
+  source_title: string | null;
+  source_checked_on: string | null;
+  verification: VerificationStatus;
+};
+
+function toProvenance(row: ProvenanceRow): Provenance {
+  return {
+    sourceUrl: row.source_url,
+    sourceTitle: row.source_title,
+    sourceCheckedOn: row.source_checked_on,
+    verification: row.verification,
+  };
+}
+
 type CountryRow = {
   slug: string;
   name: string;
-  hub_city: string | null;
-  hub_latitude: number | null;
-  hub_longitude: number | null;
-  summary: string | null;
   region: { name: string } | null;
 } | null;
 
-type InstitutionRow = {
+type InstitutionRow = ProvenanceRow & {
   slug: string;
   name: string;
+  normalized_name: string | null;
+  is_public: boolean;
   city: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -58,11 +75,13 @@ type InstitutionRow = {
   country: CountryRow;
 };
 
-type AgreementRow = {
+type AgreementRow = ProvenanceRow & {
   code: string;
   reference: string;
   title: string;
   agreement_type: AgreementType;
+  type_label: string | null;
+  source_section: string | null;
   record_status: AgreementRecordStatus;
   start_date: string | null;
   end_date: string | null;
@@ -73,7 +92,7 @@ type AgreementRow = {
   areas: { position: number; area: Ref<"name"> }[];
 };
 
-type ProgramRow = {
+type ProgramRow = ProvenanceRow & {
   program_type: ProgramType;
   name: string;
   description: string;
@@ -81,7 +100,7 @@ type ProgramRow = {
   data_source: RecordSource;
 };
 
-type AvailabilityRow = {
+type AvailabilityRow = ProvenanceRow & {
   code: string;
   availability: AvailabilityState | null;
   duration: string | null;
@@ -97,7 +116,7 @@ type AvailabilityRow = {
   agreement: Ref<"code">;
 };
 
-type OpportunityRow = {
+type OpportunityRow = ProvenanceRow & {
   code: string;
   title: string;
   opens_on: string | null;
@@ -110,13 +129,15 @@ type OpportunityRow = {
   institution: Ref<"slug">;
 };
 
-type DocumentRow = {
+type DocumentRow = ProvenanceRow & {
   code: string;
   title: string;
   document_type: DocumentType;
   status: DocumentStatus;
   revised_on: string | null;
   storage_path: string | null;
+  external_url: string | null;
+  publicly_accessible: boolean;
   description: string | null;
   data_source: RecordSource;
 };
@@ -131,7 +152,7 @@ type DocumentLinkRow = {
   availability: Ref<"code">;
 };
 
-type ActivityRow = {
+type ActivityRow = ProvenanceRow & {
   code: string;
   title: string;
   activity_type: ActivityType;
@@ -147,49 +168,55 @@ type ActivityRow = {
   agreement: Ref<"code">;
 };
 
+const provenanceColumns = "source_url, source_title, source_checked_on, verification";
+
 const select = {
   institutions:
-    "slug, name, city, latitude, longitude, website, note, data_source, " +
-    "country:countries(slug, name, hub_city, hub_latitude, hub_longitude, summary, region:regions(name))",
+    `slug, name, normalized_name, city, latitude, longitude, website, note, is_public, data_source, ${provenanceColumns}, ` +
+    "country:countries(slug, name, region:regions(name))",
   agreements:
-    "code, reference, title, agreement_type, record_status, start_date, end_date, renewal, notes, data_source, " +
+    "code, reference, title, agreement_type, type_label, source_section, record_status, start_date, end_date, " +
+    `renewal, notes, data_source, ${provenanceColumns}, ` +
     "institution:institutions(slug), " +
     "areas:agreement_collaboration_areas(position, area:collaboration_areas(name))",
-  programs: "program_type, name, description, general_audience, data_source",
+  programs: `program_type, name, description, general_audience, data_source, ${provenanceColumns}`,
   availability:
     "code, availability, duration, intake, application_start, application_end, eligibility, " +
-    "credit_information, notes, data_source, " +
+    `credit_information, notes, data_source, ${provenanceColumns}, ` +
     "program:programs(program_type), institution:institutions(slug), agreement:agreements(code)",
   opportunities:
-    "code, title, opens_on, deadline, record_status, summary, data_source, " +
+    `code, title, opens_on, deadline, record_status, summary, data_source, ${provenanceColumns}, ` +
     "program:programs(program_type), availability:program_availability(code), institution:institutions(slug)",
-  documents: "code, title, document_type, status, revised_on, storage_path, description, data_source",
+  documents:
+    "code, title, document_type, status, revised_on, storage_path, external_url, publicly_accessible, " +
+    `description, data_source, ${provenanceColumns}`,
   documentLinks:
     "id, code, document:documents(code), institution:institutions(slug), agreement:agreements(code), " +
     "program:programs(program_type), availability:program_availability(code)",
   activities:
-    "code, title, activity_type, record_status, start_date, end_date, city, summary, participants, data_source, " +
+    "code, title, activity_type, record_status, start_date, end_date, city, summary, participants, " +
+    `data_source, ${provenanceColumns}, ` +
     "country:countries(name), institution:institutions(slug), agreement:agreements(code)",
 } as const;
 
 function toInstitution(row: InstitutionRow): Institution | null {
   const country = row.country;
   if (!country?.region) return null;
-  // Directory rows only know the country pin; show it the way the static
-  // source does (the UI labels it "country pin only").
-  const fromDirectory = row.data_source === "directory";
   return {
     id: row.slug,
     name: row.name,
+    normalizedName: row.normalized_name,
     country: country.name,
     countryId: country.slug,
     region: country.region.name as Region,
-    city: row.city ?? country.hub_city ?? "",
-    latitude: row.latitude ?? (fromDirectory ? country.hub_latitude : null),
-    longitude: row.longitude ?? (fromDirectory ? country.hub_longitude : null),
+    city: row.city,
+    latitude: row.latitude,
+    longitude: row.longitude,
     website: row.website,
-    note: row.note ?? (fromDirectory ? country.summary : null),
+    note: row.note,
+    isPublic: row.is_public,
     source: row.data_source,
+    ...toProvenance(row),
   };
 }
 
@@ -201,6 +228,7 @@ function toAgreement(row: AgreementRow): Agreement | null {
     institutionId: row.institution.slug,
     title: row.title,
     type: row.agreement_type,
+    typeLabel: row.type_label,
     recordStatus: row.record_status,
     startDate: row.start_date,
     endDate: row.end_date,
@@ -208,8 +236,10 @@ function toAgreement(row: AgreementRow): Agreement | null {
     collaborationAreas: [...row.areas]
       .sort((a, b) => a.position - b.position)
       .flatMap((entry) => (entry.area ? [entry.area.name] : [])),
+    sourceSection: row.source_section,
     notes: row.notes,
     source: row.data_source,
+    ...toProvenance(row),
   };
 }
 
@@ -221,6 +251,7 @@ function toProgram(row: ProgramRow): Program {
     description: row.description,
     generalAudience: row.general_audience,
     source: row.data_source,
+    ...toProvenance(row),
   };
 }
 
@@ -240,6 +271,7 @@ function toAvailability(row: AvailabilityRow): ProgramAvailability | null {
     creditInformation: row.credit_information,
     notes: row.notes,
     source: row.data_source,
+    ...toProvenance(row),
   };
 }
 
@@ -256,6 +288,7 @@ function toOpportunity(row: OpportunityRow): Opportunity | null {
     recordStatus: row.record_status,
     summary: row.summary,
     source: row.data_source,
+    ...toProvenance(row),
   };
 }
 
@@ -267,8 +300,11 @@ function toDocument(row: DocumentRow): DocumentRecord {
     status: row.status,
     updatedOn: row.revised_on,
     storageKey: row.storage_path,
+    url: row.external_url,
+    publiclyAccessible: row.publicly_accessible,
     description: row.description,
     source: row.data_source,
+    ...toProvenance(row),
   };
 }
 
@@ -300,6 +336,7 @@ function toActivity(row: ActivityRow): Activity | null {
     participants: row.participants,
     agreementId: row.agreement?.code ?? null,
     source: row.data_source,
+    ...toProvenance(row),
   };
 }
 
@@ -307,7 +344,27 @@ function present<T>(value: T | null): value is T {
   return value !== null;
 }
 
-export async function loadSupabaseDataset(): Promise<Dataset> {
+type ContactRow = {
+  code: string;
+  role_label: string;
+  full_name: string | null;
+  phone: string | null;
+  email: string | null;
+  visibility: "internal" | "public";
+  institution: Ref<"slug">;
+  agreement: Ref<"code">;
+};
+
+const INTERNAL_ROLES = new Set(["isc_team", "doic_admin", "leadership"]);
+
+export type SupabaseLoad = {
+  data: Dataset;
+  /** The signed-in user holds an internal role (isc_team, doic_admin, leadership). */
+  internalRole: boolean;
+  contacts: InstitutionContact[];
+};
+
+export async function loadSupabaseDataset(): Promise<SupabaseLoad> {
   const client = await createSupabaseServerClient();
   if (!client) throw new Error("Supabase is not configured.");
   const supabase = client;
@@ -318,7 +375,20 @@ export async function loadSupabaseDataset(): Promise<Dataset> {
     return (data ?? []) as unknown as T[];
   }
 
-  const [institutions, agreements, programs, availability, opportunities, documents, links, activities] =
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  let internalRole = false;
+  if (user) {
+    const { data: roles, error } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+    if (error) throw new Error(`Supabase query on user_roles failed: ${error.message}`);
+    internalRole = (roles ?? []).some((row) => INTERNAL_ROLES.has(String(row.role)));
+  }
+
+  const [institutions, agreements, programs, availability, opportunities, documents, links, activities, contacts] =
     await Promise.all([
       rows<InstitutionRow>("institutions", select.institutions, "slug"),
       rows<AgreementRow>("agreements", select.agreements, "code"),
@@ -328,16 +398,47 @@ export async function loadSupabaseDataset(): Promise<Dataset> {
       rows<DocumentRow>("documents", select.documents, "code"),
       rows<DocumentLinkRow>("document_links", select.documentLinks, "created_at"),
       rows<ActivityRow>("activities", select.activities, "code"),
+      // Contacts are only requested for internal roles; RLS enforces the same.
+      internalRole
+        ? rows<ContactRow>(
+            "institution_contacts",
+            "code, role_label, full_name, phone, email, visibility, " +
+              "institution:institutions(slug), agreement:agreements(code)",
+            "code",
+          )
+        : Promise.resolve([] as ContactRow[]),
     ]);
 
+  const keep = <T extends { source: RecordSource }>(row: T) =>
+    sampleDataEnabled() || row.source !== "sample";
+
   return {
-    institutions: institutions.map(toInstitution).filter(present),
-    agreements: agreements.map(toAgreement).filter(present),
-    programs: programs.map(toProgram),
-    availability: availability.map(toAvailability).filter(present),
-    opportunities: opportunities.map(toOpportunity).filter(present),
-    documents: documents.map(toDocument),
-    documentLinks: links.map(toDocumentLink).filter(present),
-    activities: activities.map(toActivity).filter(present),
+    data: {
+      institutions: institutions.map(toInstitution).filter(present).filter(keep),
+      agreements: agreements.map(toAgreement).filter(present).filter(keep),
+      programs: programs.map(toProgram),
+      availability: availability.map(toAvailability).filter(present).filter(keep),
+      opportunities: opportunities.map(toOpportunity).filter(present).filter(keep),
+      documents: documents.map(toDocument).filter(keep),
+      documentLinks: links.map(toDocumentLink).filter(present),
+      activities: activities.map(toActivity).filter(present).filter(keep),
+    },
+    internalRole,
+    contacts: contacts.flatMap((row) =>
+      row.institution
+        ? [
+            {
+              id: row.code,
+              institutionId: row.institution.slug,
+              agreementId: row.agreement?.code ?? null,
+              roleLabel: row.role_label,
+              name: row.full_name,
+              phone: row.phone,
+              email: row.email,
+              visibility: row.visibility,
+            },
+          ]
+        : [],
+    ),
   };
 }

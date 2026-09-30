@@ -51,6 +51,18 @@ export function Fact({
   );
 }
 
+/** For facts the official MUJ source does not state. */
+export function NotStated({ note }: { note?: string }) {
+  return (
+    <span className="block">
+      <span className="text-foreground">Not stated on the official page</span>
+      {note ? (
+        <span className="mt-1 block text-sm leading-6 text-muted-foreground">{note}</span>
+      ) : null}
+    </span>
+  );
+}
+
 /** The only label for information this site does not have. */
 export function Unpublished({ note }: { note?: string }) {
   return (

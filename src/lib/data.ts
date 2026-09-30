@@ -1,22 +1,28 @@
 /**
- * DEMO DATA — replace with database queries in a later stage.
+ * Site-wide copy and navigation for the public website.
  *
- * Every figure, partner name, city, and programme note in this module is an
- * illustrative placeholder for the visual foundation. These are not official
- * DoIC statistics, not a published memorandum list, and not confirmed
- * partnerships of Manipal University Jaipur.
+ * Institutional facts (directorate name, office contact, programmes, partner
+ * institutions) come from the official MUJ Internationalization pages via
+ * src/lib/official. This module only holds presentation copy around them.
  *
- * Do not present these values as live institutional records. The UI labels
- * them as demo figures and illustrative partners.
+ * Ownership: DoIC is the university directorate that owns international
+ * collaborations. The International Student Cell (ISC) operates this
+ * platform for DoIC; it is not the authority over DoIC's records. This site
+ * is not the official MUJ website.
  */
 
+import { directorate } from "@/lib/official/directorate";
+import { officialSources } from "@/lib/official/source";
+
 export const site = {
-  directorate: "Directorate of International Collaboration",
-  shortName: "DoIC",
+  directorate: directorate.name,
+  shortName: directorate.shortName,
   cell: "International Student Cell",
   university: "Manipal University Jaipur",
   universityShort: "MUJ",
-  managedBy: "Managed by International Student Cell",
+  managedBy: "Platform operated by the International Student Cell for DoIC",
+  officialSite: "https://jaipur.manipal.edu",
+  officialPartnersPage: officialSources.partners.url,
 } as const;
 
 export const primaryNav = [
@@ -37,219 +43,70 @@ export const legalNav = [
   { href: "/terms", label: "Terms" },
 ] as const;
 
+/** DoIC office contact as published in the official Student Exchange Policy. */
 export const contact = {
-  office: "Directorate of International Collaboration",
-  cell: "International Student Cell",
+  office: directorate.name,
+  location: directorate.office.location,
   university: "Manipal University Jaipur",
-  lines: [
-    "Dehmi Kalan, Jaipur–Ajmer Expressway",
-    "Jaipur, Rajasthan 303007, India",
-  ],
-  note: "A public contact address will be published here.",
+  lines: directorate.office.address,
+  email: directorate.office.email,
+  telephone: directorate.office.telephone,
+  source: officialSources.exchangePolicy,
 } as const;
 
-/** Illustrative counts only. Replace with queried totals later. */
-export const networkStats = [
-  {
-    id: "universities",
-    value: 127,
-    suffix: "+",
-    label: "Partner Universities",
-  },
-  { id: "countries", value: 40, suffix: "+", label: "Countries" },
-  {
-    id: "programs",
-    value: 18,
-    suffix: "+",
-    label: "International Programs",
-  },
-  { id: "students", value: 500, suffix: "+", label: "Students Connected" },
-] as const;
+export type OpportunityIcon = "exchange" | "semester" | "pathway" | "visit" | "degree" | "school";
 
-export type OpportunityIcon = "exchange" | "semester" | "pathway" | "visit";
-
+/** Programme categories on the home page; wording condensed from the official pages. */
 export const opportunities = [
   {
     id: "student-exchange",
     title: "Student Exchange",
-    href: "/opportunities",
+    href: "/programs",
     icon: "exchange" as const,
     summary:
-      "A term or an academic year at a partner university, with a place held for the return to MUJ.",
+      "Non-credit exchanges (summer schools, internships, short courses) and credit-based exchanges with Collaborative Institutes, under an MoU or agreement with MUJ.",
   },
   {
     id: "semester-exchange",
     title: "Semester Exchange",
-    href: "/opportunities",
+    href: "/programs",
     icon: "semester" as const,
     summary:
-      "One semester abroad, aligned to the partner calendar, for students who want a single focused term.",
+      "Credits earned at an institution with which MUJ has an MoU for this purpose may count towards the MUJ degree, under the Student Exchange Policy.",
   },
   {
     id: "pathway-programs",
-    title: "Pathway Programs",
-    href: "/opportunities",
+    title: "Pathway / Progression",
+    href: "/programs",
     icon: "pathway" as const,
     summary:
-      "Structured routes that connect study at MUJ with a later stage at a partner institution.",
+      "Approved pathway models of 5 years (3 + 1 + 1) and 5.5 years (3 + 1 + 1.5) with listed partner universities.",
+  },
+  {
+    id: "dual-degree",
+    title: "Global Programs (Dual Degree)",
+    href: "/programs",
+    icon: "degree" as const,
+    summary:
+      "Dual degrees listed with Deakin University (2+2 B.Tech) and The University of Melbourne (BSc Advanced (Hons)).",
+  },
+  {
+    id: "summer-winter-school",
+    title: "International Summer and Winter Schools",
+    href: "/opportunities",
+    icon: "school" as const,
+    summary:
+      "ISSMUJ and IWSMUJ: three-to-four-week credit-based study and training programmes run under DoIC.",
   },
   {
     id: "academic-visits",
-    title: "Academic Visits",
-    href: "/opportunities",
+    title: "Academic and Delegation Visits",
+    href: "/programs",
     icon: "visit" as const,
     summary:
-      "Short faculty-led visits, summer schools, and delegations between Jaipur and campuses abroad.",
+      "Faculty exchange, academic visits and delegations between MUJ and institutions abroad, as recorded by DoIC.",
   },
 ] as const;
-
-export type PartnerRegion = "Europe" | "Middle East" | "Asia-Pacific" | "North America";
-
-export type Partner = {
-  id: string;
-  region: PartnerRegion;
-  country: string;
-  city: string;
-  lat: number;
-  lon: number;
-  /** Sample institution names. Not a record of signed agreements. */
-  universities: readonly string[];
-  summary: string;
-};
-
-/**
- * Mock partner locations for the globe and the home preview.
- * Coordinates are real city positions; the institutions are sample names.
- */
-export const partners: readonly Partner[] = [
-  {
-    id: "united-kingdom",
-    region: "Europe",
-    country: "United Kingdom",
-    city: "London",
-    lat: 51.5072,
-    lon: -0.1276,
-    universities: ["University of Birmingham", "Lancaster University"],
-    summary:
-      "A frequent setting for semester and year-long study across engineering, management, and the arts.",
-  },
-  {
-    id: "australia",
-    region: "Asia-Pacific",
-    country: "Australia",
-    city: "Sydney",
-    lat: -33.8688,
-    lon: 151.2093,
-    universities: ["Macquarie University", "University of Newcastle"],
-    summary:
-      "Research-led campuses on a southern academic calendar, often used for a full semester away.",
-  },
-  {
-    id: "united-states",
-    region: "North America",
-    country: "United States",
-    city: "Boston",
-    lat: 42.3601,
-    lon: -71.0589,
-    universities: ["Boston University", "University of Massachusetts"],
-    summary:
-      "A wide field of universities, from research campuses to specialised schools, for exchange and visits.",
-  },
-  {
-    id: "germany",
-    region: "Europe",
-    country: "Germany",
-    city: "Munich",
-    lat: 48.1351,
-    lon: 11.582,
-    universities: ["Technical University of Munich", "LMU Munich"],
-    summary:
-      "Technical universities and research partners, often aligned with engineering and the sciences.",
-  },
-  {
-    id: "uae",
-    region: "Middle East",
-    country: "United Arab Emirates",
-    city: "Dubai",
-    lat: 25.2048,
-    lon: 55.2708,
-    universities: [
-      "University of Wollongong in Dubai",
-      "Middlesex University Dubai",
-    ],
-    summary:
-      "A regional point for short academic visits and programmes that sit between Jaipur and further study.",
-  },
-  {
-    id: "singapore",
-    region: "Asia-Pacific",
-    country: "Singapore",
-    city: "Singapore",
-    lat: 1.3521,
-    lon: 103.8198,
-    universities: [
-      "National University of Singapore",
-      "Singapore Management University",
-    ],
-    summary:
-      "Compact, research-intensive campuses used here to stand in for Southeast Asian partnerships.",
-  },
-  {
-    id: "france",
-    region: "Europe",
-    country: "France",
-    city: "Paris",
-    lat: 48.8566,
-    lon: 2.3522,
-    universities: ["Sciences Po"],
-    summary:
-      "A sample European capital for public affairs, design, and university visits.",
-  },
-  {
-    id: "japan",
-    region: "Asia-Pacific",
-    country: "Japan",
-    city: "Tokyo",
-    lat: 35.6762,
-    lon: 139.6503,
-    universities: ["Waseda University"],
-    summary:
-      "A sample East Asian campus for exchange terms and faculty-led academic visits.",
-  },
-  {
-    id: "canada",
-    region: "North America",
-    country: "Canada",
-    city: "Toronto",
-    lat: 43.6532,
-    lon: -79.3832,
-    universities: ["University of Toronto"],
-    summary:
-      "A sample North American research university for semester mobility.",
-  },
-  {
-    id: "netherlands",
-    region: "Europe",
-    country: "Netherlands",
-    city: "Amsterdam",
-    lat: 52.3676,
-    lon: 4.9041,
-    universities: ["University of Amsterdam"],
-    summary:
-      "A sample continental European partner for taught programmes in English.",
-  },
-  {
-    id: "south-korea",
-    region: "Asia-Pacific",
-    country: "South Korea",
-    city: "Seoul",
-    lat: 37.5665,
-    lon: 126.978,
-    universities: ["Yonsei University"],
-    summary:
-      "A sample Korean campus on the illustrative network east of Jaipur.",
-  },
-];
 
 /** Home campus. The globe draws every partner arc back to this point. */
 export const hub = {
@@ -264,17 +121,17 @@ export const hub = {
 export const classroomPoints = [
   {
     index: "01",
-    title: "International exposure",
-    body: "Time in another university’s classrooms, labs, and city, with DoIC as the office that helps a student prepare.",
+    title: "Student mobility",
+    body: "Outbound exchanges and incoming students from Collaborative Institutes, within the framework of MoUs and agreements.",
   },
   {
     index: "02",
     title: "Academic collaboration",
-    body: "Faculty, schools, and visiting delegations keeping MUJ in working conversation with institutions abroad.",
+    body: "Faculty exchange, joint research, and academic and delegation visits with institutions abroad.",
   },
   {
     index: "03",
-    title: "Student mobility",
-    body: "Outbound semesters and incoming students, so the campus in Jaipur is part of a two-way exchange.",
+    title: "Student services",
+    body: "DoIC advises international students and visitors, and assists MUJ students travelling overseas.",
   },
 ] as const;

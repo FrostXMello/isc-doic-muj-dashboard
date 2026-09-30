@@ -14,8 +14,17 @@ export function Footer() {
             <p className="mt-5 max-w-sm text-sm leading-relaxed text-muted-foreground">
               {site.directorate} at {site.university}. {site.managedBy}.
             </p>
-            <p className="mt-4 text-[12px] leading-relaxed text-muted-foreground/80">
-              Figures and institution names on this site are illustrative previews.
+            <p className="mt-4 max-w-sm text-[12px] leading-relaxed text-muted-foreground/80">
+              This is not the official MUJ website. Partner and programme information is taken from{" "}
+              <a
+                href={site.officialSite}
+                target="_blank"
+                rel="noreferrer"
+                className="underline decoration-line-bold underline-offset-4 hover:text-foreground"
+              >
+                jaipur.manipal.edu
+              </a>
+              , which remains the authoritative source.
             </p>
           </div>
           <nav className="md:col-span-3" aria-label="Footer">
@@ -36,15 +45,21 @@ export function Footer() {
           <div className="md:col-span-4">
             <p className="text-[11px] tracking-[0.18em] text-cyan uppercase">Contact</p>
             <p className="mt-4 text-sm text-foreground">{contact.office}</p>
-            <p className="text-sm text-muted-foreground">{contact.cell}</p>
+            <p className="text-sm text-muted-foreground">{contact.location}</p>
             <address className="mt-3 text-sm leading-relaxed text-muted-foreground not-italic">
               {contact.lines.map((line) => (
                 <span key={line} className="block">
                   {line}
                 </span>
               ))}
+              <a
+                href={`mailto:${contact.email}`}
+                className="mt-3 block text-foreground underline decoration-line-bold underline-offset-4 hover:decoration-cyan"
+              >
+                {contact.email}
+              </a>
+              <span className="block">{contact.telephone}</span>
             </address>
-            <p className="mt-3 text-sm text-muted-foreground">{contact.note}</p>
           </div>
         </div>
       </Container>

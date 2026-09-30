@@ -1,9 +1,23 @@
-import { Globe } from "@/components/globe/globe";
+import { Globe, type GlobePoint } from "@/components/globe/globe";
 import { buttonVariants } from "@/components/ui/button";
 import { site } from "@/lib/data";
+import { partnerCountries } from "@/lib/official/public";
 import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+
+const globePoints: GlobePoint[] = partnerCountries.map((country) => ({
+  id: country.id,
+  country: country.country,
+  region: country.region,
+  lat: country.lat,
+  lon: country.lon,
+  institutions: country.institutions.length,
+}));
+
+const chipIds = partnerCountries
+  .filter((country) => country.institutions.length >= 3)
+  .map((country) => country.id);
 
 export function Hero() {
   return (
@@ -13,9 +27,7 @@ export function Hero() {
           <p className="hero-rise max-w-md text-[10px] leading-5 font-medium tracking-[0.12em] text-cyan uppercase sm:text-[11px] sm:tracking-[0.16em]">
             {site.university}
             <span className="mx-2 text-fg-dim">/</span>
-            <span className="text-fg-soft">
-              {site.directorate} × {site.cell}
-            </span>
+            <span className="text-fg-soft">{site.directorate}</span>
           </p>
           <h1
             className="hero-rise mt-5 font-display text-[clamp(2.45rem,4.35vw,4.15rem)] leading-[0.9] font-semibold tracking-[-0.045em] text-foreground sm:mt-6"
@@ -30,8 +42,9 @@ export function Hero() {
             className="hero-rise mt-5 max-w-md text-[15px] leading-7 text-fg-soft sm:mt-6 sm:text-base sm:leading-relaxed lg:text-[17px]"
             style={{ animationDelay: "150ms" }}
           >
-            Discover international opportunities, explore MUJ&apos;s global
-            partnerships, and connect with universities across the world.
+            Explore the international collaborations, programmes and
+            opportunities published by MUJ&apos;s Directorate of International
+            Collaborations, each linked to its official source.
           </p>
           <div
             className="hero-rise mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center"
@@ -59,7 +72,7 @@ export function Hero() {
           </div>
         </div>
         <div className="min-w-0">
-          <Globe />
+          <Globe points={globePoints} chipIds={chipIds} />
         </div>
       </div>
     </section>

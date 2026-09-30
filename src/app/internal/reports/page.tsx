@@ -29,6 +29,7 @@ import { agreementStatuses, agreementTypes } from "@/lib/internal/data/agreement
 import { documentStatuses } from "@/lib/internal/data/documents";
 import { partnershipStatuses } from "@/lib/internal/data/institutions";
 import { opportunityStatuses } from "@/lib/internal/data/opportunities";
+import { getDataMode } from "@/lib/internal/data/context";
 import { getOperationalSummary } from "@/lib/internal/data/reports";
 import { formatDate, formatRelativeDays } from "@/lib/internal/dates";
 import {
@@ -40,12 +41,21 @@ import {
   documentStatusMeta,
   opportunityStatusMeta,
   partnershipStatusMeta,
+  verificationMeta,
 } from "@/lib/internal/status";
+import type { VerificationStatus } from "@/lib/internal/types";
+
+const verificationOrder: readonly VerificationStatus[] = [
+  "source-imported",
+  "needs-review",
+  "unverified",
+  "verified",
+];
 
 export const metadata: Metadata = { title: "Reports" };
 
 export default async function ReportsPage() {
-  const summary = await getOperationalSummary();
+  const [summary, mode] = await Promise.all([getOperationalSummary(), getDataMode()]);
   const { institutions, agreements, programs, opportunities, activities, documents } = summary;
 
   const liveAgreements = agreements.byStatus.active + agreements.byStatus["expiring-soon"];
@@ -62,10 +72,13 @@ export default async function ReportsPage() {
       />
 
       <DataNotice>
-        Figures are counts of records in the portal data layer, not official DoIC statistics.
-        Institution counts include the public directory&apos;s illustrative names and the
-        fictional sample institutions; agreement, offering, call, document, and activity figures
-        count sample data only.
+        Figures are counts of records in the portal data layer, imported from MUJ&apos;s official
+        Internationalization pages and reviewed on the source date. They are not certified DoIC
+        statistics: official rows are <em>source-imported</em>, not checked against signed
+        agreements.
+        {mode.sampleData
+          ? " Fictional sample records are included because INTERNAL_SAMPLE_DATA is on."
+          : null}
       </DataNotice>
 
       <section aria-labelledby="overview-heading" className="space-y-3">
@@ -76,18 +89,19 @@ export default async function ReportsPage() {
           <StatCard label="Institutions" value={institutions.total} icon={GraduationCap} href="/internal/universities" />
           <StatCard label="Countries" value={institutions.countries} icon={Globe} accent="var(--cyan)" />
           <StatCard
-            label="Live agreements"
-            value={liveAgreements}
+            label="Collaboration rows"
+            value={agreements.total}
             icon={FileText}
             accent="var(--success)"
-            href="/internal/mous?status=active"
+            href="/internal/mous"
+            hint={`${liveAgreements} live by recorded dates`}
           />
           <StatCard
-            label="Open offerings"
-            value={programs.byAvailability.open}
+            label="Programme offerings"
+            value={programs.offerings}
             icon={BookOpen}
             accent="var(--ring)"
-            href="/internal/programs?availability=open"
+            href="/internal/programs"
           />
           <StatCard
             label="Open calls"
@@ -111,7 +125,7 @@ export default async function ReportsPage() {
           <PanelHeader
             title="Partnership counts"
             icon={GraduationCap}
-            description="Relationship status per institution, derived from its agreements."
+            description="Relationship status per institution, derived from its rows. Listed: on the official page with no status stated."
           />
           <Breakdown
             rows={partnershipStatuses.map((status) => ({
@@ -123,9 +137,40 @@ export default async function ReportsPage() {
             }))}
           />
           <p className="border-t border-hairline px-5 py-3 text-[12px] text-muted-foreground">
-            {institutions.bySource.directory} from the public directory ·{" "}
-            {institutions.bySource.sample} sample institutions
+            {institutions.bySource.official} official · {institutions.bySource.directory} earlier
+            directory{mode.sampleData ? ` · ${institutions.bySource.sample} sample` : ""} ·{" "}
+            {institutions.public} shown on the public site
           </p>
+        </Panel>
+
+        <Panel>
+          <PanelHeader
+            title="Verification"
+            icon={GraduationCap}
+            description="How far records have been checked. Official imports stay source-imported until DoIC confirms them against the signed document."
+          />
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[360px] text-left text-[13px]">
+              <thead>
+                <tr className="border-b border-line font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">
+                  <th scope="col" className="px-5 py-3 font-normal">Verification</th>
+                  <th scope="col" className="px-4 py-3 text-right font-normal">Institutions</th>
+                  <th scope="col" className="px-5 py-3 text-right font-normal">Rows</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-hairline tabular-nums">
+                {verificationOrder.map((status) => (
+                  <tr key={status}>
+                    <th scope="row" className="px-5 py-3 font-normal text-foreground" title={verificationMeta[status].description}>
+                      {verificationMeta[status].label}
+                    </th>
+                    <td className="px-4 py-3 text-right text-fg-soft">{institutions.byVerification[status]}</td>
+                    <td className="px-5 py-3 text-right text-fg-soft">{agreements.byVerification[status]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Panel>
 
         <Panel>
@@ -137,7 +182,7 @@ export default async function ReportsPage() {
                   <th scope="col" className="px-5 py-3 font-normal">Region</th>
                   <th scope="col" className="px-4 py-3 text-right font-normal">Institutions</th>
                   <th scope="col" className="px-4 py-3 text-right font-normal">Countries</th>
-                  <th scope="col" className="px-5 py-3 text-right font-normal">With agreements</th>
+                  <th scope="col" className="px-5 py-3 text-right font-normal">With listed rows</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-hairline tabular-nums">
@@ -165,7 +210,7 @@ export default async function ReportsPage() {
           <PanelHeader
             title="MOU status summary"
             icon={FileText}
-            description={`${agreements.total} agreements recorded`}
+            description={`${agreements.total} collaboration rows recorded`}
           />
           <Breakdown
             hideZero
@@ -333,7 +378,7 @@ export default async function ReportsPage() {
           <PanelHeader
             title="Documents"
             icon={FolderOpen}
-            description={`${documents.total} document records · ${documents.withFile} with a stored file · ${documents.unlinked} not linked to any record`}
+            description={`${documents.total} document records · ${documents.withLink} with an official link (${documents.publiclyAccessible} publicly accessible) · ${documents.withFile} with a stored file · ${documents.unlinked} not linked to any record`}
           />
           <div className="grid grid-cols-2 divide-hairline sm:grid-cols-4 sm:divide-x">
             {documentStatuses.map((status) => (

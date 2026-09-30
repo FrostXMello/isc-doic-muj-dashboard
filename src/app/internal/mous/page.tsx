@@ -9,7 +9,8 @@ import {
   unavailableReasons,
 } from "@/components/internal/ui/placeholder-action";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
-import { DataNotice } from "@/components/internal/ui/source-badge";
+import { DataNotice, SourceBadge } from "@/components/internal/ui/source-badge";
+import { getDataMode } from "@/lib/internal/data/context";
 import { StatCard } from "@/components/internal/ui/stat-card";
 import {
   agreementSorts,
@@ -27,7 +28,7 @@ export const metadata: Metadata = { title: "MOUs & Agreements" };
 
 export default async function AgreementsPage({ searchParams }: SearchParamsProp) {
   const params = await searchParams;
-  const options = await getAgreementFilterOptions();
+  const [options, mode] = await Promise.all([getAgreementFilterOptions(), getDataMode()]);
 
   const [rows, all] = await Promise.all([
     listAgreements({
@@ -47,7 +48,7 @@ export default async function AgreementsPage({ searchParams }: SearchParamsProp)
     <div className="space-y-6">
       <PageHeader
         title="MOUs & Agreements"
-        description={`Formal agreements with institutions. Status is derived from dates: agreements ending within ${EXPIRY_WARNING_DAYS} days are flagged as expiring soon.`}
+        description={`Collaboration rows from MUJ's official partner page, one per listed entry. Where dates are recorded, agreements ending within ${EXPIRY_WARNING_DAYS} days are flagged as expiring soon.`}
         actions={
           <PlaceholderAction
             label="New agreement"
@@ -59,12 +60,27 @@ export default async function AgreementsPage({ searchParams }: SearchParamsProp)
       />
 
       <DataNotice>
-        Every agreement here is <strong className="font-medium">sample data</strong> attached to
-        a fictional &ldquo;Example &hellip;&rdquo; institution. References, dates, and areas are
-        invented to exercise status tracking; no agreement of MUJ is shown.
+        Official rows are imported exactly as listed. The page does not publish signing dates,
+        expiry, or status, so these rows show <strong className="font-medium">Not stated</strong>.
+        Only rows whose wording names an agreement type (for example &ldquo;Student Exchange
+        Agreement&rdquo; or &ldquo;MoU&rdquo;) carry that type; a listing is not treated as an MoU.
+        {mode.sampleData ? (
+          <>
+            {" "}
+            <strong className="font-medium">Sample data</strong> agreements with &ldquo;Example
+            &hellip;&rdquo; institutions are fictional and shown because INTERNAL_SAMPLE_DATA is on.
+          </>
+        ) : null}
       </DataNotice>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <StatCard
+          label="Status not stated"
+          value={count("not-stated")}
+          hint="Listed on the official page"
+          accent="var(--glow)"
+          href="/internal/mous?status=not-stated"
+        />
         <StatCard label="Active" value={count("active")} accent="var(--success)" href="/internal/mous?status=active" />
         <StatCard
           label="Expiring soon"
@@ -145,7 +161,14 @@ export default async function AgreementsPage({ searchParams }: SearchParamsProp)
           {
             key: "type",
             header: "Type",
-            cell: (row) => agreementTypeLabel[row.type],
+            cell: (row) => (
+              <span>
+                {agreementTypeLabel[row.type]}
+                {row.typeLabel ? (
+                  <span className="block text-[12px] text-fg-faint">&ldquo;{row.typeLabel}&rdquo;</span>
+                ) : null}
+              </span>
+            ),
           },
           {
             key: "status",
@@ -178,20 +201,30 @@ export default async function AgreementsPage({ searchParams }: SearchParamsProp)
           },
           {
             key: "areas",
-            header: "Collaboration areas",
-            className: "max-w-56",
+            header: "Listed as",
+            className: "max-w-64",
             cell: (row) => (
               <span className="line-clamp-2 text-[12px] text-muted-foreground">
-                {row.collaborationAreas.join(", ") || "—"}
+                {row.sourceSection ?? (row.collaborationAreas.join(", ") || "—")}
               </span>
             ),
+          },
+          {
+            key: "source",
+            header: "Source",
+            cell: (row) => <SourceBadge source={row.source} />,
           },
         ]}
         renderCard={(row) => (
           <ResourceCard
             title={row.institution?.name ?? "Unknown institution"}
-            subtitle={`${row.reference} · ${agreementTypeLabel[row.type]}`}
-            badges={<AgreementStatusBadge status={row.status} daysToExpiry={row.daysToExpiry} />}
+            subtitle={`${row.reference} · ${row.typeLabel ?? agreementTypeLabel[row.type]}`}
+            badges={
+              <>
+                <AgreementStatusBadge status={row.status} daysToExpiry={row.daysToExpiry} />
+                <SourceBadge source={row.source} />
+              </>
+            }
             meta={[
               { label: "Start", value: formatDate(row.startDate, "—") },
               {

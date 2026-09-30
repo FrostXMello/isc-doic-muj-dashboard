@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/container";
-import { Fact, PageIntro, Unpublished } from "@/components/page-intro/page-intro";
+import { Fact, NotStated, PageIntro } from "@/components/page-intro/page-intro";
 import { StudyPath } from "@/components/study-path/study-path";
-import { opportunities } from "@/lib/data";
+import { officialAvailability, officialDocumentLinks, officialDocuments, officialPrograms } from "@/lib/official/internationalization";
+import { getPublicInstitution, publicSlug } from "@/lib/official/public";
+import { SOURCE_REVIEWED_ON } from "@/lib/official/source";
+import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Programs",
   description:
-    "How DoIC distinguishes a programme from a partner institution. Credit, duration, and assignment are not published.",
+    "International programme types described on Manipal University Jaipur's official Internationalization pages, with the partner institutions each page names.",
 };
+
+const documentsById = new Map(officialDocuments.map((doc) => [doc.id, doc]));
 
 export default function ProgramsPage() {
   return (
@@ -17,70 +22,104 @@ export default function ProgramsPage() {
       <Container>
         <PageIntro
           eyebrow="Programs"
-          title="A programme is a way of studying."
-          lede="A partner is an institution. A programme is the form of the time away — an exchange, a semester, a pathway, or a visit. This page does not assign either one to a student, and it does not state credit, fees, or dates."
-          meta="Not a catalogue of places"
+          title="International programmes at MUJ."
+          lede="The programme types DoIC describes on MUJ's official Internationalization pages. Where a page names partner institutions for a programme, they are listed; nothing else is inferred."
+          meta={`Source checked ${SOURCE_REVIEWED_ON}`}
         />
 
-        <section aria-labelledby="known-forms" className="mt-12">
-          <h2
-            id="known-forms"
-            className="font-display text-[clamp(1.5rem,2.4vw,2rem)] tracking-[-0.03em] text-foreground"
-          >
-            Forms described so far.
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Only the four notes already published under opportunities. Opening
-            one shows that wording. It does not show which institution, if any,
-            is involved.
-          </p>
-          <ol className="mt-6 border-t border-line">
-            {opportunities.map((item, index) => (
-              <li key={item.id} className="border-b border-line">
-                <Link
-                  href={`/opportunities#${item.id}`}
-                  className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 py-5 transition-colors hover:bg-overlay-subtle sm:grid-cols-[3rem_minmax(0,14rem)_minmax(0,1fr)] sm:items-baseline sm:gap-6 sm:px-2"
+        <div className="mt-12">
+          {officialPrograms.map((program, index) => {
+            const offerings = officialAvailability.filter((row) => row.programId === program.id);
+            const documents = officialDocumentLinks
+              .filter((link) => link.programId === program.id)
+              .map((link) => documentsById.get(link.documentId))
+              .flatMap((doc) =>
+                doc && doc.url && doc.publiclyAccessible ? [{ id: doc.id, title: doc.title, url: doc.url }] : [],
+              );
+            return (
+              <section
+                key={program.id}
+                id={program.id}
+                aria-labelledby={`${program.id}-title`}
+                className="scroll-mt-28 border-t border-line py-8 sm:py-10"
+              >
+                <p className="font-mono text-[12px] tracking-[0.16em] text-fg-subtle">
+                  {String(index + 1).padStart(2, "0")}
+                </p>
+                <h2
+                  id={`${program.id}-title`}
+                  className="mt-3 font-display text-[clamp(1.6rem,3vw,2.15rem)] leading-tight tracking-[-0.03em] text-foreground"
                 >
-                  <span className="font-mono text-[12px] tracking-[0.14em] text-fg-subtle">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <span className="font-display text-[1.3rem] tracking-[-0.03em] text-foreground">
-                    {item.title}
-                  </span>
-                  <span className="col-start-2 text-sm leading-relaxed text-muted-foreground sm:col-start-3">
-                    {item.summary}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section aria-labelledby="not-stated" className="mt-14 max-w-3xl">
-          <h2
-            id="not-stated"
-            className="font-display text-[clamp(1.5rem,2.4vw,2rem)] tracking-[-0.03em] text-foreground"
-          >
-            Unpublished.
-          </h2>
-          <dl className="mt-4 border-t border-line">
-            <Fact label="Which programme applies to a student">
-              <Unpublished />
-            </Fact>
-            <Fact label="Which institution offers which programme">
-              <Unpublished note="The directory and these notes are separate lists." />
-            </Fact>
-            <Fact label="Credit and recognition on return to MUJ">
-              <Unpublished />
-            </Fact>
-            <Fact label="Duration beyond the short description">
-              <Unpublished note="Where a note mentions a term, a semester, or a short visit, that wording is the whole of what is published." />
-            </Fact>
-            <Fact label="Incoming study in Jaipur">
-              <Unpublished />
-            </Fact>
-          </dl>
-        </section>
+                  {program.name}
+                </h2>
+                <dl className="mt-4 max-w-3xl">
+                  <Fact label="What the official page says">{program.description}</Fact>
+                  <Fact label="Who it is for">
+                    {program.generalAudience ?? <NotStated />}
+                  </Fact>
+                  <Fact label="Institutions named for this programme">
+                    {offerings.length === 0 ? (
+                      <NotStated note="The page does not name specific partner institutions for this programme." />
+                    ) : (
+                      <ul className="space-y-1">
+                        {offerings.map((row) => {
+                          const institution = getPublicInstitution(publicSlug(row.institutionId));
+                          return (
+                            <li key={row.id}>
+                              {institution ? (
+                                <Link
+                                  href={`/partners/${institution.slug}`}
+                                  className="text-primary underline-offset-4 hover:text-foreground hover:underline"
+                                >
+                                  {institution.name}
+                                </Link>
+                              ) : (
+                                row.institutionId
+                              )}
+                              {row.duration ? (
+                                <span className="text-muted-foreground"> · {row.duration}</span>
+                              ) : null}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </Fact>
+                  <Fact label="Fees, deadlines, availability">
+                    <NotStated note="Contact DoIC for current details." />
+                  </Fact>
+                  <Fact label="Official source">
+                    <span className="flex flex-col gap-1">
+                      {program.sourceUrl ? (
+                        <a
+                          href={program.sourceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex min-h-11 items-center gap-1 text-primary hover:text-foreground"
+                        >
+                          {program.sourceTitle}
+                          <ArrowUpRight className="size-3.5" aria-hidden="true" />
+                        </a>
+                      ) : null}
+                      {documents.map((doc) => (
+                        <a
+                          key={doc.id}
+                          href={doc.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex min-h-11 items-center gap-1 text-primary hover:text-foreground"
+                        >
+                          {doc.title} (PDF)
+                          <ArrowUpRight className="size-3.5" aria-hidden="true" />
+                        </a>
+                      ))}
+                    </span>
+                  </Fact>
+                </dl>
+              </section>
+            );
+          })}
+        </div>
 
         <StudyPath current="/programs" />
       </Container>

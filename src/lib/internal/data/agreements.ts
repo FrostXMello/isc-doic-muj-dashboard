@@ -9,14 +9,19 @@ export const agreementStatuses: readonly AgreementStatus[] = [
   "draft",
   "expired",
   "terminated",
+  "not-stated",
 ];
 
 export const agreementTypes: readonly AgreementType[] = [
   "mou",
   "student-exchange",
+  "agreement-of-cooperation",
+  "addendum",
+  "academic-agreement",
   "research-collaboration",
   "dual-degree",
   "other",
+  "not-stated",
 ];
 
 export const agreementSorts = ["expiry", "start", "institution"] as const;
@@ -30,7 +35,10 @@ export type AgreementFilters = {
   sort?: AgreementSort;
 };
 
-/** Expiry order: live agreements (soonest end first), then in-progress, then ended (most recent first). */
+/**
+ * Expiry order: live agreements (soonest end first), then in-progress, then
+ * ended (most recent first), then rows whose status the source does not state.
+ */
 const expiryRank: Record<AgreementStatus, number> = {
   "expiring-soon": 0,
   active: 0,
@@ -39,6 +47,7 @@ const expiryRank: Record<AgreementStatus, number> = {
   draft: 2,
   expired: 3,
   terminated: 3,
+  "not-stated": 4,
 };
 
 const sorters: Record<AgreementSort, (a: AgreementView, b: AgreementView) => number> = {
@@ -61,6 +70,8 @@ export async function listAgreements(filters: AgreementFilters = {}) {
           filters.q,
           row.reference,
           row.title,
+          row.typeLabel,
+          row.sourceSection,
           row.institution?.name,
           row.institution?.country,
           ...row.collaborationAreas,
@@ -84,13 +95,14 @@ export async function getAgreementFilterOptions() {
 }
 
 export async function getAgreement(id: string) {
-  const { today, data, views } = await openDataContext();
+  const { today, data, views, contactAccess } = await openDataContext();
   const agreement = data.agreements.find((row) => row.id === id);
   if (!agreement) return null;
 
   const institution = views.findInstitution(agreement.institutionId);
   return {
     today,
+    contactAccess,
     agreement: views.toAgreementView(agreement, today),
     institution: institution ? views.toInstitutionView(institution, today) : null,
     related: data.agreements

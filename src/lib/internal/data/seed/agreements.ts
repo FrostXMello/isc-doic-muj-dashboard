@@ -1,4 +1,5 @@
 import type { Agreement } from "@/lib/internal/types";
+import { SAMPLE } from "./sample";
 
 /**
  * SAMPLE DATA — fictional agreements for the portal workflow.
@@ -22,7 +23,9 @@ export const agreementSeed: readonly Agreement[] = [
     renewal: "by-review",
     collaborationAreas: ["Engineering", "Management", "Faculty exchange"],
     notes: "Sample record. Renewal review would be scheduled before the end date.",
-    source: "sample",
+    typeLabel: null,
+    sourceSection: null,
+    ...SAMPLE,
   },
   {
     id: "agr-002",
@@ -36,7 +39,9 @@ export const agreementSeed: readonly Agreement[] = [
     renewal: "by-review",
     collaborationAreas: ["Student mobility", "Credit transfer"],
     notes: null,
-    source: "sample",
+    typeLabel: null,
+    sourceSection: null,
+    ...SAMPLE,
   },
   {
     id: "agr-003",
@@ -50,7 +55,9 @@ export const agreementSeed: readonly Agreement[] = [
     renewal: "by-review",
     collaborationAreas: ["Applied sciences", "Joint research", "Doctoral visits"],
     notes: null,
-    source: "sample",
+    typeLabel: null,
+    sourceSection: null,
+    ...SAMPLE,
   },
   {
     id: "agr-004",
@@ -64,7 +71,9 @@ export const agreementSeed: readonly Agreement[] = [
     renewal: null,
     collaborationAreas: ["Engineering"],
     notes: "Sample record kept for history; superseded by SAMPLE-AGR-003.",
-    source: "sample",
+    typeLabel: null,
+    sourceSection: null,
+    ...SAMPLE,
   },
   {
     id: "agr-005",
@@ -78,7 +87,9 @@ export const agreementSeed: readonly Agreement[] = [
     renewal: "by-review",
     collaborationAreas: ["Student mobility"],
     notes: null,
-    source: "sample",
+    typeLabel: null,
+    sourceSection: null,
+    ...SAMPLE,
   },
   {
     id: "agr-006",
@@ -92,7 +103,9 @@ export const agreementSeed: readonly Agreement[] = [
     renewal: null,
     collaborationAreas: ["Student mobility", "Summer schools"],
     notes: "Sample draft. Dates are left empty until signature.",
-    source: "sample",
+    typeLabel: null,
+    sourceSection: null,
+    ...SAMPLE,
   },
   {
     id: "agr-007",
@@ -106,7 +119,9 @@ export const agreementSeed: readonly Agreement[] = [
     renewal: null,
     collaborationAreas: ["Computer science", "Pathway study"],
     notes: null,
-    source: "sample",
+    typeLabel: null,
+    sourceSection: null,
+    ...SAMPLE,
   },
   {
     id: "agr-008",
@@ -120,7 +135,9 @@ export const agreementSeed: readonly Agreement[] = [
     renewal: "by-review",
     collaborationAreas: ["Academic visits", "Short programmes"],
     notes: null,
-    source: "sample",
+    typeLabel: null,
+    sourceSection: null,
+    ...SAMPLE,
   },
   {
     id: "agr-009",
@@ -134,7 +151,9 @@ export const agreementSeed: readonly Agreement[] = [
     renewal: "automatic",
     collaborationAreas: ["Business", "Design", "Student mobility"],
     notes: null,
-    source: "sample",
+    typeLabel: null,
+    sourceSection: null,
+    ...SAMPLE,
   },
   {
     id: "agr-010",
@@ -148,6 +167,8 @@ export const agreementSeed: readonly Agreement[] = [
     renewal: null,
     collaborationAreas: ["Data science"],
     notes: "Sample record ended early by mutual agreement.",
-    source: "sample",
+    typeLabel: null,
+    sourceSection: null,
+    ...SAMPLE,
   },
 ];

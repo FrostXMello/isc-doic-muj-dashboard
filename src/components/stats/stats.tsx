@@ -1,8 +1,9 @@
 "use client";
 
 import { Container } from "@/components/container";
-import { networkStats } from "@/lib/data";
 import { useEffect, useRef, useState } from "react";
+
+export type StatFigureData = { id: string; value: number; label: string };
 
 function useCount(target: number, active: boolean) {
   const [value, setValue] = useState(0);
@@ -28,13 +29,11 @@ function useCount(target: number, active: boolean) {
 
 function StatFigure({
   value,
-  suffix,
   label,
   active,
   index,
 }: {
   value: number;
-  suffix: string;
   label: string;
   active: boolean;
   index: number;
@@ -47,17 +46,24 @@ function StatFigure({
       </span>
       <dd className="mt-6 font-display text-[clamp(2rem,2.5vw,2.7rem)] leading-none tracking-[-0.04em] text-foreground tabular-nums">
         {current}
-        <span className="text-cyan">{suffix}</span>
       </dd>
       <dt className="mt-3 text-[13px] leading-snug text-fg-soft">{label}</dt>
       <p className="mt-auto pt-5 text-[11px] tracking-[0.12em] text-muted-foreground uppercase">
-        Illustrative
+        Official MUJ page
       </p>
     </div>
   );
 }
 
-export function Stats() {
+export function Stats({
+  figures,
+  sourceUrl,
+  checkedOn,
+}: {
+  figures: readonly StatFigureData[];
+  sourceUrl: string;
+  checkedOn: string;
+}) {
   const ref = useRef<HTMLElement>(null);
   const [active, setActive] = useState(false);
 
@@ -94,24 +100,29 @@ export function Stats() {
               id="network-heading"
               className="mt-3 font-display text-[clamp(1.65rem,2.6vw,2.15rem)] leading-tight tracking-[-0.03em] text-foreground"
             >
-              An outline of MUJ&apos;s international reach.
+              MUJ&apos;s international collaborations, as listed.
             </h2>
           </div>
-          <div className="ml-auto max-w-[16rem] sm:text-right">
-            <p className="border border-line-bold px-2.5 py-1 text-[11px] tracking-[0.18em] text-fg-soft uppercase">
-              Demo figures
-            </p>
-            <p className="mt-2 text-[12px] leading-5 text-muted-foreground">
-              Not official university statistics.
+          <div className="ml-auto max-w-[18rem] sm:text-right">
+            <p className="text-[12px] leading-5 text-muted-foreground">
+              Counted from the{" "}
+              <a
+                href={sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-foreground underline decoration-line-bold underline-offset-4 hover:decoration-cyan"
+              >
+                official partner page
+              </a>{" "}
+              on {checkedOn}. A listing is not a statement of agreement status.
             </p>
           </div>
         </div>
         <dl className="mt-8 grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-4">
-          {networkStats.map((stat, index) => (
+          {figures.map((stat, index) => (
             <StatFigure
               key={stat.id}
               value={stat.value}
-              suffix={stat.suffix}
               label={stat.label}
               active={active}
               index={index}

@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     template: `%s · ${site.shortName} MUJ`,
   },
   description:
-    "Directorate of International Collaboration at Manipal University Jaipur, managed by the International Student Cell. Discover international opportunities and the university’s global partnerships.",
+    "International collaborations, programmes and opportunities of the Directorate of International Collaborations (DoIC), Manipal University Jaipur, from MUJ’s official pages. Platform operated by the International Student Cell for DoIC.",
 };
 
 export const viewport: Viewport = {

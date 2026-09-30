@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BookOpen, CalendarClock, Compass, GraduationCap } from "lucide-react";
+import { BookOpen, CalendarClock, Compass, GraduationCap, Link2 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { AvailabilityBadge, OpportunityStatusBadge } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
@@ -8,6 +8,7 @@ import {
   PlaceholderAction,
   unavailableReasons,
 } from "@/components/internal/ui/placeholder-action";
+import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getOpportunity } from "@/lib/internal/data/opportunities";
 import { DEADLINE_WARNING_DAYS, formatDate, formatRelativeDays } from "@/lib/internal/dates";
@@ -59,6 +60,7 @@ export default async function OpportunityDetailPage({ params }: IdParamsProp) {
           <>
             <OpportunityStatusBadge status={opportunity.status} />
             <SourceBadge source={opportunity.source} />
+            <VerificationBadge status={opportunity.verification} />
           </>
         }
         actions={
@@ -98,6 +100,10 @@ export default async function OpportunityDetailPage({ params }: IdParamsProp) {
                 { label: "Summary", wide: true, value: opportunity.summary },
               ]}
             />
+          </DetailSection>
+
+          <DetailSection title="Provenance" icon={Link2}>
+            <KeyValueList items={provenanceItems(opportunity)} />
           </DetailSection>
 
           <DetailSection
@@ -160,7 +166,7 @@ export default async function OpportunityDetailPage({ params }: IdParamsProp) {
             </ol>
           </DetailSection>
 
-          <DetailSection title="University" icon={GraduationCap}>
+          <DetailSection title="Institution" icon={GraduationCap}>
             {institution ? (
               <LinkedList
                 emptyTitle=""
@@ -169,7 +175,7 @@ export default async function OpportunityDetailPage({ params }: IdParamsProp) {
                     key: institution.id,
                     href: `/internal/universities/${institution.id}`,
                     title: institution.name,
-                    meta: `${institution.city} · ${institution.country}`,
+                    meta: [institution.city, institution.country].filter(Boolean).join(" · "),
                     badge: <SourceBadge source={institution.source} />,
                   },
                 ]}

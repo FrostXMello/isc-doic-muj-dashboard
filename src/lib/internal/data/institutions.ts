@@ -3,13 +3,14 @@ import type { PartnershipStatus, RecordSource, Region } from "@/lib/internal/typ
 
 export const partnershipStatuses: readonly PartnershipStatus[] = [
   "active",
+  "listed",
   "renewal-due",
   "in-progress",
   "lapsed",
   "not-recorded",
 ];
 
-export const institutionSources: readonly RecordSource[] = ["directory", "sample"];
+export const institutionSources: readonly RecordSource[] = ["official", "directory", "sample"];
 
 export type InstitutionFilters = {
   q?: string;
@@ -25,7 +26,7 @@ export async function listInstitutions(filters: InstitutionFilters = {}) {
     .map((institution) => views.toInstitutionView(institution, today))
     .filter(
       (row) =>
-        matchesQuery(filters.q, row.name, row.country, row.city) &&
+        matchesQuery(filters.q, row.name, row.normalizedName, row.country, row.city) &&
         (!filters.region || row.region === filters.region) &&
         (!filters.country || row.country === filters.country) &&
         (!filters.status || row.partnershipStatus === filters.status) &&
@@ -43,11 +44,12 @@ export async function getInstitutionFilterOptions() {
 }
 
 export async function getInstitution(id: string) {
-  const { today, data, views } = await openDataContext();
+  const { today, data, views, contactAccess } = await openDataContext();
   const institution = data.institutions.find((row) => row.id === id);
   if (!institution) return null;
 
   return {
+    contactAccess,
     institution: views.toInstitutionView(institution, today),
     agreements: views
       .agreementsForInstitution(id, today)

@@ -1,5 +1,4 @@
 import { matchesQuery, openDataContext, uniqueSorted } from "@/lib/internal/data/context";
-import { programSeed } from "@/lib/internal/data/seed/programs";
 import type { AvailabilityState, ProgramType } from "@/lib/internal/types";
 
 export type AvailabilityFilter = AvailabilityState | "not-recorded";
@@ -12,7 +11,14 @@ export const availabilityFilters: readonly AvailabilityFilter[] = [
 ];
 
 /** The programme type vocabulary (fixed; mirrors the program_type enum). */
-export const programTypes: readonly ProgramType[] = programSeed.map((program) => program.id);
+export const programTypes: readonly ProgramType[] = [
+  "student-exchange",
+  "semester-exchange",
+  "pathway-programs",
+  "academic-visits",
+  "dual-degree",
+  "summer-winter-school",
+];
 
 export type OfferingFilters = {
   q?: string;

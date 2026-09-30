@@ -11,6 +11,7 @@ import {
 } from "@/components/internal/ui/placeholder-action";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
 import { DataNotice, SourceBadge } from "@/components/internal/ui/source-badge";
+import { getDataMode } from "@/lib/internal/data/context";
 import {
   availabilityFilters,
   getOfferingFilterOptions,
@@ -28,7 +29,7 @@ export const metadata: Metadata = { title: "Programs" };
 
 export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
   const params = await searchParams;
-  const options = await getOfferingFilterOptions();
+  const [options, mode] = await Promise.all([getOfferingFilterOptions(), getDataMode()]);
   const selectedProgram = readEnumParam(params, "program", programTypes);
 
   const [programs, rows, all] = await Promise.all([
@@ -46,7 +47,7 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
     <div className="space-y-6">
       <PageHeader
         title="Programs"
-        description="Programme types and the institution-specific offerings recorded for each. A programme is not assumed to be available at an institution unless an offering is recorded."
+        description="Programme types from MUJ's official Internationalization pages, and the institutions each page names. A programme is not assumed to be available at an institution unless the source names it."
         actions={
           <PlaceholderAction
             label="New offering"
@@ -58,13 +59,15 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
       />
 
       <DataNotice>
-        The four programme types come from the public site&apos;s programme catalogue. Every
-        offering (institution × programme) is <strong className="font-medium">sample data</strong>{" "}
-        at a fictional institution; durations and application windows are placeholders, and
-        eligibility and credit are left unrecorded.
+        Offerings are recorded only where an official page names the institution for that
+        programme (pathway and dual degree pages). Availability, windows, eligibility, and credit
+        are left <em>Not recorded</em> unless the page states them.
+        {mode.sampleData
+          ? " Sample offerings at fictional institutions are included because INTERNAL_SAMPLE_DATA is on."
+          : null}
       </DataNotice>
 
-      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Programme types">
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-label="Programme types">
         {programs.map((program) => {
           const active = selectedProgram === program.id;
           return (
@@ -145,7 +148,7 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
           },
           {
             key: "institution",
-            header: "Partner university",
+            header: "Institution",
             cell: (row) => row.institution?.name ?? "—",
           },
           {
@@ -157,6 +160,11 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
             key: "availability",
             header: "Status",
             cell: (row) => <AvailabilityBadge availability={row.availability} />,
+          },
+          {
+            key: "source",
+            header: "Source",
+            cell: (row) => <SourceBadge source={row.source} />,
           },
           {
             key: "duration",

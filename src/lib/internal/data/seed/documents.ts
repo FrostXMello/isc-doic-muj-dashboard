@@ -1,4 +1,5 @@
 import type { DocumentLink, DocumentRecord } from "@/lib/internal/types";
+import { SAMPLE } from "./sample";
 
 /**
  * SAMPLE DATA — fictional document metadata.
@@ -15,8 +16,10 @@ export const documentSeed: readonly DocumentRecord[] = [
     status: "final",
     updatedOn: "2021-12-01",
     storageKey: null,
+    url: null,
+    publiclyAccessible: false,
     description: "Placeholder for the signed copy of SAMPLE-AGR-001.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "doc-002",
@@ -25,8 +28,10 @@ export const documentSeed: readonly DocumentRecord[] = [
     status: "draft",
     updatedOn: "2026-09-12",
     storageKey: null,
+    url: null,
+    publiclyAccessible: false,
     description: "Placeholder for a renewal draft ahead of the SAMPLE-AGR-001 end date.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "doc-003",
@@ -35,8 +40,10 @@ export const documentSeed: readonly DocumentRecord[] = [
     status: "final",
     updatedOn: "2024-03-01",
     storageKey: null,
+    url: null,
+    publiclyAccessible: false,
     description: null,
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "doc-004",
@@ -45,8 +52,10 @@ export const documentSeed: readonly DocumentRecord[] = [
     status: "under-review",
     updatedOn: "2026-08-28",
     storageKey: null,
+    url: null,
+    publiclyAccessible: false,
     description: null,
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "doc-005",
@@ -55,8 +64,10 @@ export const documentSeed: readonly DocumentRecord[] = [
     status: "final",
     updatedOn: "2026-07-15",
     storageKey: null,
+    url: null,
+    publiclyAccessible: false,
     description: "Placeholder guide attached to the Semester Exchange programme.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "doc-006",
@@ -65,8 +76,10 @@ export const documentSeed: readonly DocumentRecord[] = [
     status: "under-review",
     updatedOn: "2026-09-05",
     storageKey: null,
+    url: null,
+    publiclyAccessible: false,
     description: null,
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "doc-007",
@@ -75,8 +88,10 @@ export const documentSeed: readonly DocumentRecord[] = [
     status: "draft",
     updatedOn: "2026-06-30",
     storageKey: null,
+    url: null,
+    publiclyAccessible: false,
     description: "Placeholder policy document with no institution link.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "doc-008",
@@ -85,8 +100,10 @@ export const documentSeed: readonly DocumentRecord[] = [
     status: "archived",
     updatedOn: "2025-06-30",
     storageKey: null,
+    url: null,
+    publiclyAccessible: false,
     description: null,
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "doc-009",
@@ -95,8 +112,10 @@ export const documentSeed: readonly DocumentRecord[] = [
     status: "under-review",
     updatedOn: "2026-09-18",
     storageKey: null,
+    url: null,
+    publiclyAccessible: false,
     description: null,
-    source: "sample",
+    ...SAMPLE,
   },
 ];
 

@@ -28,14 +28,14 @@ export const internalNav: readonly InternalNavItem[] = [
     label: "Universities",
     icon: "GraduationCap",
     role: "viewer",
-    description: "Partner university directory and relationship management.",
+    description: "Institutions listed on the official MUJ partner page, with provenance.",
   },
   {
     href: "/internal/mous",
     label: "MOUs",
     icon: "FileText",
     role: "editor",
-    description: "Memoranda of Understanding tracking and status.",
+    description: "Collaboration rows and agreements as listed on the official partner page, with types kept as stated.",
   },
   {
     href: "/internal/programs",

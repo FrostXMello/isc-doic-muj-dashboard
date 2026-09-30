@@ -18,6 +18,7 @@ import type {
   PartnershipStatus,
   ProgramType,
   RecordSource,
+  VerificationStatus,
 } from "@/lib/internal/types";
 
 export type Tone = "positive" | "warning" | "danger" | "info" | "neutral" | "muted";
@@ -40,6 +41,7 @@ export function deriveAgreementStatus(agreement: Agreement, today: string): Agre
     case "draft":
     case "under-review":
     case "terminated":
+    case "not-stated":
       return agreement.recordStatus;
     case "signed": {
       if (agreement.startDate && daysBetween(today, agreement.startDate) > 0) {
@@ -80,9 +82,15 @@ export function deriveActivityStatus(activity: Activity, today: string): Activit
   return activity.recordStatus;
 }
 
-/** Summarises an institution's agreements into one relationship status. */
-export function derivePartnershipStatus(statuses: readonly AgreementStatus[]): PartnershipStatus {
-  if (statuses.length === 0) return "not-recorded";
+/**
+ * Summarises an institution's agreements into one relationship status.
+ * Rows without a stated status say nothing about activity, so an institution
+ * whose rows are all `not-stated` is only "listed", never "active".
+ */
+export function derivePartnershipStatus(all: readonly AgreementStatus[]): PartnershipStatus {
+  if (all.length === 0) return "not-recorded";
+  const statuses = all.filter((status) => status !== "not-stated");
+  if (statuses.length === 0) return "listed";
   if (statuses.includes("expiring-soon")) return "renewal-due";
   if (statuses.includes("active")) return "active";
   if (
@@ -103,14 +111,19 @@ export const agreementStatusMeta: Record<AgreementStatus, StatusMeta> = {
   "expiring-soon": { label: "Expiring soon", tone: "warning" },
   expired: { label: "Expired", tone: "danger" },
   terminated: { label: "Terminated", tone: "neutral" },
+  "not-stated": { label: "Status not stated", tone: "muted" },
 };
 
 export const agreementTypeLabel: Record<AgreementType, string> = {
   mou: "Memorandum of Understanding",
-  "student-exchange": "Student exchange agreement",
+  "student-exchange": "Student Exchange Agreement",
+  "agreement-of-cooperation": "Agreement of Cooperation",
+  addendum: "Addendum",
+  "academic-agreement": "Academic Agreement",
   "research-collaboration": "Research collaboration",
   "dual-degree": "Dual degree agreement",
   other: "Other agreement",
+  "not-stated": "Type not stated",
 };
 
 export const partnershipStatusMeta: Record<PartnershipStatus, StatusMeta> = {
@@ -118,7 +131,31 @@ export const partnershipStatusMeta: Record<PartnershipStatus, StatusMeta> = {
   "renewal-due": { label: "Renewal due", tone: "warning" },
   "in-progress": { label: "Agreement in progress", tone: "info" },
   lapsed: { label: "Agreement lapsed", tone: "danger" },
+  listed: { label: "Listed on official page", tone: "info" },
   "not-recorded": { label: "No agreement recorded", tone: "muted" },
+};
+
+export const verificationMeta: Record<VerificationStatus, StatusMeta & { description: string }> = {
+  unverified: {
+    label: "Unverified",
+    tone: "muted",
+    description: "Not yet checked against a source.",
+  },
+  "source-imported": {
+    label: "Source-imported",
+    tone: "info",
+    description: "Copied from the linked official page; not confirmed against the signed document.",
+  },
+  "needs-review": {
+    label: "Needs review",
+    tone: "warning",
+    description: "The source is unclear, conflicting, or missing; DoIC staff should confirm.",
+  },
+  verified: {
+    label: "Verified",
+    tone: "positive",
+    description: "Confirmed by DoIC staff against the signed document.",
+  },
 };
 
 export const availabilityMeta: Record<AvailabilityState | "not-recorded", StatusMeta> = {
@@ -133,6 +170,8 @@ export const programTypeLabel: Record<ProgramType, string> = {
   "semester-exchange": "Semester Exchange",
   "pathway-programs": "Pathway Programs",
   "academic-visits": "Academic Visits",
+  "dual-degree": "Dual Degree",
+  "summer-winter-school": "Summer/Winter School",
 };
 
 export const opportunityStatusMeta: Record<OpportunityStatus, StatusMeta> = {
@@ -150,6 +189,8 @@ export const documentTypeLabel: Record<DocumentType, string> = {
   "programme-guide": "Programme guide",
   policy: "Policy",
   report: "Report",
+  form: "Form",
+  newsletter: "Newsletter",
   other: "Other",
 };
 
@@ -178,9 +219,9 @@ export const activityStatusMeta: Record<ActivityStatus, StatusMeta> = {
 
 export const sourceMeta: Record<RecordSource, { label: string; description: string }> = {
   directory: {
-    label: "Public directory",
+    label: "Earlier directory",
     description:
-      "Derived from the public site's illustrative partner directory. The name is a sample institution, not a confirmed partner.",
+      "A name from this platform's earlier illustrative directory that is not on the official MUJ partner page. Hidden from the public site until DoIC confirms it.",
   },
   "programme-catalogue": {
     label: "Programme catalogue",
@@ -192,7 +233,8 @@ export const sourceMeta: Record<RecordSource, { label: string; description: stri
       "Fictional placeholder record for demonstrating the workflow. Not a DoIC record.",
   },
   official: {
-    label: "DoIC record",
-    description: "Entered by DoIC staff in the internal database.",
+    label: "Official MUJ source",
+    description:
+      "Taken from an official MUJ Internationalization page (linked on the record) or entered by DoIC staff.",
   },
 };

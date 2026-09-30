@@ -4,8 +4,10 @@ import {
   ArrowLeftRight,
   ArrowRight,
   CalendarRange,
+  GraduationCap,
   Landmark,
   Route,
+  Sun,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -14,6 +16,8 @@ const icons = {
   semester: CalendarRange,
   pathway: Route,
   visit: Landmark,
+  degree: GraduationCap,
+  school: Sun,
 } as const;
 
 export function OpportunityCard({
@@ -26,7 +30,7 @@ export function OpportunityCard({
 }: {
   title: string;
   summary: string;
-  href: "/opportunities";
+  href: "/opportunities" | "/programs";
   icon: OpportunityIcon;
   index: number;
   className?: string;

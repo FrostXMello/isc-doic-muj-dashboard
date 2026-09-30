@@ -1,6 +1,6 @@
 # Data model for the DoIC platform
 
-Sections 1–7 are the original proposal. Section 0 records what was implemented from it in Supabase (PostgreSQL). No official facts were loaded.
+Sections 1–7 are the original proposal. Section 0 records what was implemented in Supabase (PostgreSQL), including the official MUJ data import (reviewed 2026-09-30; see `docs/muj-internationalization-source-audit.md`).
 
 ---
 
@@ -11,21 +11,54 @@ Source of truth: `supabase/migrations/*.sql`. Enum labels match `src/lib/interna
 | Table | Purpose | URL key kept from the portal |
 | --- | --- | --- |
 | `regions`, `countries` | Directory regions; countries with the single globe "hub" city/pin (not a campus location) and the country note | `countries.slug` (`united-kingdom`) |
-| `institutions` | Identity and place only. `city`/coordinates are NULL until checked; `location_verified` flag | `slug` (`dir-…`, `smp-…`) |
-| `agreements` | MoUs and other agreements; one institution each; `end_date >= start_date` | `code` (`agr-001`) |
+| `institutions` | Identity and place only; one row per real institution. `name` is as displayed on the source, `normalized_name` fixes spelling only. `city`/coordinates are NULL until checked; `location_verified` flag | `slug` (`ofc-…` official, `dir-…` earlier directory, `smp-…` sample) |
+| `agreements` | One row per collaboration row on the official page (several rows may share an institution). `type` + `type_label` keep the row's own wording; `record_status = 'not-stated'` and NULL dates when the source states none; `source_section` = region › country heading; `end_date >= start_date` | `code` (`ic-001`…`ic-132` official, `agr-…` sample); `reference` `DOIC-IC-###` |
 | `collaboration_areas`, `agreement_collaboration_areas` | Area vocabulary and ordered agreement ↔ area links | — |
-| `programs` | The four programme types (one row per `program_type`) | `program_type` |
+| `programs` | The six programme types on the official pages (one row per `program_type`) | `program_type` |
 | `program_availability` | Confirmed institution × programme offerings; unique per pair; optional agreement must belong to the same institution (composite FK) | `code` (`off-001`) |
 | `opportunities` | Application calls; optional offering must be of the same programme (composite FK) | `code` (`opp-001`) |
-| `documents`, `document_links` | Document metadata (+ `storage_bucket`/`storage_path`); each link has exactly one target | `code` (`doc-001`) |
+| `documents`, `document_links` | Document metadata (+ `storage_bucket`/`storage_path`, `external_url` for the official file, `publicly_accessible`); each link has exactly one target | `code` (`doc-…`) |
+| `institution_contacts` | Nodal contacts from the partner page. **Internal only**: `visibility` defaults to `internal`, no `anon` grants, select for internal roles; composite FK to `agreements(id, institution_id)`; phone/email shape checks | — |
+| `agreement_public_summaries` | Trigger-maintained projection (reference, listed name, type, type wording) for public institutions; the only public view of agreement types | `agreement_id` |
 | `activities` | Visits, delegations, events; country required, institution/agreement optional | `code` (`act-001`) |
 | `profiles`, `roles`, `user_roles` | 1:1 with `auth.users`; role vocabulary; role grants (doic_admin-only writes) | — |
 | `student_profiles`, `applications`, `notifications` | Student-owned records | — |
 | `audit_logs` | Append-only change log written by trigger | — |
 
-Conventions: UUID primary keys (`gen_random_uuid()`), `created_at`/`updated_at`/`created_by`/`updated_by` maintained by triggers (actor taken from the session, not the client), FK indexes, and a `data_source` enum (`directory` | `programme-catalogue` | `sample` | `official`) on every catalogue table so demo rows are never mistaken for DoIC records.
+Conventions:
 
-Not implemented from the proposal: `HomeOrganisation` (MUJ is implicit) and `Contact` (no official contacts exist).
+- UUID primary keys (`gen_random_uuid()`).
+- `created_at`/`updated_at`/`created_by`/`updated_by` are maintained by triggers. The actor is taken from the session, not the client.
+- Foreign keys are indexed.
+- Every catalogue table has a `data_source` enum (`directory` | `programme-catalogue` | `sample` | `official`), so demo rows are never mistaken for DoIC records.
+
+Provenance, on institutions, agreements, programmes, offerings, opportunities, documents, and activities:
+
+- `source_url`, `source_title` and `source_last_checked` record where each record came from and when.
+- `verification_status` is one of:
+  - `unverified`.
+  - `source-imported`: copied from the official page. This is the default for official rows.
+  - `needs-review`: unclear, duplicated, or conflicting on the source.
+  - `verified`: confirmed by DoIC against the signed document. Nothing is `verified` yet.
+
+Enum values added for the official data:
+
+- `agreement_type`: `agreement-of-cooperation`, `addendum`, `academic-agreement`, `not-stated`.
+- `agreement_record_status`: `not-stated`.
+- `program_type`: `dual-degree`, `summer-winter-school`.
+- `document_type`: `form`, `newsletter`.
+
+Not implemented from the proposal: `HomeOrganisation` (MUJ is implicit). `Contact` is implemented as `institution_contacts`, restricted to internal roles.
+
+TypeScript source of truth: `src/lib/official/`.
+
+- `partners.ts` holds the institutions and collaboration rows as listed.
+- `countries.ts` holds the countries and the region headings.
+- `internationalization.ts` holds the directorate, programmes, offerings, calls, documents, and activities.
+- `records.ts` maps these to the portal types.
+- `public.ts` is the public projection, with no contacts, statuses, or dates.
+
+`scripts/generate-seed-sql.ts` writes the seeds from these modules, and `scripts/check-data-quality.ts` validates them.
 
 Access rules are summarised in `docs/PROJECT_HANDOFF.md` (Backend) and enforced by RLS in `supabase/migrations/20260930120600_rls_policies.sql` (role helpers live in the `private` schema, see `20260930120800_private_role_helpers.sql`).
 

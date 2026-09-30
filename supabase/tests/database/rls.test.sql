@@ -1,10 +1,11 @@
--- RLS and privilege tests. Run with `npx supabase test db` (local stack).
+-- RLS and privilege tests. Run with `npx supabase test db` (local stack), or
+-- against the linked project with psql (see docs/PROJECT_HANDOFF.md).
 -- Everything runs in one transaction and is rolled back.
 
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(57);
+select plan(79);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures (as the migration owner, which bypasses RLS)
@@ -49,6 +50,24 @@ insert into public.opportunities (code, title, program_id, record_status, opens_
 insert into public.opportunities (code, title, program_id, record_status, data_source) values
   ('test-sample-call', 'Sample call', (select id from public.programs where program_type = 'student-exchange'),
    'published', 'sample');
+-- Official-import shapes: status/type not stated, public summary opted in.
+insert into public.agreements (code, reference, institution_id, title, agreement_type, record_status,
+                               is_public_summary, verification) values
+  ('test-pub-agr', 'TEST-PUB-AGR', (select id from public.institutions where slug = 'test-public-uni'),
+   'Test Public University, Testland', 'not-stated', 'not-stated', true, 'source-imported');
+insert into public.agreements (code, reference, institution_id, title, agreement_type, record_status,
+                               is_public_summary, data_source) values
+  ('test-sample-agr', 'TEST-SAMPLE-AGR', (select id from public.institutions where slug = 'test-public-uni'),
+   'Sample row', 'mou', 'signed', true, 'sample');
+update public.agreements set is_public_summary = true where code = 'test-agr';
+insert into public.institution_contacts (code, institution_id, agreement_id, role_label, full_name, phone, email) values
+  ('test-contact-internal', (select id from public.institutions where slug = 'test-public-uni'),
+   (select id from public.agreements where code = 'test-pub-agr'),
+   'MUJ Nodal Officer', 'Test Officer', '+91 90000 00000', 'officer@test.local');
+insert into public.institution_contacts (code, institution_id, role_label, email, visibility) values
+  ('test-contact-public', (select id from public.institutions where slug = 'test-public-uni'),
+   'Partner office', 'office@test.local', 'public');
+
 insert into public.notifications (user_id, title) values
   ('00000000-0000-4000-a000-000000000001', 'For A'),
   ('00000000-0000-4000-a000-000000000002', 'For B');
@@ -81,6 +100,23 @@ select ok(not exists (select 1 from public.opportunities where code = 'test-samp
 select throws_ok($$ insert into public.institutions (slug, name, country_id)
   values ('anon-uni', 'Anon', (select id from public.countries where slug = 'test-country')) $$,
   '42501', null, 'anon cannot insert institutions');
+select throws_ok($$ select count(*) from public.institution_contacts $$, '42501', null,
+  'anon has no access to institution contacts');
+select throws_ok($$ select full_name, phone, email from public.institution_contacts
+  where visibility = 'public' $$, '42501', null,
+  'anon cannot read contacts even when marked public');
+select ok(exists (select 1 from public.agreement_public_summaries where code = 'test-pub-agr'
+    and agreement_type = 'not-stated'),
+  'anon reads the public agreement summary of a public institution');
+select ok(not exists (select 1 from public.agreement_public_summaries where code = 'test-agr'),
+  'anon cannot read summaries of non-public institutions');
+select ok(not exists (select 1 from public.agreement_public_summaries where code = 'test-sample-agr'),
+  'sample agreements never get a public summary');
+select throws_ok($$ insert into public.agreement_public_summaries
+  (agreement_id, institution_id, code, agreement_type, listed_as)
+  values ((select id from public.agreements limit 1), (select id from public.institutions limit 1),
+          'forged', 'mou', 'Forged') $$,
+  '42501', null, 'anon cannot write agreement summaries');
 
 reset role;
 
@@ -147,6 +183,16 @@ select throws_ok($$ update public.profiles set email = 'x@y.z'
 select throws_ok($$ insert into storage.objects (bucket_id, name)
   values ('institutional-documents', 'documents/00000000-0000-4000-a000-00000000d0c1/a.pdf') $$,
   '42501', null, 'student cannot upload institutional documents');
+select ok(not exists (select 1 from public.institution_contacts where visibility = 'internal'),
+  'student cannot read internal contacts');
+select is((select count(*) from public.institution_contacts where code like 'test-contact-%'), 1::bigint,
+  'student reads only contacts marked public');
+select throws_ok($$ insert into public.institution_contacts (code, institution_id, role_label, email)
+  values ('student-contact', (select id from public.institutions where slug = 'test-public-uni'),
+          'x', 'x@test.local') $$,
+  '42501', null, 'student cannot insert contacts');
+select throws_ok($$ delete from public.agreement_public_summaries $$,
+  '42501', null, 'student cannot delete agreement summaries');
 
 reset role;
 
@@ -182,6 +228,25 @@ select lives_ok($$ insert into storage.objects (bucket_id, name)
 select throws_ok($$ insert into storage.objects (bucket_id, name)
   values ('institutional-documents', 'loose-file.pdf') $$,
   '42501', null, 'uploads outside the path convention are rejected');
+select is((select count(*) from public.institution_contacts where code like 'test-contact-%'), 2::bigint,
+  'isc_team reads all contacts, including internal ones');
+select lives_ok($$ insert into public.institution_contacts (code, institution_id, role_label, email)
+  values ('isc-contact', (select id from public.institutions where slug = 'test-private-uni'),
+          'MUJ Nodal Officer', 'nodal@test.local') $$,
+  'isc_team adds a contact');
+select throws_ok($$ insert into public.institution_contacts (code, institution_id, role_label, email)
+  values ('bad-email', (select id from public.institutions where slug = 'test-private-uni'),
+          'MUJ Nodal Officer', 'not-an-email') $$,
+  '23514', null, 'malformed contact emails are rejected');
+select throws_ok($$ insert into public.institution_contacts (code, institution_id, agreement_id, role_label, email)
+  values ('wrong-agr', (select id from public.institutions where slug = 'test-private-uni'),
+          (select id from public.agreements where code = 'test-pub-agr'), 'x', 'x@test.local') $$,
+  '23503', null, 'a contact cannot point at another institution''s agreement');
+select is((select visibility::text from public.institution_contacts where code = 'isc-contact'), 'internal',
+  'contacts default to internal visibility');
+delete from public.institution_contacts where code = 'isc-contact';
+select ok(exists (select 1 from public.institution_contacts where code = 'isc-contact'),
+  'isc_team cannot delete contacts');
 
 reset role;
 
@@ -206,6 +271,12 @@ select throws_ok($$ insert into storage.objects (bucket_id, name)
   '42501', null, 'leadership cannot upload documents');
 select ok(exists (select 1 from storage.objects where bucket_id = 'institutional-documents'),
   'leadership reads institutional document objects');
+select ok(exists (select 1 from public.institution_contacts where code = 'test-contact-internal'),
+  'leadership reads internal contacts');
+select throws_ok($$ insert into public.institution_contacts (code, institution_id, role_label, email)
+  values ('lead-contact', (select id from public.institutions where slug = 'test-public-uni'),
+          'x', 'x@test.local') $$,
+  '42501', null, 'leadership cannot insert contacts');
 
 reset role;
 
@@ -239,6 +310,20 @@ select ok(not exists (select 1 from public.agreements where code = 'isc-agr'), '
 delete from public.user_roles
   where user_id = '00000000-0000-4000-a000-000000000004' and role = 'doic_admin';
 select ok(private.is_doic_admin(), 'doic_admin cannot revoke their own admin role');
+update public.agreements set title = 'Renamed on source' where code = 'test-pub-agr';
+select is((select listed_as from public.agreement_public_summaries where code = 'test-pub-agr'),
+  'Renamed on source', 'agreement summaries follow agreement updates');
+update public.agreements set is_public_summary = false where code = 'test-pub-agr';
+select ok(not exists (select 1 from public.agreement_public_summaries where code = 'test-pub-agr'),
+  'opting out removes the public summary');
+delete from public.institution_contacts where code = 'isc-contact';
+select ok(not exists (select 1 from public.institution_contacts where code = 'isc-contact'),
+  'doic_admin deletes contacts');
+select ok(exists (
+    select 1 from public.audit_logs
+    where table_name = 'institution_contacts' and action = 'DELETE'
+      and old_data ->> 'code' = 'isc-contact'),
+  'contact changes are written to the audit log');
 
 reset role;
 

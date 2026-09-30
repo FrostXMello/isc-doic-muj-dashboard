@@ -1,18 +1,5 @@
-import { opportunities } from "@/lib/data";
-import type { Program, ProgramAvailability, ProgramType } from "@/lib/internal/types";
-
-/**
- * Programmes — DERIVED from the four opportunity categories on the public site
- * (src/lib/data.ts). Descriptions are the public, illustrative wording.
- */
-export const programSeed: readonly Program[] = opportunities.map((entry) => ({
-  id: entry.id as ProgramType,
-  name: entry.title,
-  type: entry.id as ProgramType,
-  description: entry.summary,
-  generalAudience: null,
-  source: "programme-catalogue",
-}));
+import type { ProgramAvailability } from "@/lib/internal/types";
+import { SAMPLE } from "./sample";
 
 /**
  * SAMPLE DATA — programme availability (institution × programme offerings).
@@ -36,7 +23,7 @@ export const availabilitySeed: readonly ProgramAvailability[] = [
     eligibility: null,
     creditInformation: null,
     notes: null,
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "off-002",
@@ -51,7 +38,7 @@ export const availabilitySeed: readonly ProgramAvailability[] = [
     eligibility: null,
     creditInformation: null,
     notes: null,
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "off-003",
@@ -66,7 +53,7 @@ export const availabilitySeed: readonly ProgramAvailability[] = [
     eligibility: null,
     creditInformation: null,
     notes: "Sample faculty-led visit format.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "off-004",
@@ -81,7 +68,7 @@ export const availabilitySeed: readonly ProgramAvailability[] = [
     eligibility: null,
     creditInformation: null,
     notes: "Suspended in this sample until the renewal draft is signed.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "off-005",
@@ -96,7 +83,7 @@ export const availabilitySeed: readonly ProgramAvailability[] = [
     eligibility: null,
     creditInformation: null,
     notes: "Availability is not recorded while the sample dual degree proposal is under review.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "off-006",
@@ -111,7 +98,7 @@ export const availabilitySeed: readonly ProgramAvailability[] = [
     eligibility: null,
     creditInformation: null,
     notes: "Opens after the sample agreement start date.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "off-007",
@@ -126,7 +113,7 @@ export const availabilitySeed: readonly ProgramAvailability[] = [
     eligibility: null,
     creditInformation: null,
     notes: null,
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "off-008",
@@ -141,6 +128,6 @@ export const availabilitySeed: readonly ProgramAvailability[] = [
     eligibility: null,
     creditInformation: null,
     notes: null,
-    source: "sample",
+    ...SAMPLE,
   },
 ];

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { SearchX } from "lucide-react";
 import { PartnershipBadge } from "@/components/internal/badges";
+import { VerificationBadge } from "@/components/internal/ui/provenance";
+import { getDataMode } from "@/lib/internal/data/context";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
 import { PageHeader } from "@/components/internal/ui/page-header";
@@ -25,7 +27,7 @@ export const metadata: Metadata = { title: "Universities" };
 
 export default async function UniversitiesPage({ searchParams }: SearchParamsProp) {
   const params = await searchParams;
-  const options = await getInstitutionFilterOptions();
+  const [options, mode] = await Promise.all([getInstitutionFilterOptions(), getDataMode()]);
 
   const [rows, all] = await Promise.all([
     listInstitutions({
@@ -42,7 +44,7 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
     <div className="space-y-6">
       <PageHeader
         title="Universities"
-        description="Institutions in the portal directory, with partnership status derived from recorded agreements."
+        description="Institutions from MUJ's official partner page, with the collaboration rows listed for each."
         actions={
           <PlaceholderAction
             label="Add university"
@@ -54,11 +56,17 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
       />
 
       <DataNotice>
-        Institutions marked <strong className="font-medium">Public directory</strong> come from
-        the public site&apos;s illustrative list and have no agreements recorded.{" "}
-        <strong className="font-medium">Sample data</strong> institutions (&ldquo;Example
-        &hellip;&rdquo;) are fictional and exist only to demonstrate agreement, programme, and
-        activity workflows.
+        <strong className="font-medium">Official MUJ source</strong> institutions are imported
+        from the official partner page; their status is <em>Listed</em> because the page gives no
+        dates or status. <strong className="font-medium">Earlier directory</strong> names are not
+        on the official page and await DoIC review.
+        {mode.sampleData ? (
+          <>
+            {" "}
+            <strong className="font-medium">Sample data</strong> institutions (&ldquo;Example
+            &hellip;&rdquo;) are fictional and shown because INTERNAL_SAMPLE_DATA is on.
+          </>
+        ) : null}
       </DataNotice>
 
       <FilterBar
@@ -114,7 +122,14 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
           {
             key: "name",
             header: "Institution",
-            cell: (row) => <span className="font-medium">{row.name}</span>,
+            cell: (row) => (
+              <span className="font-medium">
+                {row.name}
+                {row.normalizedName && row.normalizedName !== row.name ? (
+                  <span className="block text-[12px] font-normal text-fg-faint">{row.normalizedName}</span>
+                ) : null}
+              </span>
+            ),
           },
           {
             key: "location",
@@ -133,16 +148,18 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
           },
           {
             key: "agreements",
-            header: "Agreements",
+            header: "Rows",
             className: "tabular-nums",
             cell: (row) =>
               row.agreementCount === 0 ? (
                 <span className="text-fg-faint">—</span>
-              ) : (
+              ) : row.activeAgreementCount > 0 ? (
                 <span>
                   {row.activeAgreementCount} active
                   <span className="text-fg-faint"> / {row.agreementCount}</span>
                 </span>
+              ) : (
+                <span>{row.agreementCount}</span>
               ),
           },
           {
@@ -155,7 +172,12 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
           {
             key: "source",
             header: "Source",
-            cell: (row) => <SourceBadge source={row.source} />,
+            cell: (row) => (
+              <span className="flex flex-col items-start gap-1">
+                <SourceBadge source={row.source} />
+                <VerificationBadge status={row.verification} />
+              </span>
+            ),
           },
         ]}
         renderCard={(row) => (
@@ -170,8 +192,12 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
             }
             meta={[
               {
-                label: "Agreements",
-                value: row.agreementCount ? `${row.activeAgreementCount} active / ${row.agreementCount}` : "—",
+                label: "Rows",
+                value: row.agreementCount
+                  ? row.activeAgreementCount
+                    ? `${row.activeAgreementCount} active / ${row.agreementCount}`
+                    : String(row.agreementCount)
+                  : "—",
               },
               { label: "Next expiry", value: formatDate(row.nextExpiry, "—") },
             ]}

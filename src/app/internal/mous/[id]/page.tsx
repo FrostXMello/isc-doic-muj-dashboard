@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BookOpen, CalendarDays, FileText, FolderOpen, GraduationCap, Timer } from "lucide-react";
+import { BookOpen, CalendarDays, FileText, FolderOpen, GraduationCap, Link2, Timer } from "lucide-react";
 import { notFound } from "next/navigation";
 import {
   ActivityStatusBadge,
@@ -14,6 +14,7 @@ import {
   PlaceholderAction,
   unavailableReasons,
 } from "@/components/internal/ui/placeholder-action";
+import { ContactsPanel, provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { toneStyles } from "@/components/internal/ui/status-badge";
 import { getAgreement } from "@/lib/internal/data/agreements";
@@ -57,6 +58,8 @@ function statusExplanation(agreement: AgreementView) {
       return "Under review. Dates are set once the agreement is signed.";
     case "terminated":
       return "Ended before its scheduled end date.";
+    case "not-stated":
+      return "The official source lists this collaboration but states no status or dates. Confirm against the signed document before relying on it.";
   }
 }
 
@@ -94,7 +97,8 @@ export default async function AgreementDetailPage({ params }: IdParamsProp) {
   const record = await getAgreement(id);
   if (!record) notFound();
 
-  const { today, agreement, institution, related, offerings, activities, documents } = record;
+  const { today, agreement, institution, related, offerings, activities, documents, contactAccess } =
+    record;
   const hasTerm = Boolean(agreement.startDate && agreement.endDate);
 
   return (
@@ -109,6 +113,7 @@ export default async function AgreementDetailPage({ params }: IdParamsProp) {
           <>
             <AgreementStatusBadge status={agreement.status} daysToExpiry={agreement.daysToExpiry} />
             <SourceBadge source={agreement.source} />
+            <VerificationBadge status={agreement.verification} />
           </>
         }
         actions={
@@ -129,7 +134,21 @@ export default async function AgreementDetailPage({ params }: IdParamsProp) {
           <DetailSection title="Agreement details" icon={FileText}>
             <KeyValueList
               items={[
-                { label: "Type", value: agreementTypeLabel[agreement.type] },
+                {
+                  label: "Type",
+                  value: (
+                    <span>
+                      {agreementTypeLabel[agreement.type]}
+                      <span className="block text-[12px] text-muted-foreground">
+                        {agreement.typeLabel
+                          ? `Stated on source: “${agreement.typeLabel}”`
+                          : agreement.type === "not-stated"
+                            ? "The source row does not name an agreement type."
+                            : null}
+                      </span>
+                    </span>
+                  ),
+                },
                 {
                   label: "Status",
                   value: (
@@ -141,8 +160,8 @@ export default async function AgreementDetailPage({ params }: IdParamsProp) {
                     </span>
                   ),
                 },
-                { label: "Start date", value: formatDate(agreement.startDate) },
-                { label: "Expiry date", value: formatDate(agreement.endDate) },
+                { label: "Start date", value: formatDate(agreement.startDate, "Not stated") },
+                { label: "Expiry date", value: formatDate(agreement.endDate, "Not stated") },
                 {
                   label: "Renewal",
                   value:
@@ -153,6 +172,9 @@ export default async function AgreementDetailPage({ params }: IdParamsProp) {
                         : <NotRecorded />,
                 },
                 { label: "Reference", value: <span className="font-mono">{agreement.reference}</span> },
+                ...(agreement.sourceSection
+                  ? [{ label: "Listed under", value: agreement.sourceSection }]
+                  : []),
                 {
                   label: "Collaboration areas",
                   wide: true,
@@ -224,7 +246,7 @@ export default async function AgreementDetailPage({ params }: IdParamsProp) {
                     key: institution.id,
                     href: `/internal/universities/${institution.id}`,
                     title: institution.name,
-                    meta: `${institution.city} · ${institution.country}`,
+                    meta: [institution.city, institution.country].filter(Boolean).join(" · "),
                     badge: <PartnershipBadge status={institution.partnershipStatus} />,
                   },
                 ]}
@@ -235,6 +257,18 @@ export default async function AgreementDetailPage({ params }: IdParamsProp) {
               </p>
             )}
           </DetailSection>
+
+          <DetailSection title="Provenance" icon={Link2}>
+            <KeyValueList className="sm:grid-cols-1" items={provenanceItems(agreement)} />
+          </DetailSection>
+
+          {institution ? (
+            <ContactsPanel
+              access={contactAccess}
+              institutionId={institution.id}
+              agreementId={agreement.id}
+            />
+          ) : null}
 
           <DetailSection title="Documents" icon={FolderOpen}>
             <LinkedList

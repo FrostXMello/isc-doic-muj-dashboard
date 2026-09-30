@@ -14,7 +14,7 @@ export function Cta() {
             className="pointer-events-none absolute -top-24 right-[-10%] h-64 w-64 rounded-full bg-glow/10 blur-3xl"
           />
           <p className="text-[11px] font-medium tracking-[0.22em] text-cyan uppercase">
-            Directorate of International Collaboration
+            Directorate of International Collaborations
           </p>
           <h2
             id="cta-heading"
@@ -23,8 +23,8 @@ export function Cta() {
             Ready to explore the world?
           </h2>
           <p className="mt-5 max-w-lg text-base leading-relaxed text-muted-foreground">
-            Start with the opportunities MUJ students can pursue, or look through
-            the universities on the illustrative global network.
+            Start with the opportunities DoIC has published, or look through the
+            institutions MUJ lists as international collaborations.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link href="/opportunities" className={cn(buttonVariants({ size: "xl" }), "group/button")}>

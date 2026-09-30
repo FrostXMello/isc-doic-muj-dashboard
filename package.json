@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:seed:generate": "tsx scripts/generate-seed-sql.ts"
+    "db:seed:generate": "tsx scripts/generate-seed-sql.ts",
+    "data:check": "tsx scripts/check-data-quality.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

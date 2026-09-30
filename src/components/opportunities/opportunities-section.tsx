@@ -16,8 +16,8 @@ export function OpportunitiesSection() {
           <SectionHeading
             id="opportunities-heading"
             eyebrow="Opportunities"
-            title="Four ways to begin."
-            description="A first look at the kinds of international experience DoIC and the International Student Cell will publish in full."
+            title="Ways to go international."
+            description="The programme types described on MUJ’s official Internationalization pages. Each links to the details and the official source."
           />
         </Reveal>
         <div className="mt-12 border-t border-line">

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BookOpen, CalendarDays, FileText, FolderOpen, Globe, Handshake } from "lucide-react";
+import { BookOpen, CalendarDays, FileText, FolderOpen, Globe, Handshake, Link2 } from "lucide-react";
 import { notFound } from "next/navigation";
 import {
   ActivityStatusBadge,
@@ -14,6 +14,7 @@ import {
   PlaceholderAction,
   unavailableReasons,
 } from "@/components/internal/ui/placeholder-action";
+import { ContactsPanel, provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getInstitution } from "@/lib/internal/data/institutions";
 import { formatDate, formatDateRange } from "@/lib/internal/dates";
@@ -31,9 +32,14 @@ export default async function UniversityDetailPage({ params }: IdParamsProp) {
   const record = await getInstitution(id);
   if (!record) notFound();
 
-  const { institution, agreements, offerings, opportunities, activities, documents, peers } =
+  const { institution, agreements, offerings, opportunities, activities, documents, peers, contactAccess } =
     record;
-  const isDirectory = institution.source === "directory";
+  const note =
+    institution.source === "official"
+      ? "Listed on MUJ's official International Collaboration and Partners page. The page gives no agreement dates or status, so none is shown or inferred."
+      : institution.source === "directory"
+        ? "Carried over from this platform's earlier directory; not on the official MUJ partner page. Hidden from the public site until DoIC confirms it."
+        : "Fictional sample institution. Linked records demonstrate the portal workflow only.";
 
   return (
     <div className="space-y-6">
@@ -42,11 +48,12 @@ export default async function UniversityDetailPage({ params }: IdParamsProp) {
         backLabel="All universities"
         eyebrow={institution.region}
         title={institution.name}
-        subtitle={`${institution.city} · ${institution.country}`}
+        subtitle={[institution.city, institution.country].filter(Boolean).join(" · ")}
         badges={
           <>
             <PartnershipBadge status={institution.partnershipStatus} />
             <SourceBadge source={institution.source} />
+            <VerificationBadge status={institution.verification} />
           </>
         }
         actions={
@@ -88,9 +95,7 @@ export default async function UniversityDetailPage({ params }: IdParamsProp) {
                 {
                   label: "Note",
                   wide: true,
-                  value: isDirectory
-                    ? "No agreement, programme, or activity is recorded for this institution. The public directory does not publish partnership status, and none is inferred here."
-                    : "Fictional sample institution. Linked records demonstrate the portal workflow only.",
+                  value: note,
                 },
               ]}
             />
@@ -99,7 +104,7 @@ export default async function UniversityDetailPage({ params }: IdParamsProp) {
           <DetailSection
             title="Agreements"
             icon={FileText}
-            description="Status is derived from each agreement's stored state and dates."
+            description="Rows as listed on the source. Status is derived only from stored state and dates; official rows state neither."
           >
             <LinkedList
               emptyTitle="No agreements recorded"
@@ -108,7 +113,7 @@ export default async function UniversityDetailPage({ params }: IdParamsProp) {
                 key: agreement.id,
                 href: `/internal/mous/${agreement.id}`,
                 title: agreement.title,
-                meta: `${agreement.reference} · ${agreementTypeLabel[agreement.type]} · ${formatDateRange(agreement.startDate, agreement.endDate)}`,
+                meta: `${agreement.reference} · ${agreement.typeLabel ?? agreementTypeLabel[agreement.type]} · ${formatDateRange(agreement.startDate, agreement.endDate)}`,
                 badge: (
                   <AgreementStatusBadge
                     status={agreement.status}
@@ -160,8 +165,12 @@ export default async function UniversityDetailPage({ params }: IdParamsProp) {
               items={[
                 { label: "Country", value: institution.country },
                 { label: "Region", value: institution.region },
-                { label: "City", value: institution.city },
+                ...(institution.normalizedName && institution.normalizedName !== institution.name
+                  ? [{ label: "Normalised name", value: institution.normalizedName }]
+                  : []),
+                { label: "City", value: institution.city ?? <NotRecorded /> },
                 { label: "Website", value: institution.website ?? <NotRecorded /> },
+                { label: "On public site", value: institution.isPublic ? "Yes" : "No" },
                 {
                   label: "Coordinates",
                   value:
@@ -194,8 +203,14 @@ export default async function UniversityDetailPage({ params }: IdParamsProp) {
             />
           </DetailSection>
 
+          <DetailSection title="Provenance" icon={Link2}>
+            <KeyValueList className="sm:grid-cols-1" items={provenanceItems(institution)} />
+          </DetailSection>
+
+          <ContactsPanel access={contactAccess} institutionId={institution.id} />
+
           {institution.note && (
-            <DetailSection title="Country note" description="Illustrative copy from the public site">
+            <DetailSection title="Review note">
               <p className="px-5 py-4 text-[13px] leading-relaxed text-muted-foreground">
                 {institution.note}
               </p>

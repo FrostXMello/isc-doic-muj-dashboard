@@ -5,7 +5,8 @@ import { documentStatuses, documentTypes } from "@/lib/internal/data/documents";
 import { partnershipStatuses } from "@/lib/internal/data/institutions";
 import { opportunityStatuses } from "@/lib/internal/data/opportunities";
 import { availabilityFilters } from "@/lib/internal/data/programs";
-import type { RecordSource, Region } from "@/lib/internal/types";
+import type { RecordSource, VerificationStatus } from "@/lib/internal/types";
+import { officialRegions } from "@/lib/official/countries";
 
 function countBy<K extends string, T>(keys: readonly K[], rows: readonly T[], pick: (row: T) => K) {
   const counts = Object.fromEntries(keys.map((key) => [key, 0])) as Record<K, number>;
@@ -13,8 +14,14 @@ function countBy<K extends string, T>(keys: readonly K[], rows: readonly T[], pi
   return counts;
 }
 
-const regions: readonly Region[] = ["Europe", "Middle East", "Asia-Pacific", "North America"];
-const sources: readonly RecordSource[] = ["directory", "sample", "official"];
+const regions = officialRegions;
+const sources: readonly RecordSource[] = ["official", "directory", "sample"];
+const verifications: readonly VerificationStatus[] = [
+  "source-imported",
+  "needs-review",
+  "unverified",
+  "verified",
+];
 
 /**
  * Operational summary computed from the repository rows.
@@ -43,7 +50,9 @@ export async function getOperationalSummary() {
     institutions: {
       total: institutions.length,
       countries: new Set(institutions.map((row) => row.country)).size,
+      public: institutions.filter((row) => row.isPublic && row.source === "official").length,
       bySource: countBy(sources, institutions, (row) => row.source as (typeof sources)[number]),
+      byVerification: countBy(verifications, institutions, (row) => row.verification),
       byPartnership: countBy(partnershipStatuses, institutions, (row) => row.partnershipStatus),
       byRegion,
     },
@@ -51,6 +60,7 @@ export async function getOperationalSummary() {
       total: agreements.length,
       byStatus: countBy(agreementStatuses, agreements, (row) => row.status),
       byType: countBy(agreementTypes, agreements, (row) => row.type),
+      byVerification: countBy(verifications, agreements, (row) => row.verification),
       expiringSoon: agreements
         .filter((row) => row.status === "expiring-soon")
         .sort((a, b) => (a.endDate ?? "").localeCompare(b.endDate ?? "")),
@@ -96,6 +106,8 @@ export async function getOperationalSummary() {
       byType: countBy(documentTypes, documents, (row) => row.type),
       unlinked: documents.filter((row) => row.links.length === 0).length,
       withFile: documents.filter((row) => row.storageKey !== null).length,
+      withLink: documents.filter((row) => row.url !== null).length,
+      publiclyAccessible: documents.filter((row) => row.publiclyAccessible).length,
     },
   };
 }

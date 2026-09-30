@@ -16,7 +16,7 @@ export default function TermsPage() {
         <PageIntro
           eyebrow="Terms"
           title="What this preview is."
-          lede="These pages are a preview of the Directorate of International Collaboration site. They are not an offer of admission, a confirmed partnership, or a completed application. Terms of use are not published yet."
+          lede="This platform is operated by the International Student Cell for the Directorate of International Collaborations (DoIC). It presents information from MUJ’s official pages; it is not the official MUJ website, an offer of admission, or a completed application. Terms of use are not published yet."
         />
         <section aria-labelledby="shown" className="mt-10 max-w-3xl">
           <h2
@@ -27,15 +27,15 @@ export default function TermsPage() {
           </h2>
           <dl className="mt-4 border-t border-line">
             <Fact label="Institution names">
-              Sample names on an illustrative network. They are not a published
-              list of agreements.
+              As listed on MUJ&apos;s official International Collaboration and Partners
+              page. A listing does not state an agreement&apos;s dates or current status.
             </Fact>
             <Fact label="Counts on the home page">
-              Demo figures. They are not official university statistics.
+              Counted from the official partner page on the date it was checked.
             </Fact>
             <Fact label="Opportunities">
-              Short descriptions only. They do not state eligibility, fees,
-              deadlines, or availability.
+              As published on the official pages, with links back. Eligibility,
+              fees, and availability are only shown where the official page states them.
             </Fact>
           </dl>
         </section>

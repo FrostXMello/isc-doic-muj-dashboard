@@ -1,6 +1,6 @@
 "use client";
 
-import { hub, partners } from "@/lib/data";
+import { hub } from "@/lib/data";
 import {
   LAND_COUNT,
   LAND_VECS,
@@ -15,42 +15,54 @@ import { readPaintedTheme, useResolvedTheme, type ResolvedTheme } from "@/lib/th
 import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
 
+/** A country on the official partner page, placed at its approximate centre. */
+export type GlobePoint = {
+  id: string;
+  country: string;
+  region: string;
+  lat: number;
+  lon: number;
+  institutions: number;
+};
+
 type Node = {
   id: string;
+  /** Small caps line of the hover label (region, or the hub city). */
   city: string;
   country: string;
+  chip: string;
   vec: Vec3;
   lon: number;
 };
 
-const NODES: Node[] = [
-  {
+const ARC_SAMPLES = 42;
+
+function buildScene(points: readonly GlobePoint[]) {
+  const hubNode: Node = {
     id: hub.id,
     city: hub.city,
     country: hub.country,
+    chip: hub.city,
     vec: latLonToVec(hub.lat, hub.lon),
     lon: hub.lon,
-  },
-  ...partners.map((partner) => ({
-    id: partner.id,
-    city: partner.city,
-    country: partner.country,
-    vec: latLonToVec(partner.lat, partner.lon),
-    lon: partner.lon,
-  })),
-];
-
-const HUB = NODES[0];
-const PARTNER_NODES = NODES.slice(1);
-
-const ARC_SAMPLES = 42;
-const ARCS = PARTNER_NODES.map((node) => {
-  const points: Vec3[] = [];
-  for (let i = 0; i <= ARC_SAMPLES; i += 1) {
-    points.push(slerpLift(HUB.vec, node.vec, i / ARC_SAMPLES));
-  }
-  return { id: node.id, points };
-});
+  };
+  const partnerNodes: Node[] = points.map((point) => ({
+    id: point.id,
+    city: point.region,
+    country: `${point.country} · ${point.institutions} ${point.institutions === 1 ? "institution" : "institutions"}`,
+    chip: point.country,
+    vec: latLonToVec(point.lat, point.lon),
+    lon: point.lon,
+  }));
+  const arcs = partnerNodes.map((node) => {
+    const arcPoints: Vec3[] = [];
+    for (let i = 0; i <= ARC_SAMPLES; i += 1) {
+      arcPoints.push(slerpLift(hubNode.vec, node.vec, i / ARC_SAMPLES));
+    }
+    return { id: node.id, points: arcPoints };
+  });
+  return { nodes: [hubNode, ...partnerNodes], partnerNodes, arcs };
+}
 
 type Particle = { lat: number; lon: number; speed: number; size: number };
 
@@ -137,7 +149,15 @@ const PALETTES: Record<ResolvedTheme, Palette> = {
   },
 };
 
-export function Globe() {
+export function Globe({
+  points,
+  chipIds,
+}: {
+  points: readonly GlobePoint[];
+  /** Countries offered as buttons under the globe; every point stays hoverable. */
+  chipIds: readonly string[];
+}) {
+  const [scene] = useState(() => buildScene(points));
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const labelRef = useRef<HTMLDivElement>(null);
@@ -161,13 +181,13 @@ export function Globe() {
 
   useEffect(() => {
     activeRef.current = activeId;
-    const node = PARTNER_NODES.find((item) => item.id === activeId);
+    const node = scene.partnerNodes.find((item) => item.id === activeId);
     if (cityRef.current && countryRef.current) {
       cityRef.current.textContent = node?.city ?? "";
       countryRef.current.textContent = node?.country ?? "";
     }
     if (reduceRef.current) paintRef.current?.();
-  }, [activeId]);
+  }, [activeId, scene]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -181,8 +201,8 @@ export function Globe() {
       reduceRef.current = media.matches;
       if (hintRef.current) {
         hintRef.current.textContent = media.matches
-          ? "Still view. Select a city to bring its link to Jaipur forward."
-          : "Drag to turn the globe. Hover a city to trace its link to Jaipur.";
+          ? "Still view. Select a country to bring its link to Jaipur forward."
+          : "Drag to turn the globe. Hover a point to trace its link to Jaipur.";
       }
       if (media.matches) {
         rotationRef.current = INITIAL_ROTATION;
@@ -287,7 +307,7 @@ export function Globe() {
       }
 
       const active = activeRef.current;
-      ARCS.forEach((arc, index) => {
+      scene.arcs.forEach((arc, index) => {
         const emphasized = active === arc.id;
         drawArc(
           context,
@@ -322,7 +342,7 @@ export function Globe() {
       }
 
       const projectedNodes: Projected[] = [];
-      for (const node of NODES) {
+      for (const node of scene.nodes) {
         const projected = projectVec(node.vec[0], node.vec[1], node.vec[2], rot);
         const point = {
           id: node.id,
@@ -434,7 +454,7 @@ export function Globe() {
       document.removeEventListener("visibilitychange", onVisibility);
       paintRef.current = null;
     };
-  }, []);
+  }, [scene]);
 
   const hitTest = (event: React.PointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -461,7 +481,7 @@ export function Globe() {
       if (pin) targetRef.current = null;
       return;
     }
-    const node = PARTNER_NODES.find((item) => item.id === id);
+    const node = scene.partnerNodes.find((item) => item.id === id);
     if (!node) return;
     if (pin || reduceRef.current) {
       targetRef.current = rotationForLongitude(node.lon);
@@ -491,9 +511,10 @@ export function Globe() {
   return (
     <div className="w-full">
       <p id="globe-desc" className="sr-only">
-        Decorative globe centred on Manipal University Jaipur. Glowing points
-        mark illustrative partner cities, with curved links back to Jaipur.
-        Choose a city to highlight its connection. This is not a live map.
+        Decorative globe centred on Manipal University Jaipur. Points mark the
+        countries of institutions listed on MUJ&apos;s official partner page,
+        placed at approximate country centres, with curved links back to
+        Jaipur. The full list is on the Partner Universities page.
       </p>
       <div
         ref={wrapRef}
@@ -543,14 +564,16 @@ export function Globe() {
         ref={hintRef}
         className="mt-1 text-center text-[12px] tracking-[0.04em] text-muted-foreground"
       >
-        Drag to turn the globe. Hover a city to trace its link to Jaipur.
+        Drag to turn the globe. Hover a point to trace its link to Jaipur.
       </p>
       <ul
-        aria-label="Illustrative partner cities"
+        aria-label="Countries with the most listed partner institutions"
         aria-describedby="globe-desc"
         className="mt-3 flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-wrap lg:justify-center lg:overflow-visible [&::-webkit-scrollbar]:hidden"
       >
-        {partners.map((partner) => {
+        {scene.partnerNodes
+          .filter((partner) => chipIds.includes(partner.id))
+          .map((partner) => {
           const selected = activeId === partner.id;
           return (
             <li key={partner.id}>
@@ -571,7 +594,7 @@ export function Globe() {
                     : "border-line text-muted-foreground hover:border-line-bold hover:text-foreground",
                 )}
               >
-                {partner.city}
+                {partner.chip}
               </button>
             </li>
           );

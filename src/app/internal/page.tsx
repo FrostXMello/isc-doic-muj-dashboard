@@ -17,6 +17,7 @@ import { LinkedList } from "@/components/internal/ui/detail";
 import { PageHeader, Panel, PanelHeader } from "@/components/internal/ui/page-header";
 import { DataNotice } from "@/components/internal/ui/source-badge";
 import { StatCard } from "@/components/internal/ui/stat-card";
+import { getDataMode } from "@/lib/internal/data/context";
 import { getOperationalSummary } from "@/lib/internal/data/reports";
 import { formatDate, formatRelativeDays } from "@/lib/internal/dates";
 
@@ -25,13 +26,22 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
-  const summary = await getOperationalSummary();
+  const [summary, mode] = await Promise.all([getOperationalSummary(), getDataMode()]);
   const { institutions, agreements, programs, opportunities, activities } = summary;
 
   const liveAgreements = agreements.byStatus.active + agreements.byStatus["expiring-soon"];
   const openCalls = opportunities.byStatus.open + opportunities.byStatus["closing-soon"];
 
+  const needsReview =
+    institutions.byVerification["needs-review"] + agreements.byVerification["needs-review"];
+
   const attention = [
+    {
+      label: "Records flagged for review",
+      count: needsReview,
+      href: "/internal/reports",
+      icon: FileText,
+    },
     {
       label: "Agreements expiring soon",
       count: agreements.byStatus["expiring-soon"],
@@ -50,26 +60,22 @@ export default async function DashboardPage() {
       href: "/internal/activities?status=needs-update",
       icon: CalendarDays,
     },
-    {
-      label: "Agreements in draft or review",
-      count: agreements.byStatus.draft + agreements.byStatus["under-review"],
-      href: "/internal/mous?status=under-review",
-      icon: FileText,
-    },
   ];
 
   return (
     <div className="space-y-8">
       <PageHeader
         title="Dashboard"
-        description={`Overview of collaboration records · Directorate of International Collaboration · ${formatDate(summary.today)}`}
+        description={`Overview of collaboration records · Directorate of International Collaborations · ${formatDate(summary.today)}`}
       />
 
       <DataNotice>
-        Counts are computed from the portal data layer. Institutions include the public
-        site&apos;s illustrative directory plus fictional sample institutions; agreements,
-        offerings, calls, and activities are sample data. None of these are official DoIC
-        figures.
+        Counts are computed from records imported from MUJ&apos;s official Internationalization
+        pages (source-imported, not confirmed against signed documents), plus earlier directory
+        names awaiting review.
+        {mode.sampleData
+          ? " Fictional sample records are included because INTERNAL_SAMPLE_DATA is on."
+          : null}
       </DataNotice>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -78,7 +84,7 @@ export default async function DashboardPage() {
           value={institutions.total}
           icon={GraduationCap}
           href="/internal/universities"
-          hint={`${institutions.bySource.directory} directory · ${institutions.bySource.sample} sample`}
+          hint={`${institutions.bySource.official} official · ${institutions.bySource.directory} earlier directory${mode.sampleData ? ` · ${institutions.bySource.sample} sample` : ""}`}
         />
         <StatCard
           label="Countries"
@@ -89,20 +95,20 @@ export default async function DashboardPage() {
           hint={`Across ${institutions.byRegion.filter((r) => r.institutions > 0).length} regions`}
         />
         <StatCard
-          label="Live agreements"
-          value={liveAgreements}
+          label="Collaboration rows"
+          value={agreements.total}
           icon={FileText}
           accent="var(--success)"
           href="/internal/mous"
-          hint={`${agreements.total} recorded in total`}
+          hint={`${agreements.byStatus["not-stated"]} with status not stated · ${liveAgreements} live`}
         />
         <StatCard
-          label="Open offerings"
-          value={programs.byAvailability.open}
+          label="Programme offerings"
+          value={programs.offerings}
           icon={BookOpen}
           accent="var(--ring)"
-          href="/internal/programs?availability=open"
-          hint={`${openCalls} open application calls`}
+          href="/internal/programs"
+          hint={`Named on official pages · ${openCalls} open calls`}
         />
       </div>
 
@@ -209,7 +215,7 @@ export default async function DashboardPage() {
       <Panel>
         <PanelHeader
           title="Network by region"
-          description="Institutions in the portal directory, grouped by region."
+          description="Institutions grouped by the region headings on the official partner page."
         />
         <div className="grid grid-cols-1 divide-y divide-hairline sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4">
           {institutions.byRegion.map((region) => (
@@ -226,7 +232,7 @@ export default async function DashboardPage() {
               </p>
               <p className="mt-1 text-[12px] text-muted-foreground">
                 {region.countries} {region.countries === 1 ? "country" : "countries"} ·{" "}
-                {region.withAgreements} with agreements
+                {region.withAgreements} with listed rows
               </p>
             </Link>
           ))}

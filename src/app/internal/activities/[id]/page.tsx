@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { CalendarDays, FileText, FolderOpen, GraduationCap } from "lucide-react";
+import { CalendarDays, FileText, FolderOpen, GraduationCap, Link2 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { ActivityStatusBadge, DocumentStatusBadge } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
@@ -8,6 +8,7 @@ import {
   PlaceholderAction,
   unavailableReasons,
 } from "@/components/internal/ui/placeholder-action";
+import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getActivity } from "@/lib/internal/data/activities";
 import { formatDateRange, formatRelativeDays } from "@/lib/internal/dates";
@@ -56,6 +57,7 @@ export default async function ActivityDetailPage({ params }: IdParamsProp) {
           <>
             <ActivityStatusBadge status={activity.status} />
             <SourceBadge source={activity.source} />
+            <VerificationBadge status={activity.verification} />
           </>
         }
         actions={
@@ -92,6 +94,10 @@ export default async function ActivityDetailPage({ params }: IdParamsProp) {
             />
           </DetailSection>
 
+          <DetailSection title="Provenance" icon={Link2}>
+            <KeyValueList items={provenanceItems(activity)} />
+          </DetailSection>
+
           <DetailSection title="Documents" icon={FolderOpen} description="Documents attached to the related agreement.">
             <LinkedList
               emptyTitle="No related documents"
@@ -116,7 +122,7 @@ export default async function ActivityDetailPage({ params }: IdParamsProp) {
                     key: institution.id,
                     href: `/internal/universities/${institution.id}`,
                     title: institution.name,
-                    meta: `${institution.city} · ${institution.country}`,
+                    meta: [institution.city, institution.country].filter(Boolean).join(" · "),
                     badge: <SourceBadge source={institution.source} />,
                   },
                 ]}

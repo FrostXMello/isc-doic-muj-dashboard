@@ -1,4 +1,5 @@
 import type { Opportunity } from "@/lib/internal/types";
+import { SAMPLE } from "./sample";
 
 /**
  * SAMPLE DATA — fictional application calls for the portal workflow.
@@ -19,7 +20,7 @@ export const opportunitySeed: readonly Opportunity[] = [
     deadline: "2026-10-31",
     recordStatus: "published",
     summary: "Sample call for a one-semester exchange place at a fictional partner.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "opp-002",
@@ -31,7 +32,7 @@ export const opportunitySeed: readonly Opportunity[] = [
     deadline: "2026-10-08",
     recordStatus: "published",
     summary: "Sample two-week academic visit call.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "opp-003",
@@ -43,7 +44,7 @@ export const opportunitySeed: readonly Opportunity[] = [
     deadline: "2026-10-10",
     recordStatus: "published",
     summary: "Sample call for a one-semester exchange place at a fictional partner.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "opp-004",
@@ -55,7 +56,7 @@ export const opportunitySeed: readonly Opportunity[] = [
     deadline: "2027-01-31",
     recordStatus: "published",
     summary: "Sample call for a full academic year abroad.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "opp-005",
@@ -67,7 +68,7 @@ export const opportunitySeed: readonly Opportunity[] = [
     deadline: "2026-03-15",
     recordStatus: "published",
     summary: "Sample call that has already closed.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "opp-006",
@@ -79,7 +80,7 @@ export const opportunitySeed: readonly Opportunity[] = [
     deadline: null,
     recordStatus: "draft",
     summary: "Sample draft kept unpublished while the related proposal is reviewed.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "opp-007",
@@ -91,7 +92,7 @@ export const opportunitySeed: readonly Opportunity[] = [
     deadline: "2025-03-31",
     recordStatus: "archived",
     summary: "Sample archived call from a previous cycle.",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "opp-008",
@@ -103,6 +104,6 @@ export const opportunitySeed: readonly Opportunity[] = [
     deadline: "2026-12-15",
     recordStatus: "published",
     summary: "Sample open register not tied to a single institution.",
-    source: "sample",
+    ...SAMPLE,
   },
 ];

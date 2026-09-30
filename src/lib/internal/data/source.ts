@@ -3,8 +3,9 @@ import { getSupabasePublicEnv } from "@/lib/supabase/env";
 /**
  * Which store the Internal Portal reads.
  *
- * - `static` (default): the typed seed modules in ./seed. Needs no
- *   environment variables; this is what the deployed site uses today.
+ * - `static` (default): the official dataset in src/lib/official, plus the
+ *   sample seeds when INTERNAL_SAMPLE_DATA=true. Needs no other environment
+ *   variables; this is what the deployed site uses today. Never has contacts.
  * - `supabase`: Supabase, queried as the signed-in user, so row level
  *   security applies. Without a session only public-facing rows are visible
  *   and internal lists render their empty states. Set

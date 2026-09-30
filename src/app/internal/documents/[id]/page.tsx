@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { FileQuestion, FileText, Link2 } from "lucide-react";
+import { FileQuestion, FileText, Link2, Globe } from "lucide-react";
 import { notFound } from "next/navigation";
 import { DocumentStatusBadge } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
@@ -9,6 +9,7 @@ import {
   PlaceholderAction,
   unavailableReasons,
 } from "@/components/internal/ui/placeholder-action";
+import { provenanceItems, SourceLink, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getDocument } from "@/lib/internal/data/documents";
 import { formatDate } from "@/lib/internal/dates";
@@ -45,14 +46,13 @@ export default async function DocumentDetailPage({ params }: IdParamsProp) {
           <>
             <DocumentStatusBadge status={doc.status} />
             <SourceBadge source={doc.source} />
+            <VerificationBadge status={doc.verification} />
           </>
         }
         actions={
           <>
-            <PlaceholderAction label="View" icon="view" reason={unavailableReasons.storage} />
-            <PlaceholderAction label="Download" icon="download" reason={unavailableReasons.storage} />
             <PlaceholderAction
-              label="Upload new version"
+              label="Upload internal copy"
               icon="upload"
               variant="primary"
               reason={unavailableReasons.storage}
@@ -69,19 +69,38 @@ export default async function DocumentDetailPage({ params }: IdParamsProp) {
                 { label: "Type", value: documentTypeLabel[doc.type] },
                 { label: "Status", value: <DocumentStatusBadge status={doc.status} /> },
                 { label: "Last updated", value: formatDate(doc.updatedOn) },
+                {
+                  label: "Official link",
+                  wide: true,
+                  value: doc.url ? <SourceLink url={doc.url} title={doc.url} /> : <NotRecorded />,
+                },
+                {
+                  label: "Publicly accessible",
+                  value: doc.url
+                    ? doc.publiclyAccessible
+                      ? "Yes — opened without signing in"
+                      : "No — requires sign-in or did not open"
+                    : "—",
+                },
                 { label: "Storage", value: doc.storageKey ?? <NotRecorded>No file stored</NotRecorded> },
                 { label: "Description", wide: true, value: doc.description ?? <NotRecorded /> },
               ]}
             />
           </DetailSection>
 
-          <DetailSection title="File preview">
-            <EmptyState
-              icon={FileQuestion}
-              title="No file available"
-              description="File storage is not connected, so there is nothing to preview. The record holds metadata only."
-            />
+          <DetailSection title="Provenance" icon={Globe}>
+            <KeyValueList items={provenanceItems(doc)} />
           </DetailSection>
+
+          {!doc.url && (
+            <DetailSection title="File preview">
+              <EmptyState
+                icon={FileQuestion}
+                title="No file available"
+                description="File storage is not connected, so there is nothing to preview. The record holds metadata only."
+              />
+            </DetailSection>
+          )}
         </div>
 
         <DetailSection

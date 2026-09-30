@@ -9,7 +9,9 @@ import {
   unavailableReasons,
 } from "@/components/internal/ui/placeholder-action";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
-import { DataNotice } from "@/components/internal/ui/source-badge";
+import { SourceLink } from "@/components/internal/ui/provenance";
+import { DataNotice, SourceBadge } from "@/components/internal/ui/source-badge";
+import { getDataMode } from "@/lib/internal/data/context";
 import {
   documentLinkFilters,
   documentStatuses,
@@ -32,6 +34,20 @@ const linkFilterLabel: Record<DocumentLinkFilter, string> = {
   unlinked: "Not linked",
 };
 
+function FileCell({ doc }: { doc: DocumentView }) {
+  if (doc.url) {
+    return (
+      <span className="flex flex-col items-start gap-0.5 text-[12px]">
+        <SourceLink url={doc.url} title="Official link" />
+        {!doc.publiclyAccessible && <span className="text-warning-fg">Not publicly accessible</span>}
+      </span>
+    );
+  }
+  return (
+    <PlaceholderAction label="View" icon="view" size="sm" reason={unavailableReasons.storage} />
+  );
+}
+
 function LinkSummary({ doc }: { doc: DocumentView }) {
   if (doc.links.length === 0) return <span className="text-fg-faint">Not linked</span>;
   const [first, ...rest] = doc.links;
@@ -46,7 +62,7 @@ function LinkSummary({ doc }: { doc: DocumentView }) {
 export default async function DocumentsPage({ searchParams }: SearchParamsProp) {
   const params = await searchParams;
 
-  const [rows, all] = await Promise.all([
+  const [rows, all, mode] = await Promise.all([
     listDocuments({
       q: readParam(params, "q"),
       type: readEnumParam(params, "type", documentTypes),
@@ -54,13 +70,14 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
       linked: readEnumParam(params, "linked", documentLinkFilters),
     }),
     listDocuments(),
+    getDataMode(),
   ]);
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Documents"
-        description="Document records and what they are attached to. Files are not stored yet — only metadata is shown."
+        description="Official DoIC documents published on MUJ's pages, linked at their official URLs. File storage for internal copies is not connected yet."
         actions={
           <PlaceholderAction
             label="Upload document"
@@ -72,9 +89,16 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
       />
 
       <DataNotice>
-        Document rows are <strong className="font-medium">sample metadata</strong> linked to
-        fictional records. No file exists behind any row; upload, view, and download stay
-        unavailable until secure file storage is connected.
+        Official documents link to the file on jaipur.manipal.edu; the link was checked on the
+        source review date, and rows marked <em>Not publicly accessible</em> did not open without
+        signing in (or returned an error). No copies are stored here.
+        {mode.sampleData ? (
+          <>
+            {" "}
+            <strong className="font-medium">Sample</strong> document rows have no file and are
+            shown because INTERNAL_SAMPLE_DATA is on.
+          </>
+        ) : null}
       </DataNotice>
 
       <FilterBar
@@ -121,7 +145,12 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
           {
             key: "title",
             header: "Document",
-            cell: (row) => <span className="font-medium">{row.title}</span>,
+            cell: (row) => (
+              <span className="flex flex-col items-start gap-1">
+                <span className="font-medium">{row.title}</span>
+                <SourceBadge source={row.source} />
+              </span>
+            ),
           },
           { key: "type", header: "Type", cell: (row) => documentTypeLabel[row.type] },
           { key: "related", header: "Related to", cell: (row) => <LinkSummary doc={row} /> },
@@ -136,14 +165,7 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
             key: "file",
             header: "File",
             interactive: true,
-            cell: () => (
-              <PlaceholderAction
-                label="View"
-                icon="view"
-                size="sm"
-                reason={unavailableReasons.storage}
-              />
-            ),
+            cell: (row) => <FileCell doc={row} />,
           },
         ]}
         renderCard={(row) => (
@@ -154,6 +176,7 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
             meta={[
               { label: "Related to", value: <LinkSummary doc={row} /> },
               { label: "Updated", value: formatDate(row.updatedOn, "—") },
+              { label: "File", value: <FileCell doc={row} /> },
             ]}
           />
         )}

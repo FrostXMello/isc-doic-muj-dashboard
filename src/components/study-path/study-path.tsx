@@ -6,25 +6,25 @@ const steps = [
     href: "/opportunities",
     index: "01",
     title: "Explore",
-    body: "Read the four kinds of experience that are described.",
+    body: "Read the calls and listings DoIC has published.",
   },
   {
     href: "/programs",
     index: "02",
     title: "Understand",
-    body: "A programme is a way of studying. It is not linked to an institution here.",
+    body: "The programme types on the official pages, and the institutions each names.",
   },
   {
     href: "/partners",
     index: "03",
     title: "Compare",
-    body: "Browse sample institutions by region, then country. They are not offers of a place.",
+    body: "Browse the institutions MUJ lists, by region and country. A listing is not an offer of a place.",
   },
   {
     href: "/about",
     index: "04",
     title: "Contact DoIC",
-    body: "The office and the campus address. Direct contact: Not published yet.",
+    body: "The DoIC office, its email, and telephone.",
   },
 ] as const;
 

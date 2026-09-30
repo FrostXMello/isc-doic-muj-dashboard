@@ -15,14 +15,14 @@ export default function PrivacyPage() {
         <PageIntro
           eyebrow="Privacy"
           title="What this site does, and what it does not."
-          lede="This stage of the Directorate of International Collaboration site stores nothing, runs no analytics, and does not ask you to sign in. A privacy notice is a separate document, and it is not published yet."
+          lede="This public site for the Directorate of International Collaborations stores nothing, runs no analytics, and does not ask you to sign in. A privacy notice is a separate document, and it is not published yet."
         />
         <section aria-labelledby="does" className="mt-10 max-w-3xl">
           <h2
             id="does"
             className="font-display text-[clamp(1.45rem,2.4vw,1.85rem)] tracking-[-0.03em] text-foreground"
           >
-            What this mock site does.
+            What this site does.
           </h2>
           <dl className="mt-4 border-t border-line">
             <Fact label="Accounts">No sign-in is offered for students or for staff.</Fact>

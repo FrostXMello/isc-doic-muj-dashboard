@@ -59,6 +59,10 @@ logs/
 supabase/.temp
 supabase/.branches
 
+# internal-only data (nodal officer contacts); never commit — the repo is public
+data/private/
+supabase/private/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

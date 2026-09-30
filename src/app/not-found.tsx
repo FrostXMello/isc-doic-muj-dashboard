@@ -14,8 +14,8 @@ export default function NotFound() {
           This page is not on the map.
         </h1>
         <p className="mt-5 max-w-lg text-base leading-relaxed text-muted-foreground">
-          The address does not match a page of the Directorate of International
-          Collaboration. The network is still on the home page.
+          The address does not match a page on this DoIC platform. The
+          network is still on the home page.
         </p>
         <Link href="/" className={cn(buttonVariants({ size: "xl" }), "mt-8")}>
           Return home

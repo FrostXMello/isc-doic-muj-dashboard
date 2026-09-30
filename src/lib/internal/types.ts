@@ -3,53 +3,72 @@
  *
  * Institutions, agreements, programmes, and programme availability are kept
  * as separate entities linked by id, following docs/data-model.md. Each type
- * maps to a future database table; nothing here implies a relationship that
- * is not recorded as its own row.
+ * maps to a database table; nothing here implies a relationship that is not
+ * recorded as its own row.
  *
  * Dates are ISO calendar strings (YYYY-MM-DD). `null` means "not recorded",
  * never "none" or "open".
  */
 
-import type { PartnerRegion } from "@/lib/data";
+import type {
+  OfficialAgreementType,
+  OfficialRegion,
+  VerificationStatus,
+} from "@/lib/official/types";
 
-export type Region = PartnerRegion;
+export type { VerificationStatus } from "@/lib/official/types";
+
+export type Region = OfficialRegion;
 
 /**
  * Where a record comes from.
- * - `directory`: derived from the public site's illustrative directory
- *   (src/lib/data.ts). Names are sample names, not confirmed partners.
- * - `programme-catalogue`: derived from the public opportunity categories.
- * - `sample`: placeholder record created for the portal workflow. Fictional.
- * - `official`: entered by DoIC staff in the database. Never used by seeds.
+ * - `official`: taken from an official MUJ page (see `sourceUrl`) or entered
+ *   by DoIC staff. Imports carry verification `source-imported`, never
+ *   `verified`.
+ * - `directory`: a name from the earlier illustrative public directory that
+ *   does not appear on the official page. Kept for review, never public.
+ * - `programme-catalogue`: derived from the public programme categories.
+ * - `sample`: fictional placeholder for demonstrating the workflow. Only
+ *   loaded when INTERNAL_SAMPLE_DATA=true.
  *
  * Mirrors the `public.data_source` enum in supabase/migrations.
  */
 export type RecordSource = "directory" | "programme-catalogue" | "sample" | "official";
 
-export type Institution = {
+/** Where a record was taken from and how far it has been checked. */
+export type Provenance = {
+  sourceUrl: string | null;
+  sourceTitle: string | null;
+  /** Date the source was last reviewed. */
+  sourceCheckedOn: string | null;
+  verification: VerificationStatus;
+};
+
+export type Institution = Provenance & {
   id: string;
+  /** Name as displayed on the source (official page) or as entered. */
   name: string;
+  /** Spelling-normalised name for display and search; identity unchanged. */
+  normalizedName: string | null;
   country: string;
   countryId: string;
   region: Region;
-  city: string;
+  /** Campus city. Null unless a source states it. */
+  city: string | null;
   latitude: number | null;
   longitude: number | null;
+  /** Only a URL linked from the official source. */
   website: string | null;
-  /** Country-level editorial note from the public directory, if any. */
   note: string | null;
+  /** Shown on the public website. */
+  isPublic: boolean;
   source: RecordSource;
 };
 
-export type AgreementType =
-  | "mou"
-  | "student-exchange"
-  | "research-collaboration"
-  | "dual-degree"
-  | "other";
+export type AgreementType = OfficialAgreementType | "research-collaboration" | "dual-degree";
 
-/** Status as stored on the record. */
-export type AgreementRecordStatus = "draft" | "under-review" | "signed" | "terminated";
+/** Status as stored on the record. `not-stated`: the source gives no status. */
+export type AgreementRecordStatus = "draft" | "under-review" | "signed" | "terminated" | "not-stated";
 
 /** Status shown to staff, derived from the stored status and dates. */
 export type AgreementStatus =
@@ -59,21 +78,27 @@ export type AgreementStatus =
   | "active"
   | "expiring-soon"
   | "expired"
-  | "terminated";
+  | "terminated"
+  | "not-stated";
 
 export type RenewalMode = "automatic" | "by-review";
 
-export type Agreement = {
+export type Agreement = Provenance & {
   id: string;
   reference: string;
   institutionId: string;
+  /** For official rows: the row text exactly as displayed. */
   title: string;
   type: AgreementType;
+  /** Agreement wording quoted from the source, when it states one. */
+  typeLabel: string | null;
   recordStatus: AgreementRecordStatus;
   startDate: string | null;
   endDate: string | null;
   renewal: RenewalMode | null;
   collaborationAreas: readonly string[];
+  /** Heading(s) the row sits under on the official page, e.g. "ASIA › RUSSIA". */
+  sourceSection: string | null;
   notes: string | null;
   source: RecordSource;
 };
@@ -82,9 +107,11 @@ export type ProgramType =
   | "student-exchange"
   | "semester-exchange"
   | "pathway-programs"
-  | "academic-visits";
+  | "academic-visits"
+  | "dual-degree"
+  | "summer-winter-school";
 
-export type Program = {
+export type Program = Provenance & {
   id: ProgramType;
   name: string;
   type: ProgramType;
@@ -96,7 +123,7 @@ export type Program = {
 export type AvailabilityState = "open" | "closed" | "suspended";
 
 /** A confirmed institution × programme pairing. Never generated as a cross-product. */
-export type ProgramAvailability = {
+export type ProgramAvailability = Provenance & {
   id: string;
   programId: ProgramType;
   institutionId: string;
@@ -122,7 +149,7 @@ export type OpportunityStatus =
   | "closed"
   | "archived";
 
-export type Opportunity = {
+export type Opportunity = Provenance & {
   id: string;
   title: string;
   programId: ProgramType;
@@ -141,18 +168,24 @@ export type DocumentType =
   | "programme-guide"
   | "policy"
   | "report"
+  | "form"
+  | "newsletter"
   | "other";
 
 export type DocumentStatus = "draft" | "under-review" | "final" | "archived";
 
-export type DocumentRecord = {
+export type DocumentRecord = Provenance & {
   id: string;
   title: string;
   type: DocumentType;
   status: DocumentStatus;
   updatedOn: string | null;
-  /** Object-storage key. Always null until file storage exists. */
+  /** Object-storage key. Null: no file has been uploaded. */
   storageKey: string | null;
+  /** Public link to the file on an official site, if one exists. */
+  url: string | null;
+  /** The link opens without signing in (checked on `sourceCheckedOn`). */
+  publiclyAccessible: boolean;
   description: string | null;
   source: RecordSource;
 };
@@ -179,7 +212,7 @@ export type ActivityRecordStatus = "planned" | "confirmed" | "completed" | "canc
 /** Stored status plus `needs-update` when a planned activity's date has passed. */
 export type ActivityStatus = ActivityRecordStatus | "needs-update";
 
-export type Activity = {
+export type Activity = Provenance & {
   id: string;
   title: string;
   type: ActivityType;
@@ -201,7 +234,23 @@ export type PartnershipStatus =
   | "renewal-due"
   | "in-progress"
   | "lapsed"
+  | "listed"
   | "not-recorded";
+
+/**
+ * Internal contact for an institution or agreement (e.g. the MUJ Nodal
+ * Officer). Only ever loaded from Supabase for signed-in internal roles.
+ */
+export type InstitutionContact = {
+  id: string;
+  institutionId: string;
+  agreementId: string | null;
+  roleLabel: string;
+  name: string | null;
+  phone: string | null;
+  email: string | null;
+  visibility: "internal" | "public";
+};
 
 export type AgreementView = Agreement & {
   status: AgreementStatus;

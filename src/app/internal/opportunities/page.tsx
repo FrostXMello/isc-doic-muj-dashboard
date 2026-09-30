@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getDataMode } from "@/lib/internal/data/context";
 import { SearchX } from "lucide-react";
 import { OpportunityStatusBadge, RelativeDays } from "@/components/internal/badges";
 import { EmptyState } from "@/components/internal/ui/empty-state";
@@ -27,7 +28,7 @@ export const metadata: Metadata = { title: "Opportunities" };
 
 export default async function OpportunitiesPage({ searchParams }: SearchParamsProp) {
   const params = await searchParams;
-  const options = await getOpportunityFilterOptions();
+  const [options, mode] = await Promise.all([getOpportunityFilterOptions(), getDataMode()]);
 
   const [rows, all] = await Promise.all([
     listOpportunities({
@@ -59,9 +60,11 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
       />
 
       <DataNotice>
-        All calls are <strong className="font-medium">sample data</strong>. Deadlines are
-        invented to demonstrate status tracking and are not published DoIC deadlines. The
-        student-facing opportunity pages on the public site are unaffected.
+        Calls are the summer and winter school editions published on MUJ&apos;s official pages,
+        with deadlines exactly as published. Past editions are archived.
+        {mode.sampleData
+          ? " Sample calls with invented deadlines are included because INTERNAL_SAMPLE_DATA is on."
+          : null}
       </DataNotice>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

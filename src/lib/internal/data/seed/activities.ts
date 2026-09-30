@@ -1,4 +1,5 @@
 import type { Activity } from "@/lib/internal/types";
+import { SAMPLE } from "./sample";
 
 /**
  * SAMPLE DATA — fictional visits, delegations, and events.
@@ -21,7 +22,7 @@ export const activitySeed: readonly Activity[] = [
     summary: "Sample visit to discuss the renewal of the framework memorandum.",
     participants: "Visiting faculty group (sample)",
     agreementId: "agr-001",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "act-002",
@@ -36,7 +37,7 @@ export const activitySeed: readonly Activity[] = [
     summary: "Sample delegation ahead of the agreement start date.",
     participants: "MUJ delegation (sample)",
     agreementId: "agr-008",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "act-003",
@@ -51,7 +52,7 @@ export const activitySeed: readonly Activity[] = [
     summary: "Sample call to review the expiring framework memorandum.",
     participants: null,
     agreementId: "agr-009",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "act-004",
@@ -66,7 +67,7 @@ export const activitySeed: readonly Activity[] = [
     summary: "Sample on-campus event not tied to one institution.",
     participants: "Open to MUJ students and staff (sample)",
     agreementId: null,
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "act-005",
@@ -81,7 +82,7 @@ export const activitySeed: readonly Activity[] = [
     summary: "Sample completed visit under the research collaboration agreement.",
     participants: "Faculty researchers (sample)",
     agreementId: "agr-003",
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "act-006",
@@ -96,7 +97,7 @@ export const activitySeed: readonly Activity[] = [
     summary: "Sample session whose outcome has not been recorded yet.",
     participants: null,
     agreementId: null,
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "act-007",
@@ -111,7 +112,7 @@ export const activitySeed: readonly Activity[] = [
     summary: "Sample delegation that led to the dual degree proposal.",
     participants: "Partner academic leadership (sample)",
     agreementId: null,
-    source: "sample",
+    ...SAMPLE,
   },
   {
     id: "act-008",
@@ -126,6 +127,6 @@ export const activitySeed: readonly Activity[] = [
     summary: "Sample cancelled trip with no institution recorded.",
     participants: null,
     agreementId: null,
-    source: "sample",
+    ...SAMPLE,
   },
 ];

@@ -14,7 +14,7 @@ export function ClassroomSection() {
               id="classroom-heading"
               eyebrow="International learning"
               title="The world is your classroom."
-              description="DoIC and the International Student Cell open MUJ to campuses beyond Jaipur — so a degree here can include time, teaching, and research elsewhere."
+              description="DoIC connects MUJ with institutions abroad through student and faculty exchange, semester abroad, pathway and dual degree programmes, and MoUs with educational and research institutes."
             />
             <ol className="mt-10 divide-y divide-line border-y border-line">
               {classroomPoints.map((point) => (

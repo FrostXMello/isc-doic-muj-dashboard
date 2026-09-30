@@ -1,22 +1,41 @@
 "use client";
 
-import { directoryRegions, type Institution } from "@/lib/directory";
 import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useId, useState } from "react";
 
+/** One institution as the public directory needs it (serialisable). */
+export type DirectoryEntry = {
+  slug: string;
+  name: string;
+  listedName: string;
+  country: string;
+  region: string;
+  /** Agreement wording per official row (e.g. "MoU", "type not stated"). */
+  agreementKinds: string[];
+  /** Short line under the name. */
+  detail: string;
+};
+
 export function PartnerDirectory({
   institutions,
+  regions,
+  agreementKinds,
 }: {
-  institutions: readonly Institution[];
+  institutions: readonly DirectoryEntry[];
+  regions: readonly string[];
+  agreementKinds: readonly string[];
 }) {
+  type Institution = DirectoryEntry;
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState("all");
   const [country, setCountry] = useState("all");
+  const [kind, setKind] = useState("all");
   const searchId = useId();
   const regionId = useId();
   const countryId = useId();
+  const kindId = useId();
 
   const countries: string[] = [];
   for (const institution of institutions) {
@@ -29,7 +48,14 @@ export function PartnerDirectory({
   const visible = institutions.filter((institution) => {
     if (region !== "all" && institution.region !== region) return false;
     if (countryActive !== "all" && institution.country !== countryActive) return false;
-    if (needle && !institution.name.toLowerCase().includes(needle)) return false;
+    if (kind !== "all" && !institution.agreementKinds.includes(kind)) return false;
+    if (
+      needle &&
+      !institution.name.toLowerCase().includes(needle) &&
+      !institution.listedName.toLowerCase().includes(needle)
+    ) {
+      return false;
+    }
     return true;
   });
 
@@ -51,7 +77,14 @@ export function PartnerDirectory({
     countryGroup.items.push(institution);
   }
 
-  const filtered = needle.length > 0 || region !== "all" || countryActive !== "all";
+  const filtered =
+    needle.length > 0 || region !== "all" || countryActive !== "all" || kind !== "all";
+  const clear = () => {
+    setQuery("");
+    setRegion("all");
+    setCountry("all");
+    setKind("all");
+  };
   let number = 0;
 
   return (
@@ -60,7 +93,7 @@ export function PartnerDirectory({
         Region, then country, then institution
       </p>
       <form
-        className="mt-3 grid gap-4 border-y border-line py-5 md:grid-cols-3"
+        className="mt-3 grid gap-4 border-y border-line py-5 md:grid-cols-2 xl:grid-cols-4"
         role="search"
         onSubmit={(event) => event.preventDefault()}
       >
@@ -78,7 +111,7 @@ export function PartnerDirectory({
             className="mt-2 h-11 w-full max-w-full border border-line-strong bg-background px-3 text-sm text-foreground outline-none focus-visible:border-cyan"
           >
             <option value="all">All regions</option>
-            {directoryRegions.map((item) => (
+            {regions.map((item) => (
               <option key={item} value={item}>
                 {item}
               </option>
@@ -108,6 +141,27 @@ export function PartnerDirectory({
         </div>
         <div className="min-w-0">
           <label
+            htmlFor={kindId}
+            className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase"
+          >
+            Agreement wording
+          </label>
+          <select
+            id={kindId}
+            value={kind}
+            onChange={(event) => setKind(event.target.value)}
+            className="mt-2 h-11 w-full max-w-full border border-line-strong bg-background px-3 text-sm text-foreground outline-none focus-visible:border-cyan"
+          >
+            <option value="all">Any</option>
+            {agreementKinds.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="min-w-0">
+          <label
             htmlFor={searchId}
             className="text-[11px] tracking-[0.16em] text-muted-foreground uppercase"
           >
@@ -127,16 +181,12 @@ export function PartnerDirectory({
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground" aria-live="polite">
-          Showing {visible.length} of {institutions.length} illustrative institutions
+          Showing {visible.length} of {institutions.length} institutions
         </p>
         {filtered ? (
           <button
             type="button"
-            onClick={() => {
-              setQuery("");
-              setRegion("all");
-              setCountry("all");
-            }}
+            onClick={clear}
             className="inline-flex min-h-11 items-center px-1 text-[12px] tracking-[0.12em] text-primary uppercase transition-colors hover:text-foreground"
           >
             Clear filters
@@ -154,16 +204,12 @@ export function PartnerDirectory({
             <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted-foreground">
               {region !== "all" ? `Region: ${region}. ` : "All regions. "}
               {countryActive !== "all" ? `Country: ${countryActive}. ` : "All countries. "}
-              Clear the filters to return to the full illustrative list. Programme
-              notes are on the opportunities page, not in this directory.
+              {kind !== "all" ? `Agreement wording: ${kind}. ` : ""}
+              Clear the filters to return to the full list.
             </p>
             <button
               type="button"
-              onClick={() => {
-                setQuery("");
-                setRegion("all");
-                setCountry("all");
-              }}
+              onClick={clear}
               className="mt-4 inline-flex min-h-11 items-center border border-line-bold px-4 text-[12px] tracking-[0.12em] text-foreground uppercase"
             >
               Clear filters
@@ -208,7 +254,7 @@ export function PartnerDirectory({
                                   {institution.name}
                                 </span>
                                 <span className="mt-1 block text-[13px] text-muted-foreground">
-                                  {institution.city}
+                                  {institution.detail}
                                 </span>
                               </span>
                               <ArrowRight
