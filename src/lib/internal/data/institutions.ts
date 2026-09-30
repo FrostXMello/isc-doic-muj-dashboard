@@ -1,16 +1,4 @@
 import { matchesQuery, openDataContext, uniqueSorted } from "@/lib/internal/data/context";
-import {
-  activitySeed,
-  agreementsForInstitution,
-  availabilitySeed,
-  documentsLinkedTo,
-  institutionSeed,
-  opportunitySeed,
-  toActivityView,
-  toAvailabilityView,
-  toInstitutionView,
-  toOpportunityView,
-} from "@/lib/internal/data/views";
 import type { PartnershipStatus, RecordSource, Region } from "@/lib/internal/types";
 
 export const partnershipStatuses: readonly PartnershipStatus[] = [
@@ -32,9 +20,9 @@ export type InstitutionFilters = {
 };
 
 export async function listInstitutions(filters: InstitutionFilters = {}) {
-  const { today } = await openDataContext();
-  return institutionSeed
-    .map((institution) => toInstitutionView(institution, today))
+  const { today, data, views } = await openDataContext();
+  return data.institutions
+    .map((institution) => views.toInstitutionView(institution, today))
     .filter(
       (row) =>
         matchesQuery(filters.q, row.name, row.country, row.city) &&
@@ -47,35 +35,36 @@ export async function listInstitutions(filters: InstitutionFilters = {}) {
 }
 
 export async function getInstitutionFilterOptions() {
+  const { data } = await openDataContext();
   return {
-    regions: uniqueSorted(institutionSeed.map((row) => row.region)) as Region[],
-    countries: uniqueSorted(institutionSeed.map((row) => row.country)),
+    regions: uniqueSorted(data.institutions.map((row) => row.region)) as Region[],
+    countries: uniqueSorted(data.institutions.map((row) => row.country)),
   };
 }
 
 export async function getInstitution(id: string) {
-  const { today } = await openDataContext();
-  const institution = institutionSeed.find((row) => row.id === id);
+  const { today, data, views } = await openDataContext();
+  const institution = data.institutions.find((row) => row.id === id);
   if (!institution) return null;
 
   return {
-    institution: toInstitutionView(institution, today),
-    agreements: agreementsForInstitution(id, today).sort((a, b) =>
-      (b.startDate ?? "9999").localeCompare(a.startDate ?? "9999"),
-    ),
-    offerings: availabilitySeed
+    institution: views.toInstitutionView(institution, today),
+    agreements: views
+      .agreementsForInstitution(id, today)
+      .sort((a, b) => (b.startDate ?? "9999").localeCompare(a.startDate ?? "9999")),
+    offerings: data.availability
       .filter((row) => row.institutionId === id)
-      .map((row) => toAvailabilityView(row, today)),
-    opportunities: opportunitySeed
+      .map((row) => views.toAvailabilityView(row, today)),
+    opportunities: data.opportunities
       .filter((row) => row.institutionId === id)
-      .map((row) => toOpportunityView(row, today)),
-    activities: activitySeed
+      .map((row) => views.toOpportunityView(row, today)),
+    activities: data.activities
       .filter((row) => row.institutionId === id)
-      .map((row) => toActivityView(row, today))
+      .map((row) => views.toActivityView(row, today))
       .sort((a, b) => b.startDate.localeCompare(a.startDate)),
-    documents: documentsLinkedTo({ institutionId: id }),
-    peers: institutionSeed
+    documents: views.documentsLinkedTo({ institutionId: id }),
+    peers: data.institutions
       .filter((row) => row.countryId === institution.countryId && row.id !== id)
-      .map((row) => toInstitutionView(row, today)),
+      .map((row) => views.toInstitutionView(row, today)),
   };
 }

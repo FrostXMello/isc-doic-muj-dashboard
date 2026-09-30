@@ -191,4 +191,8 @@ export const sourceMeta: Record<RecordSource, { label: string; description: stri
     description:
       "Fictional placeholder record for demonstrating the workflow. Not a DoIC record.",
   },
+  official: {
+    label: "DoIC record",
+    description: "Entered by DoIC staff in the internal database.",
+  },
 };

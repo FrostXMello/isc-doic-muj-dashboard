@@ -1,5 +1,4 @@
 import { matchesQuery, openDataContext } from "@/lib/internal/data/context";
-import { documentSeed, toDocumentView } from "@/lib/internal/data/views";
 import type { DocumentLinkView, DocumentStatus, DocumentType } from "@/lib/internal/types";
 
 export const documentTypes: readonly DocumentType[] = [
@@ -36,9 +35,9 @@ export type DocumentFilters = {
 };
 
 export async function listDocuments(filters: DocumentFilters = {}) {
-  await openDataContext();
-  return documentSeed
-    .map(toDocumentView)
+  const { data, views } = await openDataContext();
+  return data.documents
+    .map(views.toDocumentView)
     .filter(
       (row) =>
         matchesQuery(filters.q, row.title, row.description, ...row.links.map((l) => l.label)) &&
@@ -53,7 +52,7 @@ export async function listDocuments(filters: DocumentFilters = {}) {
 }
 
 export async function getDocument(id: string) {
-  await openDataContext();
-  const document = documentSeed.find((row) => row.id === id);
-  return document ? toDocumentView(document) : null;
+  const { data, views } = await openDataContext();
+  const document = data.documents.find((row) => row.id === id);
+  return document ? views.toDocumentView(document) : null;
 }

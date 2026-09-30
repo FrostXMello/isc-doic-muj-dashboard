@@ -1,11 +1,4 @@
 import { matchesQuery, openDataContext, uniqueSorted } from "@/lib/internal/data/context";
-import {
-  findAvailability,
-  findInstitution,
-  opportunitySeed,
-  toAvailabilityView,
-  toOpportunityView,
-} from "@/lib/internal/data/views";
 import type { OpportunityStatus, OpportunityView, ProgramType } from "@/lib/internal/types";
 
 export const opportunityStatuses: readonly OpportunityStatus[] = [
@@ -34,9 +27,9 @@ const sorters: Record<OpportunitySort, (a: OpportunityView, b: OpportunityView) 
 };
 
 export async function listOpportunities(filters: OpportunityFilters = {}) {
-  const { today } = await openDataContext();
-  return opportunitySeed
-    .map((row) => toOpportunityView(row, today))
+  const { today, data, views } = await openDataContext();
+  return data.opportunities
+    .map((row) => views.toOpportunityView(row, today))
     .filter(
       (row) =>
         matchesQuery(
@@ -54,23 +47,24 @@ export async function listOpportunities(filters: OpportunityFilters = {}) {
 }
 
 export async function getOpportunityFilterOptions() {
+  const { data, views } = await openDataContext();
   return {
     countries: uniqueSorted(
-      opportunitySeed
-        .map((row) => findInstitution(row.institutionId)?.country)
+      data.opportunities
+        .map((row) => views.findInstitution(row.institutionId)?.country)
         .filter((country): country is string => Boolean(country)),
     ),
   };
 }
 
 export async function getOpportunity(id: string) {
-  const { today } = await openDataContext();
-  const opportunity = opportunitySeed.find((row) => row.id === id);
+  const { today, data, views } = await openDataContext();
+  const opportunity = data.opportunities.find((row) => row.id === id);
   if (!opportunity) return null;
 
-  const availability = findAvailability(opportunity.availabilityId);
+  const availability = views.findAvailability(opportunity.availabilityId);
   return {
-    opportunity: toOpportunityView(opportunity, today),
-    offering: availability ? toAvailabilityView(availability, today) : null,
+    opportunity: views.toOpportunityView(opportunity, today),
+    offering: availability ? views.toAvailabilityView(availability, today) : null,
   };
 }

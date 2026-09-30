@@ -5,20 +5,6 @@ import { documentStatuses, documentTypes } from "@/lib/internal/data/documents";
 import { partnershipStatuses } from "@/lib/internal/data/institutions";
 import { opportunityStatuses } from "@/lib/internal/data/opportunities";
 import { availabilityFilters } from "@/lib/internal/data/programs";
-import {
-  activitySeed,
-  agreementSeed,
-  availabilitySeed,
-  documentSeed,
-  institutionSeed,
-  opportunitySeed,
-  programSeed,
-  toActivityView,
-  toAgreementView,
-  toDocumentView,
-  toInstitutionView,
-  toOpportunityView,
-} from "@/lib/internal/data/views";
 import type { RecordSource, Region } from "@/lib/internal/types";
 
 function countBy<K extends string, T>(keys: readonly K[], rows: readonly T[], pick: (row: T) => K) {
@@ -28,20 +14,19 @@ function countBy<K extends string, T>(keys: readonly K[], rows: readonly T[], pi
 }
 
 const regions: readonly Region[] = ["Europe", "Middle East", "Asia-Pacific", "North America"];
-const sources: readonly RecordSource[] = ["directory", "sample"];
+const sources: readonly RecordSource[] = ["directory", "sample", "official"];
 
 /**
  * Operational summary computed from the repository rows.
  * Every figure is a count of records in the data layer, not an official total.
  */
 export async function getOperationalSummary() {
-  const { today } = await openDataContext();
-
-  const institutions = institutionSeed.map((row) => toInstitutionView(row, today));
-  const agreements = agreementSeed.map((row) => toAgreementView(row, today));
-  const opportunities = opportunitySeed.map((row) => toOpportunityView(row, today));
-  const activities = activitySeed.map((row) => toActivityView(row, today));
-  const documents = documentSeed.map(toDocumentView);
+  const { today, data, views } = await openDataContext();
+  const institutions = data.institutions.map((row) => views.toInstitutionView(row, today));
+  const agreements = data.agreements.map((row) => views.toAgreementView(row, today));
+  const opportunities = data.opportunities.map((row) => views.toOpportunityView(row, today));
+  const activities = data.activities.map((row) => views.toActivityView(row, today));
+  const documents = data.documents.map(views.toDocumentView);
 
   const byRegion = regions.map((region) => {
     const inRegion = institutions.filter((row) => row.region === region);
@@ -71,10 +56,10 @@ export async function getOperationalSummary() {
         .sort((a, b) => (a.endDate ?? "").localeCompare(b.endDate ?? "")),
     },
     programs: {
-      total: programSeed.length,
-      offerings: availabilitySeed.length,
-      byProgram: programSeed.map((program) => {
-        const rows = availabilitySeed.filter((row) => row.programId === program.id);
+      total: data.programs.length,
+      offerings: data.availability.length,
+      byProgram: data.programs.map((program) => {
+        const rows = data.availability.filter((row) => row.programId === program.id);
         return {
           program,
           total: rows.length,
@@ -83,7 +68,7 @@ export async function getOperationalSummary() {
       }),
       byAvailability: countBy(
         availabilityFilters,
-        availabilitySeed,
+        data.availability,
         (row) => row.availability ?? "not-recorded",
       ),
     },

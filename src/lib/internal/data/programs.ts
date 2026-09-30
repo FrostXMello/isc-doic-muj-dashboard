@@ -1,13 +1,5 @@
 import { matchesQuery, openDataContext, uniqueSorted } from "@/lib/internal/data/context";
-import {
-  availabilitySeed,
-  documentsLinkedTo,
-  findInstitution,
-  opportunitySeed,
-  programSeed,
-  toAvailabilityView,
-  toOpportunityView,
-} from "@/lib/internal/data/views";
+import { programSeed } from "@/lib/internal/data/seed/programs";
 import type { AvailabilityState, ProgramType } from "@/lib/internal/types";
 
 export type AvailabilityFilter = AvailabilityState | "not-recorded";
@@ -19,6 +11,7 @@ export const availabilityFilters: readonly AvailabilityFilter[] = [
   "not-recorded",
 ];
 
+/** The programme type vocabulary (fixed; mirrors the program_type enum). */
 export const programTypes: readonly ProgramType[] = programSeed.map((program) => program.id);
 
 export type OfferingFilters = {
@@ -30,9 +23,9 @@ export type OfferingFilters = {
 
 /** Programme catalogue with the number of recorded offerings per programme. */
 export async function listPrograms() {
-  await openDataContext();
-  return programSeed.map((program) => {
-    const offerings = availabilitySeed.filter((row) => row.programId === program.id);
+  const { data } = await openDataContext();
+  return data.programs.map((program) => {
+    const offerings = data.availability.filter((row) => row.programId === program.id);
     return {
       ...program,
       offeringCount: offerings.length,
@@ -42,9 +35,9 @@ export async function listPrograms() {
 }
 
 export async function listOfferings(filters: OfferingFilters = {}) {
-  const { today } = await openDataContext();
-  return availabilitySeed
-    .map((row) => toAvailabilityView(row, today))
+  const { today, data, views } = await openDataContext();
+  return data.availability
+    .map((row) => views.toAvailabilityView(row, today))
     .filter(
       (row) =>
         matchesQuery(
@@ -67,33 +60,34 @@ export async function listOfferings(filters: OfferingFilters = {}) {
 }
 
 export async function getOfferingFilterOptions() {
+  const { data, views } = await openDataContext();
   return {
     countries: uniqueSorted(
-      availabilitySeed
-        .map((row) => findInstitution(row.institutionId)?.country)
+      data.availability
+        .map((row) => views.findInstitution(row.institutionId)?.country)
         .filter((country): country is string => Boolean(country)),
     ),
   };
 }
 
 export async function getOffering(id: string) {
-  const { today } = await openDataContext();
-  const offering = availabilitySeed.find((row) => row.id === id);
+  const { today, data, views } = await openDataContext();
+  const offering = data.availability.find((row) => row.id === id);
   if (!offering) return null;
 
   const documents = [
-    ...documentsLinkedTo({ availabilityId: id }),
-    ...documentsLinkedTo({ programId: offering.programId }),
+    ...views.documentsLinkedTo({ availabilityId: id }),
+    ...views.documentsLinkedTo({ programId: offering.programId }),
   ].filter((doc, index, all) => all.findIndex((other) => other.id === doc.id) === index);
 
   return {
-    offering: toAvailabilityView(offering, today),
-    opportunities: opportunitySeed
+    offering: views.toAvailabilityView(offering, today),
+    opportunities: data.opportunities
       .filter((row) => row.availabilityId === id)
-      .map((row) => toOpportunityView(row, today)),
-    siblings: availabilitySeed
+      .map((row) => views.toOpportunityView(row, today)),
+    siblings: data.availability
       .filter((row) => row.programId === offering.programId && row.id !== id)
-      .map((row) => toAvailabilityView(row, today)),
+      .map((row) => views.toAvailabilityView(row, today)),
     documents,
   };
 }

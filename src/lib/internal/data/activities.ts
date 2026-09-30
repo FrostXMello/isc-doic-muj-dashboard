@@ -1,5 +1,4 @@
 import { matchesQuery, openDataContext, uniqueSorted } from "@/lib/internal/data/context";
-import { activitySeed, documentsLinkedTo, toActivityView } from "@/lib/internal/data/views";
 import type { ActivityStatus, ActivityType } from "@/lib/internal/types";
 
 export const activityTypes: readonly ActivityType[] = [
@@ -30,9 +29,9 @@ export type ActivityFilters = {
 };
 
 export async function listActivities(filters: ActivityFilters = {}) {
-  const { today } = await openDataContext();
-  const rows = activitySeed
-    .map((row) => toActivityView(row, today))
+  const { today, data, views } = await openDataContext();
+  const rows = data.activities
+    .map((row) => views.toActivityView(row, today))
     .filter(
       (row) =>
         matchesQuery(filters.q, row.title, row.summary, row.institution?.name, row.country, row.city) &&
@@ -48,15 +47,18 @@ export async function listActivities(filters: ActivityFilters = {}) {
 }
 
 export async function getActivityFilterOptions() {
-  return { countries: uniqueSorted(activitySeed.map((row) => row.country)) };
+  const { data } = await openDataContext();
+  return { countries: uniqueSorted(data.activities.map((row) => row.country)) };
 }
 
 export async function getActivity(id: string) {
-  const { today } = await openDataContext();
-  const activity = activitySeed.find((row) => row.id === id);
+  const { today, data, views } = await openDataContext();
+  const activity = data.activities.find((row) => row.id === id);
   if (!activity) return null;
   return {
-    activity: toActivityView(activity, today),
-    documents: activity.agreementId ? documentsLinkedTo({ agreementId: activity.agreementId }) : [],
+    activity: views.toActivityView(activity, today),
+    documents: activity.agreementId
+      ? views.documentsLinkedTo({ agreementId: activity.agreementId })
+      : [],
   };
 }

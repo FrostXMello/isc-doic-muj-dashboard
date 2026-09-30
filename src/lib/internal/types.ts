@@ -20,8 +20,11 @@ export type Region = PartnerRegion;
  *   (src/lib/data.ts). Names are sample names, not confirmed partners.
  * - `programme-catalogue`: derived from the public opportunity categories.
  * - `sample`: placeholder record created for the portal workflow. Fictional.
+ * - `official`: entered by DoIC staff in the database. Never used by seeds.
+ *
+ * Mirrors the `public.data_source` enum in supabase/migrations.
  */
-export type RecordSource = "directory" | "programme-catalogue" | "sample";
+export type RecordSource = "directory" | "programme-catalogue" | "sample" | "official";
 
 export type Institution = {
   id: string;

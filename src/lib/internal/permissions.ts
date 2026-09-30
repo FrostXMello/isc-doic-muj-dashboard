@@ -1,12 +1,24 @@
 /**
- * Permission vocabulary for future role-based access control.
+ * Permission vocabulary for role-based access control.
  *
- * NOT ENFORCED. There is no authentication in this stage; every visitor to
- * /internal sees everything. The types exist so that pages and actions can be
- * annotated now and gated later without renaming things.
+ * NOT ENFORCED IN THE UI. There is no sign-in yet; every visitor to /internal
+ * sees the static dataset. When INTERNAL_DATA_SOURCE=supabase, the database
+ * enforces the same rules through row level security (supabase/migrations),
+ * so these helpers only decide what the UI offers, never what is allowed.
  */
 
+/** Mirrors the `public.app_role` enum. */
+export type AppRole = "student" | "isc_team" | "doic_admin" | "leadership";
+
 export type PortalRole = "viewer" | "editor" | "admin";
+
+/** Portal capability for each staff role. Students have no portal role. */
+export const portalRoleFor: Record<AppRole, PortalRole | null> = {
+  student: null,
+  leadership: "viewer",
+  isc_team: "editor",
+  doic_admin: "admin",
+};
 
 export type PortalResource =
   | "institutions"

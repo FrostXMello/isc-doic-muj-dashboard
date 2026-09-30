@@ -1,6 +1,39 @@
-# Future data model for the DoIC platform
+# Data model for the DoIC platform
 
-This note proposes how the Directorate of International Collaboration (DoIC) site could store records later. It is a schema proposal only. It does not add a database, change the site, or fill official facts.
+Sections 1–7 are the original proposal. Section 0 records what was implemented from it in Supabase (PostgreSQL). No official facts were loaded.
+
+---
+
+## 0. Implemented schema (Supabase)
+
+Source of truth: `supabase/migrations/*.sql`. Enum labels match `src/lib/internal/types.ts` exactly.
+
+| Table | Purpose | URL key kept from the portal |
+| --- | --- | --- |
+| `regions`, `countries` | Directory regions; countries with the single globe "hub" city/pin (not a campus location) and the country note | `countries.slug` (`united-kingdom`) |
+| `institutions` | Identity and place only. `city`/coordinates are NULL until checked; `location_verified` flag | `slug` (`dir-…`, `smp-…`) |
+| `agreements` | MoUs and other agreements; one institution each; `end_date >= start_date` | `code` (`agr-001`) |
+| `collaboration_areas`, `agreement_collaboration_areas` | Area vocabulary and ordered agreement ↔ area links | — |
+| `programs` | The four programme types (one row per `program_type`) | `program_type` |
+| `program_availability` | Confirmed institution × programme offerings; unique per pair; optional agreement must belong to the same institution (composite FK) | `code` (`off-001`) |
+| `opportunities` | Application calls; optional offering must be of the same programme (composite FK) | `code` (`opp-001`) |
+| `documents`, `document_links` | Document metadata (+ `storage_bucket`/`storage_path`); each link has exactly one target | `code` (`doc-001`) |
+| `activities` | Visits, delegations, events; country required, institution/agreement optional | `code` (`act-001`) |
+| `profiles`, `roles`, `user_roles` | 1:1 with `auth.users`; role vocabulary; role grants (doic_admin-only writes) | — |
+| `student_profiles`, `applications`, `notifications` | Student-owned records | — |
+| `audit_logs` | Append-only change log written by trigger | — |
+
+Conventions: UUID primary keys (`gen_random_uuid()`), `created_at`/`updated_at`/`created_by`/`updated_by` maintained by triggers (actor taken from the session, not the client), FK indexes, and a `data_source` enum (`directory` | `programme-catalogue` | `sample` | `official`) on every catalogue table so demo rows are never mistaken for DoIC records.
+
+Not implemented from the proposal: `HomeOrganisation` (MUJ is implicit) and `Contact` (no official contacts exist).
+
+Access rules are summarised in `docs/PROJECT_HANDOFF.md` (Backend) and enforced by RLS in `supabase/migrations/20260930120600_rls_policies.sql` (role helpers live in the `private` schema, see `20260930120800_private_role_helpers.sql`).
+
+---
+
+## Original proposal
+
+This note proposes how the Directorate of International Collaboration (DoIC) site could store records later. It was written as a schema proposal only; it does not fill official facts.
 
 The current module `src/lib/data.ts` is labeled there as demo data. Its institution names, city pins, programme sentences, and home-page counts are illustrative. None of them are treated below as a signed agreement, a live statistic, or a contact.
 

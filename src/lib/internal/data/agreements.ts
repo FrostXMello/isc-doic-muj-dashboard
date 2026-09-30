@@ -1,15 +1,4 @@
 import { matchesQuery, openDataContext, uniqueSorted } from "@/lib/internal/data/context";
-import {
-  activitySeed,
-  agreementSeed,
-  availabilitySeed,
-  documentsLinkedTo,
-  findInstitution,
-  toActivityView,
-  toAgreementView,
-  toAvailabilityView,
-  toInstitutionView,
-} from "@/lib/internal/data/views";
 import type { AgreementStatus, AgreementType, AgreementView } from "@/lib/internal/types";
 
 export const agreementStatuses: readonly AgreementStatus[] = [
@@ -63,9 +52,9 @@ const sorters: Record<AgreementSort, (a: AgreementView, b: AgreementView) => num
 };
 
 export async function listAgreements(filters: AgreementFilters = {}) {
-  const { today } = await openDataContext();
-  return agreementSeed
-    .map((agreement) => toAgreementView(agreement, today))
+  const { today, data, views } = await openDataContext();
+  return data.agreements
+    .map((agreement) => views.toAgreementView(agreement, today))
     .filter(
       (row) =>
         matchesQuery(
@@ -84,34 +73,35 @@ export async function listAgreements(filters: AgreementFilters = {}) {
 }
 
 export async function getAgreementFilterOptions() {
+  const { data, views } = await openDataContext();
   return {
     countries: uniqueSorted(
-      agreementSeed
-        .map((row) => findInstitution(row.institutionId)?.country)
+      data.agreements
+        .map((row) => views.findInstitution(row.institutionId)?.country)
         .filter((country): country is string => Boolean(country)),
     ),
   };
 }
 
 export async function getAgreement(id: string) {
-  const { today } = await openDataContext();
-  const agreement = agreementSeed.find((row) => row.id === id);
+  const { today, data, views } = await openDataContext();
+  const agreement = data.agreements.find((row) => row.id === id);
   if (!agreement) return null;
 
-  const institution = findInstitution(agreement.institutionId);
+  const institution = views.findInstitution(agreement.institutionId);
   return {
     today,
-    agreement: toAgreementView(agreement, today),
-    institution: institution ? toInstitutionView(institution, today) : null,
-    related: agreementSeed
+    agreement: views.toAgreementView(agreement, today),
+    institution: institution ? views.toInstitutionView(institution, today) : null,
+    related: data.agreements
       .filter((row) => row.institutionId === agreement.institutionId && row.id !== id)
-      .map((row) => toAgreementView(row, today)),
-    offerings: availabilitySeed
+      .map((row) => views.toAgreementView(row, today)),
+    offerings: data.availability
       .filter((row) => row.agreementId === id)
-      .map((row) => toAvailabilityView(row, today)),
-    activities: activitySeed
+      .map((row) => views.toAvailabilityView(row, today)),
+    activities: data.activities
       .filter((row) => row.agreementId === id)
-      .map((row) => toActivityView(row, today)),
-    documents: documentsLinkedTo({ agreementId: id }),
+      .map((row) => views.toActivityView(row, today)),
+    documents: views.documentsLinkedTo({ agreementId: id }),
   };
 }
