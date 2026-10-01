@@ -2,6 +2,7 @@
 
 import { Sidebar } from "@/components/internal/sidebar";
 import { Topbar } from "@/components/internal/topbar";
+import type { AccountSummary } from "@/lib/auth/session";
 import { useMobileOverlay } from "@/lib/scroll-lock";
 import { usePathname } from "next/navigation";
 import { useCallback, useState, useSyncExternalStore } from "react";
@@ -32,9 +33,15 @@ function readCollapsed() {
  * - Top navigation bar
  * - Content area with consistent padding
  *
- * Does NOT enforce auth — that is a later stage concern.
+ * Access is enforced by the proxy and the /internal layout, not here.
  */
-export function PortalShell({ children }: { children: React.ReactNode }) {
+export function PortalShell({
+  account,
+  children,
+}: {
+  account: AccountSummary | null;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const collapsed = useSyncExternalStore(subscribeCollapsed, readCollapsed, () => false);
   // The drawer is open only on the path it was opened from, so navigating closes it.
@@ -83,7 +90,10 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
 
       {/* Main content area */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar onMobileMenuToggle={() => setMobileOpenedAt(mobileOpen ? null : pathname)} />
+        <Topbar
+          account={account}
+          onMobileMenuToggle={() => setMobileOpenedAt(mobileOpen ? null : pathname)}
+        />
         <main id="main" className="flex-1">
           <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             {children}

@@ -1,6 +1,8 @@
 "use client";
 
+import { AccountMenu } from "@/components/auth/account-menu";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import type { AccountSummary } from "@/lib/auth/session";
 import { internalNav } from "@/lib/internal-nav";
 import { Bell, Search, Menu, ChevronRight } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -35,8 +37,10 @@ function getPageTitle(pathname: string) {
 }
 
 export function Topbar({
+  account,
   onMobileMenuToggle,
 }: {
+  account: AccountSummary | null;
   onMobileMenuToggle: () => void;
 }) {
   const pathname = usePathname();
@@ -109,14 +113,7 @@ export function Topbar({
           <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-cyan opacity-0" />
         </button>
 
-        {/* User avatar placeholder */}
-        <div
-          className="ml-2 flex size-8 items-center justify-center rounded-full bg-accent text-[11px] font-medium tracking-[0.04em] text-cyan"
-          aria-label="User profile — not connected"
-          title="Sign-in not connected"
-        >
-          ISC
-        </div>
+        {account ? <AccountMenu account={account} variant="internal" /> : null}
       </div>
     </header>
   );

@@ -1,10 +1,10 @@
 /**
  * Permission vocabulary for role-based access control.
  *
- * NOT ENFORCED IN THE UI. There is no sign-in yet; every visitor to /internal
- * sees the static dataset. When INTERNAL_DATA_SOURCE=supabase, the database
- * enforces the same rules through row level security (supabase/migrations),
- * so these helpers only decide what the UI offers, never what is allowed.
+ * Who may enter which portal is decided in src/lib/auth (proxy + layouts).
+ * Within the Internal Portal these helpers only decide what the UI offers,
+ * never what is allowed: when INTERNAL_DATA_SOURCE=supabase the database
+ * enforces the same rules through row level security (supabase/migrations).
  */
 
 /** Mirrors the `public.app_role` enum. */

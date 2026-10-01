@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
-import { Database, Link2, Lock } from "lucide-react";
+import { Database, Link2, Lock, UserRound } from "lucide-react";
+import { SignOutButton } from "@/components/auth/sign-out-button";
+import { RoleManagement } from "@/components/internal/role-management";
 import { DetailSection, KeyValueList } from "@/components/internal/ui/detail";
 import { PageHeader } from "@/components/internal/ui/page-header";
 import { RESTRICTED_CONTACTS, SourceLink } from "@/components/internal/ui/provenance";
+import { getAccountSummary } from "@/lib/auth/session";
 import { openDataContext } from "@/lib/internal/data/context";
 import { formatDate } from "@/lib/internal/dates";
 import { officialSources, SOURCE_REVIEWED_ON } from "@/lib/official/source";
@@ -10,7 +13,10 @@ import { officialSources, SOURCE_REVIEWED_ON } from "@/lib/official/source";
 export const metadata: Metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
-  const { source, sampleData, data, contactAccess } = await openDataContext();
+  const [{ source, sampleData, data, contactAccess }, account] = await Promise.all([
+    openDataContext(),
+    getAccountSummary(),
+  ]);
   const count = (rows: readonly { source: string }[], kind: string) =>
     rows.filter((row) => row.source === kind).length;
 
@@ -18,8 +24,28 @@ export default async function SettingsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Settings"
-        description="Where the portal's data comes from and which switches are on. Editing, users, and preferences arrive in a later stage."
+        description="Your account, where the portal's data comes from, and which switches are on. DoIC admins also manage portal access here."
       />
+
+      {account ? (
+        <DetailSection
+          title="Your account"
+          icon={UserRound}
+          action={
+            <SignOutButton className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-[12px] text-fg-soft transition-colors hover:border-line-bold hover:text-foreground disabled:opacity-60" />
+          }
+        >
+          <KeyValueList
+            items={[
+              ...(account.name ? [{ label: "Name", value: account.name }] : []),
+              { label: "Email", value: account.email ?? "—" },
+              { label: "Access level", value: account.accessLevel },
+            ]}
+          />
+        </DetailSection>
+      ) : null}
+
+      <RoleManagement />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <DetailSection title="Data source" icon={Database}>

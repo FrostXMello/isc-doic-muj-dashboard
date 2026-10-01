@@ -3,13 +3,14 @@
 import { Wordmark } from "@/components/brand/wordmark";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { portalNav } from "@/lib/data";
 import { useMobileOverlay } from "@/lib/scroll-lock";
 import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useState } from "react";
+
+const loginHref = "/login";
 
 export function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -65,26 +66,14 @@ export function Navbar() {
         <div className="hidden items-center gap-2.5 lg:flex">
           <ThemeToggle square />
           <Link
-            href={portalNav[0].href}
-            aria-current={isActive(pathname, portalNav[0].href) ? "page" : undefined}
+            href={loginHref}
+            aria-current={isActive(pathname, loginHref) ? "page" : undefined}
             className={cn(
               "border border-primary bg-primary px-3 py-[0.4rem] text-[12px] font-medium tracking-[0.01em] text-primary-foreground transition-colors duration-200 hover:bg-primary/90",
-              isActive(pathname, portalNav[0].href) && "shadow-[inset_0_-2px_0_0_var(--primary-foreground)]",
+              isActive(pathname, loginHref) && "shadow-[inset_0_-2px_0_0_var(--primary-foreground)]",
             )}
           >
-            {portalNav[0].label}
-          </Link>
-          <Link
-            href={portalNav[1].href}
-            aria-current={isActive(pathname, portalNav[1].href) ? "page" : undefined}
-            className={cn(
-              "border px-3 py-[0.4rem] text-[11px] tracking-[0.14em] uppercase transition-colors duration-200",
-              isActive(pathname, portalNav[1].href)
-                ? "border-cyan/80 text-foreground"
-                : "border-line-strong text-muted-foreground hover:border-line-bold hover:text-foreground",
-            )}
-          >
-            {portalNav[1].label}
+            Login
           </Link>
         </div>
 
@@ -118,26 +107,14 @@ export function Navbar() {
           </div>
           <div className="mt-6 flex flex-col gap-3">
             <Link
-              href={portalNav[0].href}
-              aria-current={isActive(pathname, portalNav[0].href) ? "page" : undefined}
+              href={loginHref}
+              aria-current={isActive(pathname, loginHref) ? "page" : undefined}
               className={cn(
                 "bg-primary px-4 py-3 text-center text-sm font-medium text-primary-foreground",
-                isActive(pathname, portalNav[0].href) && "shadow-[inset_0_-2px_0_0_var(--primary-foreground)]",
+                isActive(pathname, loginHref) && "shadow-[inset_0_-2px_0_0_var(--primary-foreground)]",
               )}
             >
-              {portalNav[0].label}
-            </Link>
-            <Link
-              href={portalNav[1].href}
-              aria-current={isActive(pathname, portalNav[1].href) ? "page" : undefined}
-              className={cn(
-                "border px-4 py-3 text-center text-[12px] tracking-[0.14em] uppercase",
-                isActive(pathname, portalNav[1].href)
-                  ? "border-cyan/80 text-foreground"
-                  : "border-line-bold text-muted-foreground",
-              )}
-            >
-              {portalNav[1].label}
+              Login
             </Link>
           </div>
         </nav>

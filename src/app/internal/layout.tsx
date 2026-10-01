@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PortalShell } from "@/components/internal/portal-shell";
+import { getAccountSummary, requirePortalAccess } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: {
@@ -17,10 +18,13 @@ export const metadata: Metadata = {
  * Overrides the root layout's Navbar and Footer by wrapping children in the
  * PortalShell. The root layout still provides html/body, fonts, and globals.
  *
- * The `robots` metadata prevents search engines from indexing staff pages.
- * Authentication will be added in a later stage — this layout is the place
- * where an auth guard will eventually wrap the shell.
+ * Only internal roles (doic_admin, isc_team, leadership) get past the guard;
+ * the proxy applies the same rule earlier. The `robots` metadata prevents
+ * search engines from indexing staff pages.
  */
-export default function InternalLayout({ children }: { children: React.ReactNode }) {
-  return <PortalShell>{children}</PortalShell>;
+export default async function InternalLayout({ children }: { children: React.ReactNode }) {
+  await requirePortalAccess("internal", "/internal");
+  const account = await getAccountSummary();
+
+  return <PortalShell account={account}>{children}</PortalShell>;
 }

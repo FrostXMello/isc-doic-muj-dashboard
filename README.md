@@ -27,7 +27,7 @@ Nodal officer contacts from the partner page are **internal only**. They are kep
 | `/student-portal/programs` | Programme types and the institutions each official page names |
 | `/student-portal/about` | DoIC's role, team, office contact, and how this platform relates to DoIC |
 
-Every student-portal page shows the portal's own top nav (Home, Opportunities, Partner Universities, Programs, About DoIC). The old `/opportunities`, `/partners`, `/partners/[slug]`, `/programs`, and `/about` URLs redirect permanently (308) to their `/student-portal/...` paths. Partner pages for names from the earlier illustrative directory that are not on the official page redirect (307) to `/student-portal/partners`.
+The student portal requires sign-in (a `student` or any internal role). Every student-portal page shows the portal's own top nav (Home, Opportunities, Partner Universities, Programs, About DoIC). The old `/opportunities`, `/partners`, `/partners/[slug]`, `/programs`, and `/about` URLs redirect permanently (308) to their `/student-portal/...` paths. Partner pages for names from the earlier illustrative directory that are not on the official page redirect (307) to `/student-portal/partners`.
 
 ## Internal Portal
 
@@ -43,7 +43,7 @@ A staff workspace at `/internal` with its own shell (sidebar and top bar) in pla
 | `/internal/activities` | Officially documented visits and events (list + `[id]` detail) |
 | `/internal/documents` | Official documents with their links and public-access flag (list + `[id]` detail) |
 | `/internal/reports` | Aggregate breakdowns, including verification |
-| `/internal/settings` | Data source, sample flag, contact access, and official source pages |
+| `/internal/settings` | Your account, portal access (role grants, DoIC admins only), data source, sample flag, contact access, and official source pages |
 
 Records are read through async functions in `src/lib/internal/data/`:
 
@@ -51,7 +51,11 @@ Records are read through async functions in `src/lib/internal/data/`:
 - With `INTERNAL_DATA_SOURCE=supabase` they come from Supabase as the signed-in user, under RLS. Contacts are loaded only for users holding an internal role.
 - Fictional sample records (&ldquo;Example &hellip;&rdquo; institutions and linked rows) are included only when `INTERNAL_SAMPLE_DATA=true`, and are badged.
 
-There is no sign-in UI and there are no write actions yet; create and edit buttons are placeholders.
+The Internal Portal requires an internal role (`doic_admin`, `isc_team`, or `leadership`). Apart from role grants there are no write actions yet; create and edit buttons are placeholders.
+
+## Sign-in
+
+One sign-in page, `/login` (email and password), serves both portals. After sign-in, roles from `public.user_roles` decide the destination: any internal role opens `/internal`, `student` alone opens `/student-portal`, and an account without a role sees `/access-pending`. `src/proxy.ts` and the portal layouts both enforce this server-side. Password reset runs through `/forgot-password` → email link → `/auth/callback` → `/reset-password`. New accounts receive no role; a DoIC admin grants roles in `/internal/settings`. Creating the first admin is described in `docs/PROJECT_HANDOFF.md`.
 
 ## Backend (Supabase)
 
@@ -80,7 +84,7 @@ npx supabase test db      # RLS tests
 
 ## Run locally
 
-No environment variables are required; the site runs on the static official dataset. To point the Internal Portal at Supabase, copy `.env.example` to `.env.local` (ignored by git) and set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `INTERNAL_DATA_SOURCE=supabase`. Without a signed-in staff session, RLS hides internal records in that mode.
+The public pages need no environment variables. The portals need sign-in, so copy `.env.example` to `.env.local` (ignored by git) and set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; without them, portal routes redirect to `/login`, which reports that sign-in is unavailable. Add `INTERNAL_DATA_SOURCE=supabase` to read Internal Portal records from Supabase under RLS instead of the static dataset.
 
 ```bash
 npm install
@@ -118,7 +122,9 @@ src/lib/official/         official MUJ dataset (source of truth) and public proj
 src/lib/data.ts           site copy and contact details derived from the official data
 src/lib/internal/         Internal Portal types, data-access layer, sample seeds
 src/lib/supabase/         Supabase clients (@supabase/ssr; user session, no service role)
-src/proxy.ts              Supabase session refresh for /internal (supabase mode only)
+src/lib/auth/             roles, session, safe redirects, sign-in and role-management server actions
+src/components/auth/      sign-in, password reset, and account UI
+src/proxy.ts              session refresh and portal access redirects
 supabase/                 migrations, seeds, RLS tests, CLI config
 scripts/                  seed SQL generator, data-quality checks
 docs/                     source audit, data model, project handoff
@@ -129,5 +135,5 @@ docs/                     source audit, data model, project handoff
 1. Frontend and Internal Portal (done).
 2. Supabase schema, RLS, storage, and repository integration (done).
 3. Official MUJ data import with provenance (done; source-imported, awaiting DoIC confirmation).
-4. Staff sign-in and role assignment; then switch the portal to `INTERNAL_DATA_SOURCE=supabase`.
+4. Unified sign-in and role assignment (done); next, create the first admin and switch the portal to `INTERNAL_DATA_SOURCE=supabase`.
 5. Internal management workflows, document uploads, and DoIC verification of records.

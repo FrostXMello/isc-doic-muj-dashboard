@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(79);
+select plan(89);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures (as the migration owner, which bypasses RLS)
@@ -16,9 +16,18 @@ insert into auth.users (id, email) values
   ('00000000-0000-4000-a000-000000000002', 'student.b@test.local'),
   ('00000000-0000-4000-a000-000000000003', 'isc@test.local'),
   ('00000000-0000-4000-a000-000000000004', 'admin@test.local'),
-  ('00000000-0000-4000-a000-000000000005', 'leader@test.local');
+  ('00000000-0000-4000-a000-000000000005', 'leader@test.local'),
+  ('00000000-0000-4000-a000-000000000006', 'pending@test.local');
+
+select is((select count(*) from public.profiles where email like '%@test.local'), 6::bigint,
+  'signup trigger creates a profile for every new user');
+select is((select count(*) from public.user_roles ur
+    join public.profiles p on p.id = ur.user_id where p.email like '%@test.local'), 0::bigint,
+  'signup trigger grants no role; access is assigned by an admin');
 
 insert into public.user_roles (user_id, role) values
+  ('00000000-0000-4000-a000-000000000001', 'student'),
+  ('00000000-0000-4000-a000-000000000002', 'student'),
   ('00000000-0000-4000-a000-000000000003', 'isc_team'),
   ('00000000-0000-4000-a000-000000000004', 'doic_admin'),
   ('00000000-0000-4000-a000-000000000005', 'leadership');
@@ -129,7 +138,7 @@ select set_config('request.jwt.claims',
   '{"sub":"00000000-0000-4000-a000-000000000001","role":"authenticated"}', true);
 
 select is(private.current_app_roles(), array['student']::public.app_role[],
-  'signup trigger grants only the student role');
+  'student holds only the student role');
 select is((select count(*) from public.profiles), 1::bigint,
   'student sees only their own auto-created profile');
 select is((select count(*) from public.agreements), 0::bigint, 'student cannot read agreements');
@@ -193,6 +202,26 @@ select throws_ok($$ insert into public.institution_contacts (code, institution_i
   '42501', null, 'student cannot insert contacts');
 select throws_ok($$ delete from public.agreement_public_summaries $$,
   '42501', null, 'student cannot delete agreement summaries');
+
+reset role;
+
+-- ---------------------------------------------------------------------------
+-- Signed-in user without a role (awaiting access)
+-- ---------------------------------------------------------------------------
+
+set local role authenticated;
+select set_config('request.jwt.claims',
+  '{"sub":"00000000-0000-4000-a000-000000000006","role":"authenticated"}', true);
+
+select is(private.current_app_roles(), '{}'::public.app_role[],
+  'a user without a role holds no role');
+select is((select count(*) from public.profiles), 1::bigint,
+  'a user without a role sees only their own profile');
+select is((select count(*) from public.agreements), 0::bigint,
+  'a user without a role cannot read agreements');
+select throws_ok($$ insert into public.user_roles (user_id, role)
+  values ('00000000-0000-4000-a000-000000000006', 'student') $$,
+  '42501', null, 'a user without a role cannot grant themselves student');
 
 reset role;
 
@@ -277,6 +306,9 @@ select throws_ok($$ insert into public.institution_contacts (code, institution_i
   values ('lead-contact', (select id from public.institutions where slug = 'test-public-uni'),
           'x', 'x@test.local') $$,
   '42501', null, 'leadership cannot insert contacts');
+select throws_ok($$ insert into public.user_roles (user_id, role)
+  values ('00000000-0000-4000-a000-000000000006', 'student') $$,
+  '42501', null, 'leadership cannot grant roles');
 
 reset role;
 
@@ -310,6 +342,16 @@ select ok(not exists (select 1 from public.agreements where code = 'isc-agr'), '
 delete from public.user_roles
   where user_id = '00000000-0000-4000-a000-000000000004' and role = 'doic_admin';
 select ok(private.is_doic_admin(), 'doic_admin cannot revoke their own admin role');
+update public.user_roles set role = 'student'
+  where user_id = '00000000-0000-4000-a000-000000000004' and role = 'doic_admin';
+select ok(private.is_doic_admin(), 'doic_admin cannot rewrite their own admin role');
+delete from public.user_roles
+  where user_id = '00000000-0000-4000-a000-000000000002' and role = 'isc_team';
+select ok(not exists (select 1 from public.user_roles
+    where user_id = '00000000-0000-4000-a000-000000000002' and role = 'isc_team'),
+  'doic_admin revokes another user''s role');
+select ok((select count(*) from public.profiles where email like '%@test.local') = 6,
+  'doic_admin reads every profile for role management');
 update public.agreements set title = 'Renamed on source' where code = 'test-pub-agr';
 select is((select listed_as from public.agreement_public_summaries where code = 'test-pub-agr'),
   'Renamed on source', 'agreement summaries follow agreement updates');
