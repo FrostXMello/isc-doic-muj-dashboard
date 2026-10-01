@@ -1,9 +1,11 @@
 "use client";
 
 import { AccountMenu } from "@/components/auth/account-menu";
+import { SignOutButton, signOutClass } from "@/components/auth/sign-out-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import type { AccountSummary } from "@/lib/auth/session";
 import { internalNav } from "@/lib/internal-nav";
+import { cn } from "@/lib/utils";
 import { Bell, Search, Menu, ChevronRight } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -113,7 +115,12 @@ export function Topbar({
           <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-cyan opacity-0" />
         </button>
 
-        {account ? <AccountMenu account={account} variant="internal" /> : null}
+        {account ? (
+          <>
+            <AccountMenu account={account} variant="internal" />
+            <SignOutButton className={cn(signOutClass, "ml-1")} />
+          </>
+        ) : null}
       </div>
     </header>
   );

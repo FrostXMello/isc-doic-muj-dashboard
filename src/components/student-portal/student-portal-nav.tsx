@@ -1,6 +1,7 @@
 "use client";
 
 import { AccountMenu } from "@/components/auth/account-menu";
+import { SignOutButton, signOutClass } from "@/components/auth/sign-out-button";
 import { isActive } from "@/components/navbar/navbar";
 import type { AccountSummary } from "@/lib/auth/session";
 import { studentPortalNav } from "@/lib/data";
@@ -56,8 +57,9 @@ export function StudentPortalNav({ account }: { account: AccountSummary | null }
           })}
         </nav>
         {account ? (
-          <div className="shrink-0 border-l border-line pl-4">
+          <div className="flex shrink-0 items-center gap-2 border-l border-line pl-4">
             <AccountMenu account={account} variant="portal" />
+            <SignOutButton className={signOutClass} />
           </div>
         ) : null}
       </div>

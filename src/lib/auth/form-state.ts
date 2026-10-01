@@ -1,4 +1,4 @@
-export type SignInState = { error?: string; email?: string };
+export type SignInState = { error?: string; email?: string; remember?: boolean };
 
 export type PasswordResetRequestState = { error?: string; sent?: boolean; email?: string };
 

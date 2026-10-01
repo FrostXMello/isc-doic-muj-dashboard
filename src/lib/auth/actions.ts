@@ -1,7 +1,7 @@
 "use server";
 
 import { type AuthError, isAuthRetryableFetchError } from "@supabase/supabase-js";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   type PasswordResetRequestState,
@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth/form-state";
 import { destinationFor } from "@/lib/auth/next-path";
 import { fetchUserRoles } from "@/lib/auth/roles";
+import { REMEMBER_COOKIE, REMEMBER_MAX_AGE } from "@/lib/supabase/remember";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -51,27 +52,37 @@ export async function signIn(_state: SignInState, formData: FormData): Promise<S
   const email = readString(formData, "email").trim();
   const password = readString(formData, "password");
   const next = readString(formData, "next");
+  const remember = formData.get("remember") === "on";
 
   if (!EMAIL_PATTERN.test(email) || password.length === 0) {
-    return { error: "Enter your email address and password.", email };
+    return { error: "Enter your email address and password.", email, remember };
   }
 
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return { error: authMessages.unavailable, email };
+  const supabase = await createSupabaseServerClient({ remember });
+  if (!supabase) return { error: authMessages.unavailable, email, remember };
+
+  const cookieStore = await cookies();
+  cookieStore.set(REMEMBER_COOKIE, remember ? "1" : "0", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    ...(remember ? { maxAge: REMEMBER_MAX_AGE } : {}),
+  });
 
   let destination: string;
   try {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error || !data.user) {
-      if (error && isNetworkFailure(error)) return { error: authMessages.network, email };
-      if (error && isRateLimited(error)) return { error: authMessages.rateLimited, email };
-      return { error: authMessages.invalidCredentials, email };
+      if (error && isNetworkFailure(error)) return { error: authMessages.network, email, remember };
+      if (error && isRateLimited(error)) return { error: authMessages.rateLimited, email, remember };
+      return { error: authMessages.invalidCredentials, email, remember };
     }
     const roles = await fetchUserRoles(supabase, data.user.id);
     destination = destinationFor(roles, next);
   } catch {
     await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
-    return { error: authMessages.network, email };
+    return { error: authMessages.network, email, remember };
   }
 
   redirect(destination);

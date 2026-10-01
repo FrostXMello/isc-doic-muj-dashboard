@@ -2,6 +2,7 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
+import { REMEMBER_COOKIE, rememberFromCookie, withRememberPreference } from "@/lib/supabase/remember";
 
 /**
  * Supabase client for Server Components, Server Functions, and Route
@@ -10,7 +11,7 @@ import { getSupabasePublicEnv } from "@/lib/supabase/env";
  *
  * Returns null when Supabase is not configured.
  */
-export async function createSupabaseServerClient() {
+export async function createSupabaseServerClient({ remember }: { remember?: boolean } = {}) {
   const env = getSupabasePublicEnv();
   if (!env) return null;
 
@@ -21,9 +22,10 @@ export async function createSupabaseServerClient() {
         return cookieStore.getAll();
       },
       setAll(cookiesToSet) {
+        const keep = remember ?? rememberFromCookie(cookieStore.get(REMEMBER_COOKIE)?.value);
         try {
           for (const { name, value, options } of cookiesToSet) {
-            cookieStore.set(name, value, options);
+            cookieStore.set(name, value, withRememberPreference(options, keep));
           }
         } catch {
           // Server Components cannot set cookies. The proxy refreshes the

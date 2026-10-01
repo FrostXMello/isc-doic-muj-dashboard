@@ -57,7 +57,16 @@ export function LoginForm({ next, notice }: { next: string | null; notice: React
         describedBy={invalid ? errorId : undefined}
       />
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between gap-4">
+        <label className="inline-flex cursor-pointer items-center gap-2 text-[13px] text-fg-soft select-none">
+          <input
+            type="checkbox"
+            name="remember"
+            defaultChecked={state.remember}
+            className="size-4 cursor-pointer rounded border-line-bold accent-[var(--cyan)]"
+          />
+          Remember me
+        </label>
         <Link
           href="/forgot-password"
           className="text-[13px] text-fg-soft underline-offset-4 transition-colors hover:text-foreground hover:underline"

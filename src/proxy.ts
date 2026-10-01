@@ -3,6 +3,7 @@ import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { type AppRole, canAccessArea, fetchUserRoles, portalAreaFor, portalHome } from "@/lib/auth/roles";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
+import { REMEMBER_COOKIE, rememberFromCookie, withRememberPreference } from "@/lib/supabase/remember";
 
 /**
  * Runs before the portals and auth pages render, regardless of
@@ -28,6 +29,7 @@ export async function proxy(request: NextRequest) {
 
   let response = NextResponse.next({ request });
   let cacheHeaders: Record<string, string> = {};
+  const remember = rememberFromCookie(request.cookies.get(REMEMBER_COOKIE)?.value);
   const supabase = createServerClient(env.url, env.key, {
     cookies: {
       getAll() {
@@ -37,7 +39,7 @@ export async function proxy(request: NextRequest) {
         for (const { name, value } of cookiesToSet) request.cookies.set(name, value);
         response = NextResponse.next({ request });
         for (const { name, value, options } of cookiesToSet) {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, withRememberPreference(options, remember));
         }
         cacheHeaders = headers;
         for (const [key, value] of Object.entries(headers)) response.headers.set(key, value);
