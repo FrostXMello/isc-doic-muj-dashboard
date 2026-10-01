@@ -523,7 +523,7 @@ export function Globe({
         <canvas
           ref={canvasRef}
           aria-hidden="true"
-          className="size-full cursor-grab touch-none active:cursor-grabbing"
+          className="size-full cursor-grab touch-pan-y active:cursor-grabbing"
           onPointerDown={(event) => {
             event.currentTarget.setPointerCapture(event.pointerId);
             dragRef.current = { x: event.clientX, rot: rotationRef.current };
@@ -541,6 +541,9 @@ export function Globe({
             if (hit !== activeRef.current) setActiveId(hit);
           }}
           onPointerUp={() => {
+            dragRef.current = null;
+          }}
+          onPointerCancel={() => {
             dragRef.current = null;
           }}
           onPointerLeave={() => {

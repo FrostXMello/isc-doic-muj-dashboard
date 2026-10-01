@@ -2,8 +2,9 @@
 
 import { Sidebar } from "@/components/internal/sidebar";
 import { Topbar } from "@/components/internal/topbar";
+import { useMobileOverlay } from "@/lib/scroll-lock";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { X } from "lucide-react";
 
 const COLLAPSED_KEY = "portal-sidebar-collapsed";
@@ -46,26 +47,14 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   const closeMobile = useCallback(() => setMobileOpenedAt(null), []);
+  useMobileOverlay(mobileOpen, closeMobile);
 
-  // Lock body scroll when mobile menu is open
-  useEffect(() => {
-    if (!mobileOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeMobile();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [mobileOpen, closeMobile]);
-
+  // The document is the scroll container (not an inner element), so wheel,
+  // keyboard, touch, scroll restoration and mobile browser chrome all work.
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex min-h-dvh bg-background">
       {/* Desktop sidebar */}
-      <div className="hidden lg:block">
+      <div className="sticky top-0 hidden h-dvh shrink-0 lg:block">
         <Sidebar collapsed={collapsed} onToggle={toggleCollapsed} />
       </div>
 
@@ -93,9 +82,9 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
       )}
 
       {/* Main content area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex min-w-0 flex-1 flex-col">
         <Topbar onMobileMenuToggle={() => setMobileOpenedAt(mobileOpen ? null : pathname)} />
-        <main id="main" className="flex-1 overflow-y-auto">
+        <main id="main" className="flex-1">
           <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             {children}
           </div>

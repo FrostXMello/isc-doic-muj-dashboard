@@ -4,11 +4,12 @@ import { Wordmark } from "@/components/brand/wordmark";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { portalNav, primaryNav } from "@/lib/data";
+import { useMobileOverlay } from "@/lib/scroll-lock";
 import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 
 function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -34,19 +35,8 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = previous;
-    };
-  }, [open]);
+  const closeMenu = useCallback(() => setOpen(false), []);
+  useMobileOverlay(open, closeMenu);
 
   return (
     <header
@@ -67,6 +57,7 @@ export function Navbar() {
           href="/"
           className="rounded-sm outline-offset-4"
           aria-label="DoIC home, Manipal University Jaipur"
+          onClick={closeMenu}
         >
           <Wordmark subtitle={!scrolled} />
         </Link>
@@ -135,7 +126,10 @@ export function Navbar() {
         <nav
           id={menuId}
           aria-label="Mobile"
-          className="max-h-[calc(100svh-4.75rem)] overflow-y-auto border-t border-line bg-background px-5 py-6 lg:hidden"
+          className="max-h-[calc(100svh-4.75rem)] overflow-y-auto overscroll-contain border-t border-line bg-background px-5 py-6 lg:hidden"
+          onClick={(event) => {
+            if ((event.target as Element).closest("a")) closeMenu();
+          }}
         >
           <ul className="flex flex-col">
             {primaryNav.map((item) => {
