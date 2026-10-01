@@ -1,10 +1,6 @@
 import { Globe } from "@/components/globe/globe";
-import { buttonVariants } from "@/components/ui/button";
 import { site } from "@/lib/data";
 import { globeMarkers, globeTotals } from "@/lib/official/geo";
-import { cn } from "@/lib/utils";
-import { ArrowRight, LockKeyhole } from "lucide-react";
-import Link from "next/link";
 
 const chipIds = globeMarkers
   .filter((marker) => marker.precision === "city" || marker.institutions >= 3)
@@ -36,31 +32,8 @@ export function Hero() {
             Explore Manipal University Jaipur&apos;s international collaborations,
             programmes and global opportunities.
           </p>
-          <div
-            className="hero-rise mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-5"
-            style={{ animationDelay: "220ms" }}
-          >
-            <Link
-              href="/student-portal"
-              className={cn(buttonVariants({ size: "xl" }), "group/button rounded-none")}
-            >
-              Explore the Student Portal
-              <ArrowRight className="transition-transform duration-200 motion-safe:group-hover/button:translate-x-0.5" />
-            </Link>
-            <Link
-              href="/internal"
-              aria-label="Internal Portal, for DoIC staff"
-              className="group/internal inline-flex min-h-11 items-center justify-center gap-2 px-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground sm:justify-start"
-            >
-              <LockKeyhole className="size-3.5" aria-hidden="true" />
-              <span className="underline decoration-line-bold underline-offset-4 group-hover/internal:decoration-cyan">
-                Internal Portal
-              </span>
-              <span className="text-[11px] tracking-[0.12em] text-fg-dim uppercase">For DoIC staff</span>
-            </Link>
-          </div>
           <p
-            className="hero-rise mt-6 text-[12px] leading-5 text-muted-foreground"
+            className="hero-rise mt-7 text-[12px] sm:mt-8 leading-5 text-muted-foreground"
             style={{ animationDelay: "280ms" }}
             data-globe-note
           >

@@ -43,10 +43,7 @@ export const primaryNav = [
   { href: "/student-portal/about", label: "About DoIC" },
 ] as const;
 
-export const portalNav = [
-  { href: "/student-portal", label: "Student Portal" },
-  { href: "/internal", label: "Internal Portal" },
-] as const;
+export const portalNav = [{ href: "/login", label: "Login" }] as const;
 
 export const legalNav = [
   { href: "/privacy", label: "Privacy" },
