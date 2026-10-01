@@ -1,23 +1,14 @@
-import { Globe, type GlobePoint } from "@/components/globe/globe";
+import { Globe } from "@/components/globe/globe";
 import { buttonVariants } from "@/components/ui/button";
 import { site } from "@/lib/data";
-import { partnerCountries } from "@/lib/official/public";
+import { globeMarkers, globeTotals } from "@/lib/official/geo";
 import { cn } from "@/lib/utils";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-const globePoints: GlobePoint[] = partnerCountries.map((country) => ({
-  id: country.id,
-  country: country.country,
-  region: country.region,
-  lat: country.lat,
-  lon: country.lon,
-  institutions: country.institutions.length,
-}));
-
-const chipIds = partnerCountries
-  .filter((country) => country.institutions.length >= 3)
-  .map((country) => country.id);
+const chipIds = globeMarkers
+  .filter((marker) => marker.precision === "city" || marker.institutions >= 3)
+  .map((marker) => marker.id);
 
 export function Hero() {
   return (
@@ -42,37 +33,51 @@ export function Hero() {
             className="hero-rise mt-5 max-w-md text-[15px] leading-7 text-fg-soft sm:mt-6 sm:text-base sm:leading-relaxed lg:text-[17px]"
             style={{ animationDelay: "150ms" }}
           >
-            Explore the international collaborations, programmes and
-            opportunities published by MUJ&apos;s Directorate of International
-            Collaborations, each linked to its official source.
+            Explore Manipal University Jaipur&apos;s international
+            collaborations, programmes and global opportunities, as published by
+            the {site.directorate}.
           </p>
           <div
             className="hero-rise mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center"
             style={{ animationDelay: "220ms" }}
           >
             <Link
-              href="/opportunities"
+              href="/partners"
               className={cn(
                 buttonVariants({ size: "xl" }),
                 "group/button rounded-none",
               )}
             >
-              Explore Opportunities
+              Explore Global Partners
               <ArrowRight className="transition-transform duration-200 motion-safe:group-hover/button:translate-x-0.5" />
             </Link>
             <Link
-              href="/partners"
+              href="/opportunities"
               className={cn(
                 buttonVariants({ variant: "outline", size: "xl" }),
                 "rounded-none border-line-bold bg-transparent text-foreground hover:bg-overlay",
               )}
             >
-              Explore Global Partners
+              Explore Opportunities
             </Link>
           </div>
+          <p
+            className="hero-rise mt-6 max-w-md text-[12px] leading-5 text-muted-foreground"
+            style={{ animationDelay: "280ms" }}
+            data-globe-note
+          >
+            {globeTotals.institutions} institutions in {globeTotals.countries} countries,
+            mapped at country level from MUJ&apos;s official partner listing.{" "}
+            <Link
+              href="/partners"
+              className="text-foreground underline decoration-line-bold underline-offset-4 hover:decoration-cyan"
+            >
+              See every partner
+            </Link>
+          </p>
         </div>
         <div className="min-w-0">
-          <Globe points={globePoints} chipIds={chipIds} />
+          <Globe markers={globeMarkers} chipIds={chipIds} />
         </div>
       </div>
     </section>

@@ -11,57 +11,94 @@ import {
   slerpLift,
   type Vec3,
 } from "@/lib/globe-geometry";
+import type { GlobeMarker } from "@/lib/official/geo";
 import { readPaintedTheme, useResolvedTheme, type ResolvedTheme } from "@/lib/theme-store";
 import { cn } from "@/lib/utils";
-import { useEffect, useRef, useState } from "react";
-
-/** A country on the official partner page, placed at its approximate centre. */
-export type GlobePoint = {
-  id: string;
-  country: string;
-  region: string;
-  lat: number;
-  lon: number;
-  institutions: number;
-};
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 type Node = {
   id: string;
-  /** Small caps line of the hover label (region, or the hub city). */
-  city: string;
-  country: string;
-  chip: string;
+  marker: GlobeMarker | null;
   vec: Vec3;
   lon: number;
+  /** Dot scale from the number of institutions the node stands for. */
+  weight: number;
 };
 
 const ARC_SAMPLES = 42;
+/** Arcs shown together while idle; the groups take turns. */
+const ARC_GROUP_SIZE = 6;
+const ARC_GROUP_MS = 5200;
 
-function buildScene(points: readonly GlobePoint[]) {
+function plural(count: number, one: string, many: string) {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
+export function markerTitle(marker: GlobeMarker) {
+  return marker.precision === "city" ? marker.name : marker.country;
+}
+
+export function markerSummary(marker: GlobeMarker) {
+  if (marker.precision === "city") {
+    return `${marker.city}, ${marker.country} · ${plural(marker.agreementRows, "agreement record", "agreement records")}`;
+  }
+  return `${plural(marker.institutions, "institution", "institutions")} · ${plural(marker.agreementRows, "agreement record", "agreement records")}`;
+}
+
+function markerDescription(marker: GlobeMarker) {
+  const placement =
+    marker.precision === "city" ? "City-level placement" : "Country-level placement, not a campus location";
+  const also =
+    marker.precision === "country" && marker.alsoListedUnder.length
+      ? `; also listed under ${marker.alsoListedUnder.join(", ")}`
+      : "";
+  return `${markerTitle(marker)}, ${marker.region}${also}: ${markerSummary(marker)}. ${placement}. Official MUJ source.`;
+}
+
+function buildScene(markers: readonly GlobeMarker[]) {
   const hubNode: Node = {
     id: hub.id,
-    city: hub.city,
-    country: hub.country,
-    chip: hub.city,
+    marker: null,
     vec: latLonToVec(hub.lat, hub.lon),
     lon: hub.lon,
+    weight: 1,
   };
-  const partnerNodes: Node[] = points.map((point) => ({
-    id: point.id,
-    city: point.region,
-    country: `${point.country} · ${point.institutions} ${point.institutions === 1 ? "institution" : "institutions"}`,
-    chip: point.country,
-    vec: latLonToVec(point.lat, point.lon),
-    lon: point.lon,
+  const partnerNodes: Node[] = markers.map((marker) => ({
+    id: marker.id,
+    marker,
+    vec: latLonToVec(marker.lat, marker.lon),
+    lon: marker.lon,
+    weight:
+      marker.precision === "country"
+        ? 1 + Math.min(0.7, Math.log2(marker.institutions) * 0.18)
+        : 1,
   }));
-  const arcs = partnerNodes.map((node) => {
+  const groups = Math.max(1, Math.ceil(partnerNodes.length / ARC_GROUP_SIZE));
+  const arcs = partnerNodes.map((node, index) => {
     const arcPoints: Vec3[] = [];
     for (let i = 0; i <= ARC_SAMPLES; i += 1) {
       arcPoints.push(slerpLift(hubNode.vec, node.vec, i / ARC_SAMPLES));
     }
-    return { id: node.id, points: arcPoints };
+    // Interleaved so each group spans several regions.
+    return { id: node.id, points: arcPoints, group: index % groups };
   });
-  return { nodes: [hubNode, ...partnerNodes], partnerNodes, arcs };
+  return { nodes: [hubNode, ...partnerNodes], partnerNodes, arcs, groups };
+}
+
+const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
+
+function subscribeReducedMotion(onChange: () => void) {
+  const media = window.matchMedia(reducedMotionQuery);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+function useReducedMotion() {
+  return useSyncExternalStore(
+    subscribeReducedMotion,
+    () => window.matchMedia(reducedMotionQuery).matches,
+    () => false,
+  );
 }
 
 type Particle = { lat: number; lon: number; speed: number; size: number };
@@ -86,8 +123,6 @@ type Projected = {
   x: number;
   y: number;
   z: number;
-  city: string;
-  country: string;
 };
 
 const INITIAL_ROTATION = rotationForLongitude(hub.lon);
@@ -150,30 +185,30 @@ const PALETTES: Record<ResolvedTheme, Palette> = {
 };
 
 export function Globe({
-  points,
+  markers,
   chipIds,
 }: {
-  points: readonly GlobePoint[];
-  /** Countries offered as buttons under the globe; every point stays hoverable. */
+  /** Derived from the official data layer (src/lib/official/geo). */
+  markers: readonly GlobeMarker[];
+  /** Markers offered as buttons under the globe; every marker stays selectable on the canvas. */
   chipIds: readonly string[];
 }) {
-  const [scene] = useState(() => buildScene(points));
+  const [scene] = useState(() => buildScene(markers));
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const labelRef = useRef<HTMLDivElement>(null);
-  const cityRef = useRef<HTMLParagraphElement>(null);
-  const countryRef = useRef<HTMLParagraphElement>(null);
   const rotationRef = useRef(INITIAL_ROTATION);
   const targetRef = useRef<number | null>(null);
   const activeRef = useRef<string | null>(null);
-  const dragRef = useRef<{ x: number; rot: number } | null>(null);
+  const dragRef = useRef<{ x: number; y: number; rot: number; moved: boolean } | null>(null);
   const radiusRef = useRef(180);
   const reduceRef = useRef(false);
   const paintRef = useRef<(() => void) | null>(null);
   const projectedRef = useRef<Projected[]>([]);
-  const hintRef = useRef<HTMLParagraphElement>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const theme = useResolvedTheme();
+  const reduced = useReducedMotion();
+  const activeMarker = scene.partnerNodes.find((node) => node.id === activeId)?.marker ?? null;
 
   useEffect(() => {
     paintRef.current?.();
@@ -181,13 +216,8 @@ export function Globe({
 
   useEffect(() => {
     activeRef.current = activeId;
-    const node = scene.partnerNodes.find((item) => item.id === activeId);
-    if (cityRef.current && countryRef.current) {
-      cityRef.current.textContent = node?.city ?? "";
-      countryRef.current.textContent = node?.country ?? "";
-    }
     if (reduceRef.current) paintRef.current?.();
-  }, [activeId, scene]);
+  }, [activeId]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -196,14 +226,9 @@ export function Globe({
     const context = canvas.getContext("2d");
     if (!context) return;
 
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const media = window.matchMedia(reducedMotionQuery);
     const applyMotion = () => {
       reduceRef.current = media.matches;
-      if (hintRef.current) {
-        hintRef.current.textContent = media.matches
-          ? "Still view. Select a country to bring its link to Jaipur forward."
-          : "Drag to turn the globe. Hover a point to trace its link to Jaipur.";
-      }
       if (media.matches) {
         rotationRef.current = INITIAL_ROTATION;
         targetRef.current = null;
@@ -307,22 +332,22 @@ export function Globe({
       }
 
       const active = activeRef.current;
-      scene.arcs.forEach((arc, index) => {
+      const reduce = reduceRef.current;
+      const cycle = now / ARC_GROUP_MS + 0.2;
+      const currentGroup = Math.floor(cycle) % scene.groups;
+      const phase = cycle - Math.floor(cycle);
+      const fade = Math.min(1, phase / 0.16, (1 - phase) / 0.16);
+      scene.arcs.forEach((arc) => {
         const emphasized = active === arc.id;
-        drawArc(
-          context,
-          arc.points,
-          cx,
-          cy,
-          radius,
-          rot,
-          emphasized,
-          Boolean(active) && !emphasized,
-          now,
-          index,
-          reduceRef.current,
-          palette,
-        );
+        let style: ArcStyle;
+        if (emphasized) style = { kind: "emphasized", alpha: 1, pulse: reduce ? null : (now * 0.00007) % 1 };
+        else if (active) style = { kind: "quiet", alpha: 1, pulse: null };
+        else if (reduce) style = { kind: "idle", alpha: 1, pulse: null };
+        else style = { kind: "idle", alpha: 0.45, pulse: null };
+        drawArc(context, arc.points, cx, cy, radius, rot, style, palette);
+        if (!active && !reduce && arc.group === currentGroup && fade > 0.01) {
+          drawArc(context, arc.points, cx, cy, radius, rot, { kind: "idle", alpha: fade, pulse: phase }, palette);
+        }
       });
 
       if (!reduceRef.current && !active) {
@@ -349,14 +374,22 @@ export function Globe({
           x: cx + projected.x * radius,
           y: cy - projected.y * radius,
           z: projected.z,
-          city: node.city,
-          country: node.country,
         };
         projectedNodes.push(point);
         if (projected.z < 0.02) continue;
         const isHub = node.id === hub.id;
         const emphasized = isHub || active === node.id;
-        drawNode(context, point.x, point.y, emphasized, isHub, projected.z, palette);
+        drawNode(
+          context,
+          point.x,
+          point.y,
+          emphasized,
+          isHub,
+          node.marker?.precision === "city",
+          projected.z,
+          node.weight,
+          palette,
+        );
       }
       projectedRef.current = projectedNodes;
 
@@ -511,11 +544,16 @@ export function Globe({
   return (
     <div className="w-full">
       <p id="globe-desc" className="sr-only">
-        Decorative globe centred on Manipal University Jaipur. Points mark the
-        countries of institutions listed on MUJ&apos;s official partner page,
-        placed at approximate country centres, with curved links back to
-        Jaipur. The full list is on the Partner Universities page.
+        Globe centred on Manipal University Jaipur. Each point is a country of
+        institutions listed on MUJ&apos;s official partner page, placed at a
+        country-level reference point rather than a campus location, with a
+        curved link back to Jaipur.
       </p>
+      <ul aria-label="Partner countries shown on the globe" className="sr-only">
+        {scene.partnerNodes.map((node) =>
+          node.marker ? <li key={node.id}>{markerDescription(node.marker)}</li> : null,
+        )}
+      </ul>
       <div
         ref={wrapRef}
         className="relative mx-auto aspect-square w-full max-w-[20.5rem] sm:max-w-[26rem] lg:max-w-[34rem] xl:max-w-[38rem]"
@@ -523,16 +561,23 @@ export function Globe({
         <canvas
           ref={canvasRef}
           aria-hidden="true"
+          data-globe-markers={scene.partnerNodes.length}
           className="size-full cursor-grab touch-pan-y active:cursor-grabbing"
           onPointerDown={(event) => {
             event.currentTarget.setPointerCapture(event.pointerId);
-            dragRef.current = { x: event.clientX, rot: rotationRef.current };
+            dragRef.current = {
+              x: event.clientX,
+              y: event.clientY,
+              rot: rotationRef.current,
+              moved: false,
+            };
             targetRef.current = null;
           }}
           onPointerMove={(event) => {
             const drag = dragRef.current;
             if (drag) {
               const dx = event.clientX - drag.x;
+              if (Math.abs(dx) > 5 || Math.abs(event.clientY - drag.y) > 5) drag.moved = true;
               rotationRef.current = drag.rot + dx / Math.max(80, radiusRef.current);
               if (reduceRef.current) paintRef.current?.();
               return;
@@ -540,34 +585,48 @@ export function Globe({
             const hit = hitTest(event);
             if (hit !== activeRef.current) setActiveId(hit);
           }}
-          onPointerUp={() => {
+          onPointerUp={(event) => {
+            const drag = dragRef.current;
             dragRef.current = null;
+            if (drag && !drag.moved) setActiveId(hitTest(event));
           }}
           onPointerCancel={() => {
             dragRef.current = null;
           }}
-          onPointerLeave={() => {
-            if (!dragRef.current) setActiveId(null);
+          onPointerLeave={(event) => {
+            if (event.pointerType === "mouse" && !dragRef.current) setActiveId(null);
           }}
         />
         <div
           ref={labelRef}
           className="pointer-events-none absolute top-0 left-0 z-10 opacity-0 transition-opacity duration-200"
         >
-          <div className="rounded-md border border-line-strong bg-surface/90 px-2.5 py-1.5 text-left shadow-none backdrop-blur-sm">
-            <p
-              ref={cityRef}
-              className="text-[11px] tracking-[0.14em] text-cyan uppercase"
-            />
-            <p ref={countryRef} className="text-sm text-foreground" />
-          </div>
+          {activeMarker ? (
+            <div className="rounded-md border border-line-strong bg-surface/90 px-2.5 py-1.5 text-left whitespace-nowrap shadow-none backdrop-blur-sm">
+              <p className="text-[10px] tracking-[0.14em] text-cyan uppercase">
+                {activeMarker.precision === "city" ? "City-level" : "Country-level"} ·{" "}
+                {activeMarker.region}
+              </p>
+              <p className="mt-0.5 text-sm text-foreground">{markerTitle(activeMarker)}</p>
+              <p className="text-[12px] text-fg-soft">{markerSummary(activeMarker)}</p>
+              <p className="mt-1 text-[10px] tracking-[0.12em] text-muted-foreground uppercase">
+                Official MUJ source
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
       <p
-        ref={hintRef}
-        className="mt-1 text-center text-[12px] tracking-[0.04em] text-muted-foreground"
+        aria-live="polite"
+        className="mt-1 min-h-[1.25rem] text-center text-[12px] tracking-[0.04em] text-muted-foreground"
       >
-        Drag to turn the globe. Hover a point to trace its link to Jaipur.
+        {activeMarker
+          ? `${markerTitle(activeMarker)}: ${markerSummary(activeMarker)} · ${
+              activeMarker.precision === "city" ? "city-level" : "country-level"
+            } placement`
+          : reduced
+            ? "Still view. Select a country to bring its link to Jaipur forward."
+            : "Drag to turn the globe. Hover or tap a point to trace its link to Jaipur."}
       </p>
       <ul
         aria-label="Countries with the most listed partner institutions"
@@ -575,33 +634,39 @@ export function Globe({
         className="mt-3 flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-wrap lg:justify-center lg:overflow-visible [&::-webkit-scrollbar]:hidden"
       >
         {scene.partnerNodes
-          .filter((partner) => chipIds.includes(partner.id))
-          .map((partner) => {
-          const selected = activeId === partner.id;
-          return (
-            <li key={partner.id}>
-              <button
-                type="button"
-                aria-pressed={selected}
-                onMouseEnter={() => focusPartner(partner.id, false)}
-                onMouseLeave={() => setActiveId(null)}
-                onFocus={() => focusPartner(partner.id, true)}
-                onBlur={() => {
-                  setActiveId(null);
-                  targetRef.current = null;
-                }}
-                className={cn(
-                  "border px-2.5 py-1 text-[12px] tracking-[0.01em] transition-colors duration-200",
-                  selected
-                    ? "border-cyan/70 bg-line text-foreground"
-                    : "border-line text-muted-foreground hover:border-line-bold hover:text-foreground",
-                )}
-              >
-                {partner.chip}
-              </button>
-            </li>
-          );
-        })}
+          .filter((node) => node.marker && chipIds.includes(node.id))
+          .map((node) => {
+            const marker = node.marker!;
+            const selected = activeId === node.id;
+            return (
+              <li key={node.id}>
+                <button
+                  type="button"
+                  aria-pressed={selected}
+                  aria-label={markerDescription(marker)}
+                  onMouseEnter={() => focusPartner(node.id, false)}
+                  onMouseLeave={() => setActiveId(null)}
+                  onFocus={() => focusPartner(node.id, true)}
+                  onClick={() => focusPartner(node.id, true)}
+                  onBlur={() => {
+                    setActiveId(null);
+                    targetRef.current = null;
+                  }}
+                  className={cn(
+                    "flex items-baseline gap-1.5 border px-2.5 py-1 text-[12px] tracking-[0.01em] whitespace-nowrap transition-colors duration-200",
+                    selected
+                      ? "border-cyan/70 bg-line text-foreground"
+                      : "border-line text-muted-foreground hover:border-line-bold hover:text-foreground",
+                  )}
+                >
+                  {markerTitle(marker)}
+                  {marker.precision === "country" ? (
+                    <span className="text-[11px] text-fg-dim tabular-nums">{marker.institutions}</span>
+                  ) : null}
+                </button>
+              </li>
+            );
+          })}
       </ul>
     </div>
   );
@@ -661,6 +726,13 @@ function traceRing(
   context.stroke();
 }
 
+type ArcStyle = {
+  kind: "emphasized" | "idle" | "quiet";
+  alpha: number;
+  /** Position of the travelling pulse along the arc (0–1), or null for none. */
+  pulse: number | null;
+};
+
 function drawArc(
   context: CanvasRenderingContext2D,
   points: Vec3[],
@@ -668,13 +740,11 @@ function drawArc(
   cy: number,
   radius: number,
   rot: number,
-  emphasized: boolean,
-  quiet: boolean,
-  now: number,
-  index: number,
-  reduced: boolean,
+  style: ArcStyle,
   palette: Palette,
 ) {
+  const emphasized = style.kind === "emphasized";
+  context.globalAlpha = style.alpha;
   context.beginPath();
   let drawing = false;
   const screen: { x: number; y: number; z: number }[] = [];
@@ -698,23 +768,20 @@ function drawArc(
   }
   context.lineCap = "round";
   context.lineJoin = "round";
-  context.strokeStyle = emphasized
-    ? palette.arc.emphasized
-    : quiet
-      ? palette.arc.quiet
-      : palette.arc.idle;
+  context.strokeStyle = palette.arc[style.kind];
   context.lineWidth = emphasized ? 1.35 : 0.85;
   context.stroke();
 
-  if (reduced || quiet || !emphasized) return;
-  const t = (now * 0.00007 + index * 0.137) % 1;
-  const pulseIndex = Math.min(screen.length - 1, Math.floor(t * (screen.length - 1)));
-  const pulse = screen[pulseIndex];
-  if (!pulse || pulse.z < 0.05) return;
-  context.fillStyle = emphasized ? palette.pulse.emphasized : palette.pulse.idle;
-  context.beginPath();
-  context.arc(pulse.x, pulse.y, emphasized ? 2.4 : 1.7, 0, Math.PI * 2);
-  context.fill();
+  const t = style.pulse;
+  const pulse =
+    t === null ? null : screen[Math.min(screen.length - 1, Math.floor(t * (screen.length - 1)))];
+  if (pulse && pulse.z >= 0.05) {
+    context.fillStyle = emphasized ? palette.pulse.emphasized : palette.pulse.idle;
+    context.beginPath();
+    context.arc(pulse.x, pulse.y, emphasized ? 2.4 : 1.7, 0, Math.PI * 2);
+    context.fill();
+  }
+  context.globalAlpha = 1;
 }
 
 function drawNode(
@@ -723,7 +790,9 @@ function drawNode(
   y: number,
   emphasized: boolean,
   isHub: boolean,
+  isCity: boolean,
   depth: number,
+  weight: number,
   palette: Palette,
 ) {
   const scale = 0.82 + depth * 0.22;
@@ -743,15 +812,15 @@ function drawNode(
     context.fill();
     return;
   }
-  if (emphasized) {
+  if (emphasized || isCity) {
     context.beginPath();
-    context.arc(x, y, 6.2 * scale, 0, Math.PI * 2);
+    context.arc(x, y, (emphasized ? 6.2 : 3.6) * scale, 0, Math.PI * 2);
     context.strokeStyle = palette.node.ring;
     context.lineWidth = 1;
     context.stroke();
   }
   context.beginPath();
-  context.arc(x, y, (emphasized ? 2.5 : 1.9) * scale, 0, Math.PI * 2);
+  context.arc(x, y, (emphasized ? 2.5 : 1.9) * scale * weight, 0, Math.PI * 2);
   context.fillStyle = emphasized ? palette.node.emphasized : palette.node.idle;
   context.fill();
 }

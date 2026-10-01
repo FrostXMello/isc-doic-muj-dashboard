@@ -15,8 +15,11 @@ import { officialDataset } from "@/lib/internal/data/dataset";
 import { legacyDirectoryInstitutions } from "@/lib/internal/data/seed/institutions";
 import { officialCountries, officialRegions, referenceCountries } from "@/lib/official/countries";
 import { officialAgreementRows, officialInstitutions } from "@/lib/official/partners";
+import { globeMarkers, globeNodes, globeTotals, verifiedInstitutionLocations } from "@/lib/official/geo";
 import { officialStats, publicInstitutions, publicSlug } from "@/lib/official/public";
+import { partnerTableInstitutionIds as partnerTableIds } from "@/lib/official/records";
 import { MUJ_SITE, officialSources } from "@/lib/official/source";
+import type { OfficialRegion } from "@/lib/official/types";
 
 const errors: string[] = [];
 const warnings: string[] = [];
@@ -198,6 +201,95 @@ for (const slug of retired) {
 // --- Figures shown on the site -------------------------------------------
 if (officialStats.institutions !== officialInstitutions.length) error("stats: institution count differs from the partner table");
 if (officialStats.collaborationRows !== officialAgreementRows.length) error("stats: row count differs from the partner table");
+
+// --- Home-page globe (src/lib/official/geo) --------------------------------
+const regionBounds: Record<OfficialRegion, { lat: [number, number]; lon: [number, number] }> = {
+  Asia: { lat: [-11, 82], lon: [25, 180] },
+  Europe: { lat: [34, 72], lon: [-25, 45] },
+  Australia: { lat: [-45, -10], lon: [112, 155] },
+  Africa: { lat: [-35, 38], lon: [-18, 52] },
+  "North America": { lat: [14, 72], lon: [-170, -50] },
+  "South America": { lat: [-56, 13], lon: [-82, -34] },
+  Oceania: { lat: [-50, 0], lon: [110, 180] },
+};
+const inRange = (value: number, [min, max]: [number, number]) => value >= min && value <= max;
+const publicById = new Map(publicInstitutions.map((row) => [row.id, row]));
+const placed = new Map<string, number>();
+for (const id of duplicates(globeNodes, (node) => node.id)) error(`globe: duplicate node ${id}`);
+for (const key of duplicates(globeNodes, (node) => `${node.lat},${node.lon}`)) error(`globe: two nodes share position ${key}`);
+for (const id of duplicates(
+  globeNodes.filter((node) => node.precision === "country"),
+  (node) => node.countryId,
+)) {
+  error(`globe: more than one country node for ${id}`);
+}
+for (const node of globeNodes) {
+  const country = officialCountryById.get(node.countryId);
+  if (!country) {
+    error(`globe: ${node.id} country ${node.countryId} is not an official partner country`);
+    continue;
+  }
+  if (node.country !== country.name) error(`globe: ${node.id} label "${node.country}" ≠ "${country.name}"`);
+  if (node.region !== country.region) error(`globe: ${node.id} region "${node.region}" ≠ data layer "${country.region}"`);
+  if (!inRange(node.lat, [-90, 90]) || !inRange(node.lon, [-180, 180])) error(`globe: ${node.id} coordinates out of range`);
+  const bounds = regionBounds[node.region];
+  if (!inRange(node.lat, bounds.lat) || !inRange(node.lon, bounds.lon)) {
+    error(`globe: ${node.id} (${node.lat}, ${node.lon}) is outside the ${node.region} sanity box`);
+  }
+  if (!node.source.url.startsWith("http")) error(`globe: ${node.id} has no source URL`);
+  const ids = node.precision === "city" ? [node.institutionId] : node.institutionIds;
+  if (node.precision === "country") {
+    if (node.lat !== country.lat || node.lon !== country.lon) error(`globe: ${node.id} is not at the country reference point`);
+    if (node.institutions !== ids.length) error(`globe: ${node.id} institution count mismatch`);
+    if (node.alsoListedUnder.includes(node.region)) error(`globe: ${node.id} repeats its own region in alsoListedUnder`);
+  }
+  let rows = 0;
+  for (const id of ids) {
+    placed.set(id, (placed.get(id) ?? 0) + 1);
+    const institution = publicById.get(id);
+    if (!institution) error(`globe: ${node.id} → ${id} is not a public official institution`);
+    else {
+      if (!institution.inPartnerTable) error(`globe: ${node.id} → ${id} is not in the partner table`);
+      if (institution.countryId !== node.countryId) error(`globe: ${node.id} → ${id} belongs to ${institution.countryId}`);
+      if (/\bexample\b/i.test(institution.name) || id.startsWith("smp-")) error(`globe: ${node.id} → ${id} is sample data`);
+    }
+    rows += officialAgreementRows.filter((row) => row.institutionId === id).length;
+  }
+  if (rows !== node.agreementRows) error(`globe: ${node.id} agreement rows ${node.agreementRows} ≠ ${rows}`);
+}
+for (const id of partnerTableIds) {
+  const count = placed.get(id) ?? 0;
+  if (count !== 1) error(`globe: partner ${id} is placed ${count} times`);
+}
+for (const [id, location] of Object.entries(verifiedInstitutionLocations)) {
+  if (!publicById.has(id)) error(`globe: verified location for unknown institution ${id}`);
+  if (!location.city.trim()) error(`globe: verified location for ${id} has no city`);
+  if (!isUrl(location.sourceUrl)) error(`globe: verified location for ${id} has no source URL`);
+}
+if (globeTotals.institutions !== officialStats.institutions) error("globe: institution total differs from officialStats");
+if (globeTotals.agreementRows !== officialStats.collaborationRows) error("globe: agreement-row total differs from officialStats");
+if (globeTotals.countries !== officialStats.countries) error("globe: country total differs from officialStats");
+if (globeTotals.regions !== officialStats.regions) error("globe: region total differs from the official headings");
+if (globeMarkers.some((marker) => "institutionIds" in marker)) error("globe: client markers carry institution id lists");
+const homeSources = [
+  "src/app/page.tsx",
+  "src/components/hero/hero.tsx",
+  "src/components/globe/globe.tsx",
+  "src/components/stats/stats.tsx",
+  "src/components/editorial/classroom-section.tsx",
+  "src/components/partner-preview/partner-preview.tsx",
+  "src/components/opportunities/opportunities-section.tsx",
+  "src/components/cta/cta.tsx",
+];
+for (const file of homeSources) {
+  const text = readFileSync(join(process.cwd(), file), "utf8");
+  if (/\bExample\b|\(sample\)|smp-/.test(text)) error(`home: ${file} references sample data`);
+}
+console.log(
+  `globe: ${globeNodes.length} nodes, ${globeTotals.cityLevelInstitutions} city-level and ` +
+    `${globeTotals.countryLevelInstitutions} country-level institutions, ${globeTotals.agreementRows} rows, ` +
+    `${globeTotals.countries} countries, ${globeTotals.regions} regions`,
+);
 
 // --- Private contacts (optional) ------------------------------------------
 const contactsPath = join(process.cwd(), "data/private/muj-nodal-contacts.json");

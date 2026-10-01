@@ -1,6 +1,7 @@
 "use client";
 
 import { Container } from "@/components/container";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 export type StatFigureData = { id: string; value: number; label: string };
@@ -115,6 +116,15 @@ export function Stats({
                 official partner page
               </a>{" "}
               on {checkedOn}. A listing is not a statement of agreement status.
+            </p>
+            <p className="mt-2 text-[12px] leading-5 text-muted-foreground">
+              Mapped at country level from MUJ&apos;s official partner listing.{" "}
+              <Link
+                href="/partners"
+                className="text-foreground underline decoration-line-bold underline-offset-4 hover:decoration-cyan"
+              >
+                Browse partners
+              </Link>
             </p>
           </div>
         </div>

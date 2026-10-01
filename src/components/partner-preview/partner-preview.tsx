@@ -202,7 +202,8 @@ function Bearing({ label, lat, lon }: { label: string; lat: number; lon: number 
   return (
     <figure className="mt-6">
       <figcaption className="text-[12px] leading-5 text-muted-foreground">
-        Approximate country centre {formatCoord(lat, "N", "S")}, {formatCoord(lon, "E", "W")} ·{" "}
+        Country-level reference point {formatCoord(lat, "N", "S")}, {formatCoord(lon, "E", "W")}{" "}
+        (not a campus location) ·{" "}
         {degrees}° of longitude from Jaipur
       </figcaption>
       <svg viewBox="0 0 480 36" aria-hidden="true" className="mt-2 h-7 w-full">
