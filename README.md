@@ -20,14 +20,14 @@ Nodal officer contacts from the partner page are **internal only**. They are kep
 | Route | Content |
 | --- | --- |
 | `/` | Hero with globe of listed countries, official counts, programme types, partner preview |
-| `/partners` | Official partner directory: search, region, country, and agreement-wording filters |
-| `/partners/[slug]` | Institution as listed, its collaboration rows, programmes, and the official source link |
-| `/programs` | Programme types and the institutions each official page names |
-| `/opportunities` | Summer and winter school calls with published deadlines, and other official listings |
-| `/about` | DoIC's role, team, office contact, and how this platform relates to DoIC |
-| `/student-portal` | Orientation and links to the official exchange policy and forms |
+| `/student-portal` | Student portal home: orientation and links to the official exchange policy and forms |
+| `/student-portal/opportunities` | Summer and winter school calls with published deadlines, and other official listings |
+| `/student-portal/partners` | Official partner directory: search, region, country, and agreement-wording filters |
+| `/student-portal/partners/[slug]` | Institution as listed, its collaboration rows, programmes, and the official source link |
+| `/student-portal/programs` | Programme types and the institutions each official page names |
+| `/student-portal/about` | DoIC's role, team, office contact, and how this platform relates to DoIC |
 
-Partner pages for names from the earlier illustrative directory that are not on the official page redirect (307) to `/partners`.
+Every student-portal page shows the portal's own top nav (Home, Opportunities, Partner Universities, Programs, About DoIC). The old `/opportunities`, `/partners`, `/partners/[slug]`, `/programs`, and `/about` URLs redirect permanently (308) to their `/student-portal/...` paths. Partner pages for names from the earlier illustrative directory that are not on the official page redirect (307) to `/student-portal/partners`.
 
 ## Internal Portal
 

@@ -44,7 +44,7 @@ function ExternalLink({ href, children }: { href: string; children: React.ReactN
 
 export default function OpportunitiesPage() {
   return (
-    <article className="pt-28 pb-20 sm:pt-32 sm:pb-28">
+    <article className="pt-10 pb-20 sm:pt-14 sm:pb-28">
       <Container>
         <PageIntro
           eyebrow="Opportunities"
@@ -112,7 +112,7 @@ export default function OpportunitiesPage() {
             {programmeTypes.map((item) => (
               <li key={item.id} className="border-b border-line">
                 <Link
-                  href={`/programs#${item.id}`}
+                  href={`/student-portal/programs#${item.id}`}
                   className="block py-5 transition-colors hover:bg-overlay-subtle sm:px-2"
                 >
                   <span className="font-display text-[1.25rem] tracking-[-0.03em] text-foreground">
@@ -153,7 +153,7 @@ export default function OpportunitiesPage() {
           </ul>
         </section>
 
-        <StudyPath current="/opportunities" label="Where this sits" />
+        <StudyPath current="/student-portal/opportunities" label="Where this sits" />
       </Container>
     </article>
   );

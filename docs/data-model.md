@@ -435,7 +435,7 @@ The file is the visual baseline. It is not a normalised store. The mapping says 
 | `opportunities[].href`, `icon` | Not stored | Presentation only. |
 | `networkStats` | Not a table of institutions or programmes | Illustrative counts for the home page. They must not be computed from sample names and then shown as official totals. |
 | `classroomPoints` | Not an entity | Editorial lines about the office’s role. |
-| `primaryNav`, `portalNav`, `legalNav` | Not an entity | Site chrome. |
+| `studentPortalNav`, `primaryNav`, `portalNav`, `legalNav` | Not an entity | Site chrome. |
 | Slugs derived in the page layer from sample university names | Not future primary keys | They exist so the current directory can open a page. A database id should be assigned by the store, not by normalising a sample string. |
 
 What the current shape collapses, and the future model must undo:

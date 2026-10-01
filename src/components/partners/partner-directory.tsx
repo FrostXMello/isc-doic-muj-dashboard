@@ -241,7 +241,7 @@ export function PartnerDirectory({
                         return (
                           <li key={institution.slug} className="border-b border-line">
                             <Link
-                              href={`/partners/${institution.slug}`}
+                              href={`/student-portal/partners/${institution.slug}`}
                               className={cn(
                                 "group grid min-h-11 grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-x-3 px-1 py-4 transition-[background-color,box-shadow] duration-200 hover:bg-overlay-subtle hover:shadow-[inset_2px_0_0_var(--cyan)] sm:px-2",
                               )}

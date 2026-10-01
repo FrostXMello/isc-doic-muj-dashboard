@@ -9,7 +9,7 @@ Remote: `https://github.com/FrostXMello/isc-doic-muj-dashboard` (branch `main`).
 Implemented:
 
 - Official data: `src/lib/official/` holds the records imported from MUJ's Internationalization pages (reviewed 2026-09-30): 116 institutions, 132 collaboration rows, 39 countries, 7 regions, 6 programmes, 6 offerings, 4 calls, 17 documents, and 14 activities. Everything is `source-imported` or `needs-review`, never `verified`. The source-by-source audit, conflicts, and exclusions are in `docs/muj-internationalization-source-audit.md`.
-- Public site: homepage with the globe, partner directory (`/partners`, `/partners/[slug]`), opportunities, programmes, student-portal orientation, about, privacy, terms. It reads `src/lib/official/public.ts` and `src/lib/data.ts`, which expose no contacts, statuses, or dates. The 16 earlier-directory partner slugs redirect (307) to `/partners` (`retiredPartnerSlugs` in `next.config.ts`).
+- Public site: homepage with the globe, privacy, terms, and the student portal (`/student-portal`) with its own top nav over home, opportunities, partner directory (`/student-portal/partners`, `/student-portal/partners/[slug]`), programmes, and about. The old `/opportunities`, `/partners`, `/partners/[slug]`, `/programs`, `/about` URLs redirect (308) into the portal. It reads `src/lib/official/public.ts` and `src/lib/data.ts`, which expose no contacts, statuses, or dates. The 16 earlier-directory partner slugs redirect (307) to `/student-portal/partners` (`retiredPartnerSlugs` in `next.config.ts`).
 - Internal Portal at `/internal`: dashboard, institutions, agreements (MoUs), programme offerings, opportunities, activities, documents, reports, settings. It reads through the repository layer in `src/lib/internal/data/`. Every detail page shows provenance (source link, last checked, verification), and institution and agreement pages have a nodal-contacts panel.
 - Supabase backend: schema, RLS, storage bucket, seeds, and RLS tests in `supabase/` (see Backend), applied to the hosted project `oqmwrifysignwmgxiecd`. Official data, earlier directory names, and the internal contacts are loaded there.
 
@@ -100,7 +100,8 @@ select id, 'doic_admin' from auth.users where email = '<admin email>';
 
 | Route | What it does |
 | --- | --- |
-| `/`, `/opportunities`, `/partners`, `/partners/[slug]`, `/programs`, `/about`, `/student-portal`, `/privacy`, `/terms` | Public site |
+| `/`, `/privacy`, `/terms` | Public site |
+| `/student-portal` and `/student-portal/{opportunities,partners,programs,about}`, `/student-portal/partners/[slug]` | Student portal (public) |
 | `/internal` and `/internal/{universities,mous,programs,opportunities,activities,documents}` (+ `/[id]`), `/internal/reports`, `/internal/settings` | Internal Portal |
 
 ## Constraints

@@ -38,11 +38,11 @@ export default async function PartnerDetailPage({ params }: Props) {
   const peers = institutionsInCountry(institution.countryId, institution.slug);
 
   return (
-    <article className="pt-28 pb-20 sm:pt-32 sm:pb-28">
+    <article className="pt-10 pb-20 sm:pt-14 sm:pb-28">
       <Container>
         <nav aria-label="Breadcrumb">
           <Link
-            href="/partners"
+            href="/student-portal/partners"
             className="inline-flex min-h-11 items-center text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             Back to partners
@@ -183,7 +183,7 @@ export default async function PartnerDetailPage({ params }: Props) {
               {peers.map((peer) => (
                 <li key={peer.slug} className="border-b border-line">
                   <Link
-                    href={`/partners/${peer.slug}`}
+                    href={`/student-portal/partners/${peer.slug}`}
                     className="group flex min-h-11 items-center justify-between gap-4 py-4 text-foreground transition-colors hover:text-primary"
                   >
                     <span className="block font-display text-xl tracking-[-0.03em]">

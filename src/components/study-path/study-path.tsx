@@ -3,25 +3,25 @@ import Link from "next/link";
 
 const steps = [
   {
-    href: "/opportunities",
+    href: "/student-portal/opportunities",
     index: "01",
     title: "Explore",
     body: "Read the calls and listings DoIC has published.",
   },
   {
-    href: "/programs",
+    href: "/student-portal/programs",
     index: "02",
     title: "Understand",
     body: "The programme types on the official pages, and the institutions each names.",
   },
   {
-    href: "/partners",
+    href: "/student-portal/partners",
     index: "03",
     title: "Compare",
     body: "Browse the institutions MUJ lists, by region and country. A listing is not an offer of a place.",
   },
   {
-    href: "/about",
+    href: "/student-portal/about",
     index: "04",
     title: "Contact DoIC",
     body: "The DoIC office, its email, and telephone.",

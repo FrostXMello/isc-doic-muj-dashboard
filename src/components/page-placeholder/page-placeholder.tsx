@@ -18,11 +18,11 @@ export function PagePlaceholder({
   related?: readonly {
     href:
       | "/"
-      | "/opportunities"
-      | "/partners"
-      | "/programs"
-      | "/about"
       | "/student-portal"
+      | "/student-portal/opportunities"
+      | "/student-portal/partners"
+      | "/student-portal/programs"
+      | "/student-portal/about"
       | "/internal"
       | "/privacy"
       | "/terms";

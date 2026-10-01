@@ -57,7 +57,7 @@ agreementKinds.push(NOT_STATED);
 
 export default function PartnersPage() {
   return (
-    <article className="pt-28 pb-20 sm:pt-32 sm:pb-28">
+    <article className="pt-10 pb-20 sm:pt-14 sm:pb-28">
       <Container>
         <PageIntro
           eyebrow="Partner universities"
@@ -84,7 +84,7 @@ export default function PartnersPage() {
           regions={publicRegions}
           agreementKinds={agreementKinds}
         />
-        <StudyPath current="/partners" />
+        <StudyPath current="/student-portal/partners" />
       </Container>
     </article>
   );

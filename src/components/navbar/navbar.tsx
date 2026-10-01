@@ -3,7 +3,7 @@
 import { Wordmark } from "@/components/brand/wordmark";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { portalNav, primaryNav } from "@/lib/data";
+import { portalNav } from "@/lib/data";
 import { useMobileOverlay } from "@/lib/scroll-lock";
 import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
@@ -11,7 +11,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useState } from "react";
 
-function isActive(pathname: string, href: string) {
+export function isActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -62,27 +62,6 @@ export function Navbar() {
           <Wordmark subtitle={!scrolled} />
         </Link>
 
-        <nav className="hidden items-center gap-7 lg:flex" aria-label="Primary">
-          {primaryNav.map((item) => {
-            const active = isActive(pathname, item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "py-1 text-[13px] tracking-[0.01em] transition-colors duration-200",
-                  active
-                    ? "text-foreground shadow-[inset_0_-1px_0_0_var(--cyan)]"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
         <div className="hidden items-center gap-2.5 lg:flex">
           <ThemeToggle square />
           <Link
@@ -131,28 +110,7 @@ export function Navbar() {
             if ((event.target as Element).closest("a")) closeMenu();
           }}
         >
-          <ul className="flex flex-col">
-            {primaryNav.map((item) => {
-              const active = isActive(pathname, item.href);
-              return (
-                <li key={item.href} className="border-b border-line">
-                  <Link
-                    href={item.href}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "block py-3.5 font-display text-[1.65rem] tracking-[-0.03em]",
-                      active
-                        ? "text-foreground shadow-[inset_0_-1px_0_0_var(--cyan)]"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-          <div className="mt-6">
+          <div>
             <p className="mb-2 text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
               Theme
             </p>

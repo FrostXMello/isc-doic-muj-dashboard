@@ -67,7 +67,7 @@ Agreement wording stated on the page (all other 126 rows: `not-stated`):
 
 | Earlier record | Classification | Action |
 | --- | --- | --- |
-| 17 names in the public illustrative directory (`src/lib/data.ts`) | 1 official (The University of Newcastle), 16 not on the official page | Newcastle kept (id preserved) as official. The 16 moved to `legacyDirectoryInstitutions`: `needs-review`, hidden from the public site, and their `/partners/[slug]` URLs redirect (307) to `/partners` |
+| 17 names in the public illustrative directory (`src/lib/data.ts`) | 1 official (The University of Newcastle), 16 not on the official page | Newcastle kept (id preserved) as official. The 16 moved to `legacyDirectoryInstitutions`: `needs-review`, hidden from the public site, and their `/partners/[slug]` and `/student-portal/partners/[slug]` URLs redirect (307) to `/student-portal/partners` |
 | Home-page figures (127+ universities, 40+ countries, 18+ programmes, 500+ students) | Illustrative, unverifiable | Removed. Replaced by counts computed from the official page (116 / 132 / 39 / 7 / 6) |
 | Country "summary" notes on the directory | Illustrative | Removed |
 | Four programme categories on the public site | Source-derived, incomplete | Replaced by the six official programme types |

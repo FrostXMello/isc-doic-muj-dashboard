@@ -96,7 +96,7 @@ function OfficialLink({ href, children }: { href: string; children: ReactNode })
 
 export default function StudentPortalPage() {
   return (
-    <article className="pt-28 pb-20 sm:pt-32 sm:pb-28">
+    <article className="pt-10 pb-20 sm:pt-14 sm:pb-28">
       <Container>
         <PageIntro
           eyebrow="Student portal"
@@ -158,7 +158,7 @@ export default function StudentPortalPage() {
                   </li>
                 ))}
               </ul>
-              <Link href="/partners" className="inline-flex items-center gap-1.5 text-sm text-foreground hover:text-primary">
+              <Link href="/student-portal/partners" className="inline-flex items-center gap-1.5 text-sm text-foreground hover:text-primary">
                 Browse partner universities by region and country
                 <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
@@ -173,7 +173,7 @@ export default function StudentPortalPage() {
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
             The programme types on MUJ&apos;s official Internationalization pages. Calls with dates, such
             as the International Summer School, are on{" "}
-            <Link href="/opportunities" className={linkClass}>
+            <Link href="/student-portal/opportunities" className={linkClass}>
               Opportunities
             </Link>
             .
@@ -185,7 +185,7 @@ export default function StudentPortalPage() {
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{programme.summary}</p>
                 <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-2 pt-5">
                   <Link
-                    href={`/programs#${programme.id}`}
+                    href={`/student-portal/programs#${programme.id}`}
                     className="inline-flex items-center gap-1 text-sm text-foreground hover:text-primary"
                   >
                     Details
@@ -202,7 +202,7 @@ export default function StudentPortalPage() {
               </p>
               <div className="mt-auto pt-5">
                 <Link
-                  href="/opportunities"
+                  href="/student-portal/opportunities"
                   className="inline-flex items-center gap-1 text-sm text-foreground hover:text-primary"
                 >
                   View opportunities
@@ -305,7 +305,7 @@ export default function StudentPortalPage() {
           <p className="mt-3 text-[12px] leading-5 text-muted-foreground">
             Contact details from the official {contact.source.title}. DoIC owns MUJ&apos;s international
             collaborations; this platform is operated by the {site.cell} for DoIC.{" "}
-            <Link href="/about#platform" className={linkClass}>
+            <Link href="/student-portal/about#platform" className={linkClass}>
               About DoIC and this platform
             </Link>
           </p>

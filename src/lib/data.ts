@@ -25,12 +25,22 @@ export const site = {
   officialPartnersPage: officialSources.partners.url,
 } as const;
 
+/** Top nav shown on every student-portal page. */
+export const studentPortalNav = [
+  { href: "/student-portal", label: "Home" },
+  { href: "/student-portal/opportunities", label: "Opportunities" },
+  { href: "/student-portal/partners", label: "Partner Universities" },
+  { href: "/student-portal/programs", label: "Programs" },
+  { href: "/student-portal/about", label: "About DoIC" },
+] as const;
+
+/** Footer site links. */
 export const primaryNav = [
   { href: "/", label: "Home" },
-  { href: "/opportunities", label: "Opportunities" },
-  { href: "/partners", label: "Partner Universities" },
-  { href: "/programs", label: "Programs" },
-  { href: "/about", label: "About DoIC" },
+  { href: "/student-portal/opportunities", label: "Opportunities" },
+  { href: "/student-portal/partners", label: "Partner Universities" },
+  { href: "/student-portal/programs", label: "Programs" },
+  { href: "/student-portal/about", label: "About DoIC" },
 ] as const;
 
 export const portalNav = [
@@ -61,7 +71,7 @@ export const opportunities = [
   {
     id: "student-exchange",
     title: "Student Exchange",
-    href: "/programs",
+    href: "/student-portal/programs",
     icon: "exchange" as const,
     summary:
       "Non-credit exchanges (summer schools, internships, short courses) and credit-based exchanges with Collaborative Institutes, under an MoU or agreement with MUJ.",
@@ -69,7 +79,7 @@ export const opportunities = [
   {
     id: "semester-exchange",
     title: "Semester Exchange",
-    href: "/programs",
+    href: "/student-portal/programs",
     icon: "semester" as const,
     summary:
       "Credits earned at an institution with which MUJ has an MoU for this purpose may count towards the MUJ degree, under the Student Exchange Policy.",
@@ -77,7 +87,7 @@ export const opportunities = [
   {
     id: "pathway-programs",
     title: "Pathway / Progression",
-    href: "/programs",
+    href: "/student-portal/programs",
     icon: "pathway" as const,
     summary:
       "Approved pathway models of 5 years (3 + 1 + 1) and 5.5 years (3 + 1 + 1.5) with listed partner universities.",
@@ -85,7 +95,7 @@ export const opportunities = [
   {
     id: "dual-degree",
     title: "Global Programs (Dual Degree)",
-    href: "/programs",
+    href: "/student-portal/programs",
     icon: "degree" as const,
     summary:
       "Dual degrees listed with Deakin University (2+2 B.Tech) and The University of Melbourne (BSc Advanced (Hons)).",
@@ -93,7 +103,7 @@ export const opportunities = [
   {
     id: "summer-winter-school",
     title: "International Summer and Winter Schools",
-    href: "/opportunities",
+    href: "/student-portal/opportunities",
     icon: "school" as const,
     summary:
       "ISSMUJ and IWSMUJ: three-to-four-week credit-based study and training programmes run under DoIC.",
@@ -101,7 +111,7 @@ export const opportunities = [
   {
     id: "academic-visits",
     title: "Academic and Delegation Visits",
-    href: "/programs",
+    href: "/student-portal/programs",
     icon: "visit" as const,
     summary:
       "Faculty exchange, academic visits and delegations between MUJ and institutions abroad, as recorded by DoIC.",

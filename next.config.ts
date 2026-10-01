@@ -2,7 +2,8 @@ import type { NextConfig } from "next";
 
 /**
  * Partner pages from the earlier illustrative directory whose institutions are
- * not on the official MUJ partner page. Temporary (307), so the URLs can come
+ * not on the official MUJ partner page, under both /partners and
+ * /student-portal/partners. Temporary (307), so the URLs can come
  * back if DoIC confirms a partnership. Kept in sync with
  * legacyDirectoryInstitutions by scripts/check-data-quality.ts.
  */
@@ -30,11 +31,22 @@ const nextConfig: NextConfig = {
   // inferred. 127.0.0.1 is how this environment opens the site.
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   redirects() {
-    return retiredPartnerSlugs.map((slug) => ({
-      source: `/partners/${slug}`,
-      destination: "/partners",
-      permanent: false,
-    }));
+    // Retired slugs come first so they skip the generic /partners/:slug move.
+    const retired = retiredPartnerSlugs.flatMap((slug) =>
+      [`/partners/${slug}`, `/student-portal/partners/${slug}`].map((source) => ({
+        source,
+        destination: "/student-portal/partners",
+        permanent: false,
+      })),
+    );
+    const moved = [
+      ["/opportunities", "/student-portal/opportunities"],
+      ["/partners", "/student-portal/partners"],
+      ["/partners/:slug", "/student-portal/partners/:slug"],
+      ["/programs", "/student-portal/programs"],
+      ["/about", "/student-portal/about"],
+    ].map(([source, destination]) => ({ source, destination, permanent: true }));
+    return [...retired, ...moved];
   },
 };
 

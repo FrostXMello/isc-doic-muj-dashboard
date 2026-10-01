@@ -18,7 +18,7 @@ const documentsById = new Map(officialDocuments.map((doc) => [doc.id, doc]));
 
 export default function ProgramsPage() {
   return (
-    <article className="pt-28 pb-20 sm:pt-32 sm:pb-28">
+    <article className="pt-10 pb-20 sm:pt-14 sm:pb-28">
       <Container>
         <PageIntro
           eyebrow="Programs"
@@ -68,7 +68,7 @@ export default function ProgramsPage() {
                             <li key={row.id}>
                               {institution ? (
                                 <Link
-                                  href={`/partners/${institution.slug}`}
+                                  href={`/student-portal/partners/${institution.slug}`}
                                   className="text-primary underline-offset-4 hover:text-foreground hover:underline"
                                 >
                                   {institution.name}
@@ -121,7 +121,7 @@ export default function ProgramsPage() {
           })}
         </div>
 
-        <StudyPath current="/programs" />
+        <StudyPath current="/student-portal/programs" />
       </Container>
     </article>
   );
