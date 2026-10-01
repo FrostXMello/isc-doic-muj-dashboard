@@ -34,17 +34,6 @@ export const studentPortalNav = [
   { href: "/student-portal/about", label: "About DoIC" },
 ] as const;
 
-/** Footer site links. */
-export const primaryNav = [
-  { href: "/", label: "Home" },
-  { href: "/student-portal/opportunities", label: "Opportunities" },
-  { href: "/student-portal/partners", label: "Partner Universities" },
-  { href: "/student-portal/programs", label: "Programs" },
-  { href: "/student-portal/about", label: "About DoIC" },
-] as const;
-
-export const portalNav = [{ href: "/login", label: "Login" }] as const;
-
 export const legalNav = [
   { href: "/privacy", label: "Privacy" },
   { href: "/terms", label: "Terms" },

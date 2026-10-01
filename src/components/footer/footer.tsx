@@ -1,6 +1,6 @@
 import { Wordmark } from "@/components/brand/wordmark";
 import { Container } from "@/components/container";
-import { contact, legalNav, portalNav, primaryNav, site } from "@/lib/data";
+import { contact, legalNav, site } from "@/lib/data";
 import Link from "next/link";
 
 export function Footer() {
@@ -27,22 +27,7 @@ export function Footer() {
               , which remains the authoritative source.
             </p>
           </div>
-          <nav className="md:col-span-3" aria-label="Footer">
-            <p className="text-[11px] tracking-[0.18em] text-cyan uppercase">Navigate</p>
-            <ul className="mt-4 space-y-2.5">
-              {[...primaryNav, ...portalNav].map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          <div className="md:col-span-4">
+          <div className="md:col-span-5 md:col-start-8">
             <p className="text-[11px] tracking-[0.18em] text-cyan uppercase">Contact</p>
             <p className="mt-4 text-sm text-foreground">{contact.office}</p>
             <p className="text-sm text-muted-foreground">{contact.location}</p>
