@@ -47,15 +47,15 @@ A staff workspace at `/internal` with its own shell (sidebar and top bar) in pla
 
 Records are read through async functions in `src/lib/internal/data/`:
 
-- By default (`INTERNAL_DATA_SOURCE=static`) they come from the official dataset in `src/lib/official/`. Nodal contacts are never available in this mode; detail pages show "Restricted — available to signed-in DoIC staff".
-- With `INTERNAL_DATA_SOURCE=supabase` they come from Supabase as the signed-in user, under RLS. Contacts are loaded only for users holding an internal role.
+- With `INTERNAL_DATA_SOURCE=supabase` (the deployed setting) they come from Supabase as the signed-in user, under RLS. Contacts are loaded only for users holding an internal role.
+- With `INTERNAL_DATA_SOURCE=static` (the local default) they come from the official dataset in `src/lib/official/`. Nodal contacts are never available in this mode; detail pages show "Restricted — available to signed-in DoIC staff".
 - Fictional sample records (&ldquo;Example &hellip;&rdquo; institutions and linked rows) are included only when `INTERNAL_SAMPLE_DATA=true`, and are badged.
 
-The Internal Portal requires an internal role (`doic_admin`, `isc_team`, or `leadership`). Apart from role grants there are no write actions yet; create and edit buttons are placeholders.
+The Internal Portal requires an internal role (`doic_admin`, `isc_team`, or `leadership`). Apart from account management there are no write actions yet; create and edit buttons are placeholders, shown only to roles that may write (Leadership sees a read-only portal).
 
 ## Sign-in
 
-One sign-in page, `/login` (email and password), serves both portals. After sign-in, roles from `public.user_roles` decide the destination: any internal role opens `/internal`, `student` alone opens `/student-portal`, and an account without a role sees `/access-pending`. `src/proxy.ts` and the portal layouts both enforce this server-side. Password reset runs through `/forgot-password` → email link → `/auth/callback` → `/reset-password`. New accounts receive no role; a DoIC admin grants roles in `/internal/settings`. Creating the first admin is described in `docs/PROJECT_HANDOFF.md`.
+One sign-in page, `/login` (email and password), serves both portals. After sign-in, roles from `public.user_roles` decide the destination: any internal role opens `/internal`, `student` alone opens `/student-portal`, and an account without a role sees `/access-pending`. `src/proxy.ts` and the portal layouts both enforce this server-side. Password reset runs through `/forgot-password` → email link → `/auth/callback` → `/reset-password`. Public sign-up is disabled. A DoIC admin creates accounts (email, temporary password, roles), changes roles, sets passwords, and deletes accounts in `/internal/settings`; account creation needs the server-only `SUPABASE_SECRET_KEY`. Creating the first admin is described in `docs/PROJECT_HANDOFF.md`.
 
 ## Backend (Supabase)
 
@@ -70,7 +70,7 @@ One sign-in page, `/login` (email and password), serves both portals. After sign
 - Hosted project: ref `oqmwrifysignwmgxiecd` (ap-south-1).
   - All migrations are applied.
   - Loaded seeds: official records, earlier directory names, and internal contacts. No sample data is loaded.
-  - Vercel has the public URL and publishable key, with `INTERNAL_DATA_SOURCE=static`.
+  - Vercel has the public URL, publishable key, server-only secret key, and `INTERNAL_DATA_SOURCE=supabase`.
 
 Details, access rules, and the first-admin step are in `docs/PROJECT_HANDOFF.md`; the table list is in `docs/data-model.md`.
 
@@ -135,5 +135,5 @@ docs/                     source audit, data model, project handoff
 1. Frontend and Internal Portal (done).
 2. Supabase schema, RLS, storage, and repository integration (done).
 3. Official MUJ data import with provenance (done; source-imported, awaiting DoIC confirmation).
-4. Unified sign-in and role assignment (done); next, create the first admin and switch the portal to `INTERNAL_DATA_SOURCE=supabase`.
+4. Unified sign-in, Supabase-backed Internal Portal, and admin account management (done); next, create the first admin.
 5. Internal management workflows, document uploads, and DoIC verification of records.

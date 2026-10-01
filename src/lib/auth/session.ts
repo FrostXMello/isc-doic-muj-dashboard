@@ -1,4 +1,5 @@
 import "server-only";
+import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import {
@@ -34,6 +35,7 @@ export const getAuthContext = cache(async (): Promise<AuthContext> => {
   if (!supabase) return { state: "unconfigured" };
 
   const { data, error } = await supabase.auth.getUser();
+  if (error && isAuthRetryableFetchError(error)) return { state: "error" };
   if (error || !data.user) return { state: "signed-out" };
 
   try {

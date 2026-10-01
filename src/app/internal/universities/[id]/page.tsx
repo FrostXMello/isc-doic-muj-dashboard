@@ -10,10 +10,8 @@ import {
 } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import {
-  PlaceholderAction,
-  unavailableReasons,
-} from "@/components/internal/ui/placeholder-action";
+import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
+import { RecordAction } from "@/components/internal/ui/record-action";
 import { ContactsPanel, provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getInstitution } from "@/lib/internal/data/institutions";
@@ -58,8 +56,14 @@ export default async function UniversityDetailPage({ params }: IdParamsProp) {
         }
         actions={
           <>
-            <PlaceholderAction label="Edit" icon="edit" reason={unavailableReasons.editing} />
-            <PlaceholderAction
+            <RecordAction
+              permission="institutions:update"
+              label="Edit"
+              icon="edit"
+              reason={unavailableReasons.editing}
+            />
+            <RecordAction
+              permission="agreements:create"
               label="New agreement"
               icon="add"
               variant="primary"

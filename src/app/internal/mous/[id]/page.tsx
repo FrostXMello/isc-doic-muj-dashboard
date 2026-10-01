@@ -10,10 +10,8 @@ import {
 } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import {
-  PlaceholderAction,
-  unavailableReasons,
-} from "@/components/internal/ui/placeholder-action";
+import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
+import { RecordAction } from "@/components/internal/ui/record-action";
 import { ContactsPanel, provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { toneStyles } from "@/components/internal/ui/status-badge";
@@ -118,8 +116,14 @@ export default async function AgreementDetailPage({ params }: IdParamsProp) {
         }
         actions={
           <>
-            <PlaceholderAction label="Edit" icon="edit" reason={unavailableReasons.editing} />
-            <PlaceholderAction
+            <RecordAction
+              permission="agreements:update"
+              label="Edit"
+              icon="edit"
+              reason={unavailableReasons.editing}
+            />
+            <RecordAction
+              permission="agreements:create"
               label="Record renewal"
               icon="add"
               variant="primary"

@@ -5,10 +5,8 @@ import { OpportunityStatusBadge, RelativeDays } from "@/components/internal/badg
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
 import { PageHeader } from "@/components/internal/ui/page-header";
-import {
-  PlaceholderAction,
-  unavailableReasons,
-} from "@/components/internal/ui/placeholder-action";
+import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
+import { RecordAction } from "@/components/internal/ui/record-action";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
 import { DataNotice } from "@/components/internal/ui/source-badge";
 import { StatCard } from "@/components/internal/ui/stat-card";
@@ -50,7 +48,8 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
         title="Opportunities"
         description={`Application calls for programme offerings. Status is derived from opening and deadline dates; calls within ${DEADLINE_WARNING_DAYS} days of the deadline are flagged.`}
         actions={
-          <PlaceholderAction
+          <RecordAction
+            permission="opportunities:create"
             label="New call"
             icon="add"
             variant="primary"

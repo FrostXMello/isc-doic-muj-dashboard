@@ -4,10 +4,8 @@ import { notFound } from "next/navigation";
 import { ActivityStatusBadge, DocumentStatusBadge } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import {
-  PlaceholderAction,
-  unavailableReasons,
-} from "@/components/internal/ui/placeholder-action";
+import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
+import { RecordAction } from "@/components/internal/ui/record-action";
 import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getActivity } from "@/lib/internal/data/activities";
@@ -61,7 +59,12 @@ export default async function ActivityDetailPage({ params }: IdParamsProp) {
           </>
         }
         actions={
-          <PlaceholderAction label="Update outcome" icon="edit" reason={unavailableReasons.editing} />
+          <RecordAction
+            permission="activities:update"
+            label="Update outcome"
+            icon="edit"
+            reason={unavailableReasons.editing}
+          />
         }
       />
 

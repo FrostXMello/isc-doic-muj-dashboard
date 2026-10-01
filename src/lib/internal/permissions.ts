@@ -43,7 +43,17 @@ const minimumRole: Record<PortalAction, PortalRole> = {
   delete: "admin",
 };
 
-/** Placeholder check describing the intended policy. Not called by any guard yet. */
+/** The highest portal role among the user's grants; null for students and no-role accounts. */
+export function portalRoleOf(roles: readonly AppRole[]): PortalRole | null {
+  let best: PortalRole | null = null;
+  for (const role of roles) {
+    const portalRole = portalRoleFor[role];
+    if (portalRole && (!best || roleRank[portalRole] > roleRank[best])) best = portalRole;
+  }
+  return best;
+}
+
+/** Whether the UI offers an action to this role. RLS enforces the same policy. */
 export function roleAllows(role: PortalRole, permission: Permission) {
   const action = permission.split(":")[1] as PortalAction;
   return roleRank[role] >= roleRank[minimumRole[action]];

@@ -5,10 +5,8 @@ import { ActivityStatusBadge } from "@/components/internal/badges";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
 import { PageHeader } from "@/components/internal/ui/page-header";
-import {
-  PlaceholderAction,
-  unavailableReasons,
-} from "@/components/internal/ui/placeholder-action";
+import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
+import { RecordAction } from "@/components/internal/ui/record-action";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
 import { DataNotice } from "@/components/internal/ui/source-badge";
 import { StatCard } from "@/components/internal/ui/stat-card";
@@ -62,7 +60,8 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
         title="Activities"
         description="International visits, delegations, events, and meetings. Planned items whose date has passed are flagged for an update."
         actions={
-          <PlaceholderAction
+          <RecordAction
+            permission="activities:create"
             label="Log activity"
             icon="add"
             variant="primary"

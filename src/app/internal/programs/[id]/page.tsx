@@ -9,10 +9,8 @@ import {
 } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import {
-  PlaceholderAction,
-  unavailableReasons,
-} from "@/components/internal/ui/placeholder-action";
+import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
+import { RecordAction } from "@/components/internal/ui/record-action";
 import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getOffering } from "@/lib/internal/data/programs";
@@ -62,7 +60,12 @@ export default async function ProgramOfferingPage({ params }: IdParamsProp) {
           </>
         }
         actions={
-          <PlaceholderAction label="Edit offering" icon="edit" reason={unavailableReasons.editing} />
+          <RecordAction
+            permission="programs:update"
+            label="Edit offering"
+            icon="edit"
+            reason={unavailableReasons.editing}
+          />
         }
       />
 

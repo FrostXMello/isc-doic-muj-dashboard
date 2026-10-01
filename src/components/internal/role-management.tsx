@@ -1,8 +1,10 @@
-import { Users } from "lucide-react";
+import { UserPlus, Users } from "lucide-react";
+import { CreateUserForm } from "@/components/internal/create-user-form";
 import { DetailSection } from "@/components/internal/ui/detail";
 import { type ManagedUser, UserRoleRow } from "@/components/internal/user-role-row";
 import { isAppRole } from "@/lib/auth/roles";
 import { getAuthContext } from "@/lib/auth/session";
+import { isAccountAdminConfigured } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 async function loadManagedUsers(selfId: string): Promise<ManagedUser[] | null> {
@@ -40,12 +42,28 @@ export async function RoleManagement() {
   if (auth.state !== "signed-in" || !auth.roles.includes("doic_admin")) return null;
 
   const users = await loadManagedUsers(auth.userId);
+  const accountAdmin = isAccountAdminConfigured();
 
   return (
+    <>
+    <DetailSection
+      title="Create account"
+      icon={UserPlus}
+      description="Creates a confirmed email and password account; share the temporary password through a secure channel. Public sign-up is closed, so this is how people get accounts."
+    >
+      {accountAdmin ? (
+        <CreateUserForm />
+      ) : (
+        <p className="px-5 py-4 text-[13px] text-muted-foreground">
+          Account creation unavailable: the server has no Supabase secret key configured
+          (SUPABASE_SECRET_KEY). Create accounts in the Supabase Dashboard, then grant access below.
+        </p>
+      )}
+    </DetailSection>
     <DetailSection
       title="Portal access"
       icon={Users}
-      description="Grant or remove roles. Internal roles open the Internal Portal (DoIC admin manages access, ISC team edits, Leadership reads); Student opens the Student Portal. Accounts without a role see an access-pending page. New accounts are created in Supabase Auth, not here."
+      description="Grant or remove roles. Internal roles open the Internal Portal (DoIC admin manages access, ISC team edits, Leadership reads); Student opens the Student Portal. Accounts without a role see an access-pending page."
     >
       {users === null ? (
         <p className="px-5 py-4 text-[13px] text-danger-fg">
@@ -56,10 +74,11 @@ export async function RoleManagement() {
       ) : (
         <ul className="divide-y divide-hairline">
           {users.map((user) => (
-            <UserRoleRow key={user.id} user={user} />
+            <UserRoleRow key={user.id} user={user} accountAdmin={accountAdmin} />
           ))}
         </ul>
       )}
     </DetailSection>
+    </>
   );
 }

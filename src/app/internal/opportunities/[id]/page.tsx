@@ -4,10 +4,8 @@ import { notFound } from "next/navigation";
 import { AvailabilityBadge, OpportunityStatusBadge } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import {
-  PlaceholderAction,
-  unavailableReasons,
-} from "@/components/internal/ui/placeholder-action";
+import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
+import { RecordAction } from "@/components/internal/ui/record-action";
 import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getOpportunity } from "@/lib/internal/data/opportunities";
@@ -64,7 +62,12 @@ export default async function OpportunityDetailPage({ params }: IdParamsProp) {
           </>
         }
         actions={
-          <PlaceholderAction label="Edit call" icon="edit" reason={unavailableReasons.editing} />
+          <RecordAction
+            permission="opportunities:update"
+            label="Edit call"
+            icon="edit"
+            reason={unavailableReasons.editing}
+          />
         }
       />
 

@@ -5,10 +5,8 @@ import { DocumentStatusBadge } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import {
-  PlaceholderAction,
-  unavailableReasons,
-} from "@/components/internal/ui/placeholder-action";
+import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
+import { RecordAction } from "@/components/internal/ui/record-action";
 import { provenanceItems, SourceLink, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getDocument } from "@/lib/internal/data/documents";
@@ -51,7 +49,8 @@ export default async function DocumentDetailPage({ params }: IdParamsProp) {
         }
         actions={
           <>
-            <PlaceholderAction
+            <RecordAction
+              permission="documents:upload"
               label="Upload internal copy"
               icon="upload"
               variant="primary"

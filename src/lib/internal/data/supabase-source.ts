@@ -1,4 +1,5 @@
 import "server-only";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { type Dataset, sampleDataEnabled } from "@/lib/internal/data/dataset";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
@@ -367,8 +368,11 @@ export type SupabaseLoad = {
 export async function loadSupabaseDataset(): Promise<SupabaseLoad> {
   const client = await createSupabaseServerClient();
   if (!client) throw new Error("Supabase is not configured.");
-  const supabase = client;
+  return readSupabaseDataset(client);
+}
 
+/** Reads the dataset through any user-scoped client; RLS decides what is returned. */
+export async function readSupabaseDataset(supabase: SupabaseClient): Promise<SupabaseLoad> {
   async function rows<T>(table: string, columns: string, orderBy: string): Promise<T[]> {
     const { data, error } = await supabase.from(table).select(columns).order(orderBy);
     if (error) throw new Error(`Supabase query on ${table} failed: ${error.message}`);

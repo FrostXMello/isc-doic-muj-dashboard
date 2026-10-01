@@ -6,10 +6,8 @@ import { getDataMode } from "@/lib/internal/data/context";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
 import { PageHeader } from "@/components/internal/ui/page-header";
-import {
-  PlaceholderAction,
-  unavailableReasons,
-} from "@/components/internal/ui/placeholder-action";
+import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
+import { RecordAction } from "@/components/internal/ui/record-action";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
 import { DataNotice, SourceBadge } from "@/components/internal/ui/source-badge";
 import {
@@ -46,7 +44,8 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
         title="Universities"
         description="Institutions from MUJ's official partner page, with the collaboration rows listed for each."
         actions={
-          <PlaceholderAction
+          <RecordAction
+            permission="institutions:create"
             label="Add university"
             icon="add"
             variant="primary"

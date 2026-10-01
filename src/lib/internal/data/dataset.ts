@@ -71,6 +71,27 @@ export function sampleDataEnabled() {
   return process.env.INTERNAL_SAMPLE_DATA === "true";
 }
 
+function byId<T extends { id: string }>(rows: readonly T[]): T[] {
+  return [...rows].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}
+
+/**
+ * Orders every entity by id so list ties and unsorted panels come out the
+ * same whichever source produced the rows. Programmes keep their curated order.
+ */
+export function canonicalDataset(data: Dataset): Dataset {
+  return {
+    institutions: byId(data.institutions),
+    agreements: byId(data.agreements),
+    programs: data.programs,
+    availability: byId(data.availability),
+    opportunities: byId(data.opportunities),
+    documents: byId(data.documents),
+    documentLinks: byId(data.documentLinks),
+    activities: byId(data.activities),
+  };
+}
+
 export function staticDataset(includeSamples = sampleDataEnabled()): Dataset {
   if (!includeSamples) return officialDataset;
   return {

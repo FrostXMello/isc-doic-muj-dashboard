@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
 import { type AppRole, canAccessArea, fetchUserRoles, portalAreaFor, portalHome } from "@/lib/auth/roles";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
@@ -45,7 +46,7 @@ export async function proxy(request: NextRequest) {
   });
 
   const hadSession = request.cookies.getAll().some(({ name }) => isAuthCookie(name));
-  const { data } = await supabase.auth.getClaims();
+  const { data, error } = await supabase.auth.getClaims();
   const userId = typeof data?.claims.sub === "string" ? data.claims.sub : null;
 
   if (!area) return response;
@@ -57,6 +58,9 @@ export async function proxy(request: NextRequest) {
     return redirect;
   };
 
+  if (error && isAuthRetryableFetchError(error)) {
+    return withSession(redirectToLogin(request, `${pathname}${search}`, "unavailable"));
+  }
   if (!userId) {
     return withSession(
       redirectToLogin(request, `${pathname}${search}`, hadSession ? "session-expired" : null),

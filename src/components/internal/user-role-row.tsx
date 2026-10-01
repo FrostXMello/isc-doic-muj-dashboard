@@ -1,11 +1,16 @@
 "use client";
 
-import { changeUserRole } from "@/lib/auth/admin-actions";
-import type { RoleChangeState } from "@/lib/auth/form-state";
+import {
+  adminButtonClass,
+  adminInputClass,
+  adminLabelClass,
+} from "@/components/internal/create-user-form";
+import { changeUserRole, deleteUserAccount, resetUserPassword } from "@/lib/auth/admin-actions";
+import { MIN_ADMIN_PASSWORD_LENGTH, type RoleChangeState } from "@/lib/auth/form-state";
 import { type AppRole, appRoles, roleLabels } from "@/lib/auth/roles";
 import { cn } from "@/lib/utils";
-import { Check, LoaderCircle, Plus } from "lucide-react";
-import { useActionState } from "react";
+import { Check, KeyRound, LoaderCircle, Plus, Trash2 } from "lucide-react";
+import { useActionState, useId } from "react";
 
 export type ManagedUser = {
   id: string;
@@ -15,11 +20,90 @@ export type ManagedUser = {
   isSelf: boolean;
 };
 
-export function UserRoleRow({ user }: { user: ManagedUser }) {
+function ActionResult({ state }: { state: RoleChangeState }) {
+  if (state.error) {
+    return (
+      <p role="alert" className="text-[12px] text-danger-fg">
+        {state.error}
+      </p>
+    );
+  }
+  if (state.message) {
+    return (
+      <p role="status" className="text-[12px] text-success-fg">
+        {state.message}
+      </p>
+    );
+  }
+  return null;
+}
+
+function AccountControls({ user }: { user: ManagedUser }) {
+  const [resetState, resetAction, resetting] = useActionState<RoleChangeState, FormData>(
+    resetUserPassword,
+    {},
+  );
+  const [deleteState, deleteAction, deleting] = useActionState<RoleChangeState, FormData>(
+    deleteUserAccount,
+    {},
+  );
+  const id = useId();
+
+  return (
+    <details className="w-full text-[13px] lg:basis-full">
+      <summary className="cursor-pointer text-[12px] text-fg-subtle hover:text-foreground">
+        Password and account
+      </summary>
+      <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end">
+        <form action={resetAction} className="flex flex-wrap items-end gap-2">
+          <input type="hidden" name="userId" value={user.id} />
+          <div>
+            <label htmlFor={`${id}-pw`} className={adminLabelClass}>
+              New password
+            </label>
+            <input
+              id={`${id}-pw`}
+              name="password"
+              type="password"
+              required
+              autoComplete="new-password"
+              minLength={MIN_ADMIN_PASSWORD_LENGTH}
+              maxLength={72}
+              className={adminInputClass}
+            />
+          </div>
+          <button type="submit" disabled={resetting} className={adminButtonClass}>
+            <KeyRound className="size-3.5" aria-hidden />
+            Set password
+          </button>
+          <ActionResult state={resetState} />
+        </form>
+        <form action={deleteAction} className="flex flex-wrap items-center gap-2">
+          <input type="hidden" name="userId" value={user.id} />
+          <label className="inline-flex items-center gap-1.5 text-[12px] text-fg-soft">
+            <input type="checkbox" name="confirm" required className="accent-cyan" />
+            Delete permanently
+          </label>
+          <button
+            type="submit"
+            disabled={deleting}
+            className={cn(adminButtonClass, "hover:border-danger/60 hover:text-danger-fg")}
+          >
+            <Trash2 className="size-3.5" aria-hidden />
+            Delete account
+          </button>
+          <ActionResult state={deleteState} />
+        </form>
+      </div>
+    </details>
+  );
+}
+
+export function UserRoleRow({ user, accountAdmin }: { user: ManagedUser; accountAdmin: boolean }) {
   const [state, action, pending] = useActionState<RoleChangeState, FormData>(changeUserRole, {});
 
   return (
-    <li className="flex flex-col gap-3 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+    <li className="flex flex-col gap-3 px-5 py-4 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
       <div className="min-w-0">
         <p className="truncate text-[14px] text-foreground">
           {user.name ?? user.email ?? "Unnamed account"}
@@ -82,6 +166,7 @@ export function UserRoleRow({ user }: { user: ManagedUser }) {
           );
         })}
       </div>
+      {accountAdmin && !user.isSelf ? <AccountControls user={user} /> : null}
     </li>
   );
 }

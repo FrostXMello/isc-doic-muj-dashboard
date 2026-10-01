@@ -8,6 +8,7 @@ import {
   PlaceholderAction,
   unavailableReasons,
 } from "@/components/internal/ui/placeholder-action";
+import { RecordAction } from "@/components/internal/ui/record-action";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
 import { SourceLink } from "@/components/internal/ui/provenance";
 import { DataNotice, SourceBadge } from "@/components/internal/ui/source-badge";
@@ -79,7 +80,8 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
         title="Documents"
         description="Official DoIC documents published on MUJ's pages, linked at their official URLs. File storage for internal copies is not connected yet."
         actions={
-          <PlaceholderAction
+          <RecordAction
+            permission="documents:upload"
             label="Upload document"
             icon="upload"
             variant="primary"

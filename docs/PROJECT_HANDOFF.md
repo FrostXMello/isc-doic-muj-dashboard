@@ -12,7 +12,7 @@ Implemented:
 - Public site: homepage with the globe, privacy, and terms. The student portal (`/student-portal`, sign-in required) has its own top nav over home, opportunities, partner directory (`/student-portal/partners`, `/student-portal/partners/[slug]`), programmes, and about. The old `/opportunities`, `/partners`, `/partners/[slug]`, `/programs`, `/about` URLs redirect (308) into the portal. It reads `src/lib/official/public.ts` and `src/lib/data.ts`, which expose no contacts, statuses, or dates. The 16 earlier-directory partner slugs redirect (307) to `/student-portal/partners` (`retiredPartnerSlugs` in `next.config.ts`).
 - Internal Portal at `/internal`: dashboard, institutions, agreements (MoUs), programme offerings, opportunities, activities, documents, reports, settings. It reads through the repository layer in `src/lib/internal/data/`. Every detail page shows provenance (source link, last checked, verification), and institution and agreement pages have a nodal-contacts panel.
 - Supabase backend: schema, RLS, storage bucket, seeds, and RLS tests in `supabase/` (see Backend), applied to the hosted project `oqmwrifysignwmgxiecd`. Official data, earlier directory names, and the internal contacts are loaded there.
-- Authentication (see Authentication): one email + password sign-in at `/login` for both portals, role-based routing from `public.user_roles`, password reset, sign-out, account menus, and role management for DoIC admins in `/internal/settings`.
+- Authentication (see Authentication): one email + password sign-in at `/login` for both portals, role-based routing from `public.user_roles`, password reset, sign-out, account menus, and account and role management for DoIC admins in `/internal/settings`.
 
 Not implemented, on purpose:
 
@@ -75,20 +75,25 @@ PGPASSWORD="$SUPABASE_DB_PASSWORD" PGSSLMODE=require psql "$(cat supabase/.temp/
 
 **App integration**: `src/lib/internal/data/context.ts` picks the dataset per request.
 
-- `INTERNAL_DATA_SOURCE=static` (default, and what Vercel uses today): the official dataset from `src/lib/official/`, no env vars needed. Contacts are never available; the contacts panel reads "Restricted — available to signed-in DoIC staff".
+- `INTERNAL_DATA_SOURCE=supabase` + `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (what Vercel uses, production and preview): reads Supabase as the signed-in user via `@supabase/ssr` (`src/lib/supabase/server.ts`). Rows map to the existing types using `slug`/`code` as ids, so URLs, filters, statuses, and reports are unchanged. `institution_contacts` is queried only when the user holds an internal role in `user_roles`, and RLS applies the same rule.
+- `INTERNAL_DATA_SOURCE=static` (the local default): the official dataset from `src/lib/official/`, no env vars needed. Contacts are never available; the contacts panel reads "Restricted — available to signed-in DoIC staff".
+- Both sources pass through `canonicalDataset()` (`src/lib/internal/data/dataset.ts`), which orders every entity by id (programmes keep their curated order), so lists and panels render identically whichever source is active. On 2026-10-01 every internal list, filter, sort, and detail page (339 URLs) rendered the same text in both modes, apart from the contacts panels.
 - `INTERNAL_SAMPLE_DATA=true` mixes the fictional sample records into either source. Off by default, and ignored when `VERCEL_ENV=production`.
-- `INTERNAL_DATA_SOURCE=supabase` + `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`: reads Supabase as the signed-in user via `@supabase/ssr` (`src/lib/supabase/server.ts`). Rows map to the existing types using `slug`/`code` as ids, so URLs, filters, statuses, and reports are unchanged. `institution_contacts` is queried only when the user holds an internal role in `user_roles`. Staff can now sign in, so switching to `supabase` is a Vercel env change once the first admin and staff accounts exist.
+- Write actions (create, edit, upload) are placeholders, rendered through `RecordAction` only for roles that `roleAllows()` (`src/lib/internal/permissions.ts`): Leadership sees a read-only portal; isc_team and doic_admin see the placeholders. RLS remains the real boundary.
+- If Supabase Auth is unreachable, `src/proxy.ts` and `getAuthContext()` send portal visitors to `/login?notice=unavailable` instead of treating them as signed out.
 - `src/proxy.ts` refreshes the Supabase session and gates both portals regardless of `INTERNAL_DATA_SOURCE` (see Authentication).
-- No service-role key is used anywhere in the app.
+- `SUPABASE_SECRET_KEY` (server-only, never `NEXT_PUBLIC_`) is read only by `src/lib/supabase/admin.ts`, and used only for the Auth Admin API inside the doic_admin account-management server actions. Every data read and write runs as the signed-in user under RLS.
 
 **Hosted project**: `isc-doic-muj-dashboard`, ref `oqmwrifysignwmgxiecd`, region `ap-south-1`, Postgres 17.
 
 - All migrations are applied (`npx supabase migration list --linked`).
 - Loaded: `01_official.sql`, `02_directory.sql`, and the private contacts. That is 133 institutions, 132 agreements, 132 public summaries, and 132 contacts. No sample data is loaded.
 - The database password is not in the repo. `supabase link` / `db push` need `SUPABASE_DB_PASSWORD` (the original owner keeps it in the macOS Keychain, service `doic-supabase-db`).
-- Auth: email + password with email confirmation. Site URL is `https://isc-doic-muj-dashboard.vercel.app`; allowed redirect URLs are `https://isc-doic-muj-dashboard.vercel.app/auth/callback`, `http://localhost:3000/**`, and `http://127.0.0.1:3000/**` (set on 2026-10-01). Add a preview URL there if reset links must work on preview deployments. Public sign-up is still enabled in the hosted project; new accounts get no role, but turning sign-up off (Dashboard → Authentication → Sign In / Providers) is recommended so only admins create accounts.
-- Vercel (production and preview) has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `INTERNAL_DATA_SOURCE=static`.
-- Verified against the hosted database on 2026-10-01: `rls.test.sql` (89 tests; run with `psql` against the linked database; it rolls back), `supabase db lint --linked`, and `supabase db advisors --linked` (no findings).
+- Auth: email + password with email confirmation. Site URL is `https://isc-doic-muj-dashboard.vercel.app`; allowed redirect URLs are `https://isc-doic-muj-dashboard.vercel.app/auth/callback`, `http://localhost:3000/**`, and `http://127.0.0.1:3000/**` (set on 2026-10-01). Add a preview URL there if reset links must work on preview deployments.
+- Public sign-up is disabled (`[auth] enable_signup = false`, pushed on 2026-10-01). Accounts are created by a DoIC admin with Dashboard → Add user or Invite, which still work. Keep `[auth.email] enable_signup = true`: the CLI maps it to "email provider enabled", which password sign-in needs. When pushing auth config, use a temporary workdir containing only the keys you mean to change; `supabase/config.toml` does not declare every hosted setting.
+- Hosted settings not managed in `config.toml`: the Twilio SMS provider is enabled in the Dashboard (unused by the app), and leaked-password protection is off (`auth_leaked_password_protection` advisor warning; enable it in Authentication → Passwords if the plan allows).
+- Vercel (production and preview) has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` (sensitive), and `INTERNAL_DATA_SOURCE=supabase` (switched from `static` on 2026-10-01).
+- Verified against the hosted database on 2026-10-01: `rls.test.sql` (89 tests; run with `psql` against the linked database; it rolls back), `supabase db lint --linked` (no errors), and `supabase db advisors --linked` (only the leaked-password warning above).
 
 **First admin** (the hosted project has no accounts yet):
 
@@ -100,7 +105,7 @@ insert into public.user_roles (user_id, role)
 select id, 'doic_admin' from auth.users where email = '<admin email>';
 ```
 
-3. Sign in at `/login`. Further accounts are created the same way (step 1); their roles are then granted in `/internal/settings` → Portal access.
+3. Sign in at `/login`. Further accounts are created in `/internal/settings` → Create account (email, temporary password, roles); Portal access changes roles, sets a new password, or deletes an account.
 
 ## Authentication
 
@@ -110,6 +115,7 @@ select id, 'doic_admin' from auth.users where email = '<admin email>';
 - Enforcement runs twice: `src/proxy.ts` (session refresh + redirects on `/internal`, `/student-portal`, and the auth pages) and the portal layouts (`requirePortalAccess`). Signed-out visitors go to `/login?next=…`; students who open `/internal` see `/unauthorized`; internal roles may use both portals.
 - Password reset: `/forgot-password` (always answers generically) → email link → `/auth/callback` (PKCE code or `token_hash`) → `/reset-password`. Expired or reused links return to `/forgot-password` with a notice.
 - Role management: `/internal/settings` → Portal access, visible to `doic_admin` only. Changes go through the admin's own session, so RLS is the authority; an admin cannot remove their own `doic_admin` role (also enforced in the update policy).
+- Account management (`doic_admin` only): create account (email, password of 12+ characters, any roles), set a user's password, delete a user. Each server action re-checks `doic_admin` via `getUser()` + `user_roles` before calling the Admin API; role grants still go through RLS. Admins cannot reset or delete their own account here. Without `SUPABASE_SECRET_KEY` the section reads "Account creation unavailable".
 
 ## Routes
 
@@ -129,15 +135,14 @@ select id, 'doic_admin' from auth.users where email = '<admin email>';
 - Coordinates are the country pin, not campus locations.
 - Run `npm run data:check` after editing `src/lib/official/`.
 - Keep institutions, agreements, programmes, and programme availability as separate tables. Do not generate availability as a cross-product.
-- RLS is the security boundary. Do not add service-role access to request paths.
+- RLS is the security boundary. The secret key is limited to Auth Admin calls in doic_admin account management; do not use it for data reads or writes.
 
 ## Next planned work
 
-1. Create the first DoIC admin (see Backend), disable public sign-up, and onboard staff.
-2. Switch `INTERNAL_DATA_SOURCE` to `supabase` on Vercel.
-3. Internal write workflows and document uploads.
-4. DoIC review: confirm the `needs-review` records and add agreement dates and status from signed documents; then mark confirmed records `verified`.
-5. Push filters into SQL when record counts grow (the repository currently loads the visible dataset per request).
+1. Create the first DoIC admin (see Backend) and onboard staff from `/internal/settings`.
+2. Internal write workflows and document uploads.
+3. DoIC review: confirm the `needs-review` records and add agreement dates and status from signed documents; then mark confirmed records `verified`.
+4. Push filters into SQL when record counts grow (the repository currently loads the visible dataset per request).
 
 ## Device handoff
 

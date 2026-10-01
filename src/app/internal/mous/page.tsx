@@ -4,10 +4,8 @@ import { AgreementStatusBadge, RelativeDays } from "@/components/internal/badges
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
 import { PageHeader } from "@/components/internal/ui/page-header";
-import {
-  PlaceholderAction,
-  unavailableReasons,
-} from "@/components/internal/ui/placeholder-action";
+import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
+import { RecordAction } from "@/components/internal/ui/record-action";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
 import { DataNotice, SourceBadge } from "@/components/internal/ui/source-badge";
 import { getDataMode } from "@/lib/internal/data/context";
@@ -50,7 +48,8 @@ export default async function AgreementsPage({ searchParams }: SearchParamsProp)
         title="MOUs & Agreements"
         description={`Collaboration rows from MUJ's official partner page, one per listed entry. Where dates are recorded, agreements ending within ${EXPIRY_WARNING_DAYS} days are flagged as expiring soon.`}
         actions={
-          <PlaceholderAction
+          <RecordAction
+            permission="agreements:create"
             label="New agreement"
             icon="add"
             variant="primary"

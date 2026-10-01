@@ -6,6 +6,9 @@ export type PasswordUpdateState = { error?: string; expired?: boolean };
 
 export type RoleChangeState = { error?: string; message?: string };
 
+/** Minimum for passwords a DoIC admin sets on someone else's account. */
+export const MIN_ADMIN_PASSWORD_LENGTH = 12;
+
 export const authMessages = {
   invalidCredentials: "Invalid email or password.",
   network: "We couldn't reach the sign-in service. Check your connection and try again.",

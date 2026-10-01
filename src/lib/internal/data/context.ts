@@ -1,15 +1,20 @@
 import { connection } from "next/server";
 import { cache } from "react";
 import { todayISO } from "@/lib/internal/dates";
-import { type Dataset, sampleDataEnabled, staticDataset } from "@/lib/internal/data/dataset";
+import {
+  canonicalDataset,
+  type Dataset,
+  sampleDataEnabled,
+  staticDataset,
+} from "@/lib/internal/data/dataset";
 import { type InternalDataSource, resolveInternalDataSource } from "@/lib/internal/data/source";
 import { createViews, type Views } from "@/lib/internal/data/views";
 import type { InstitutionContact } from "@/lib/internal/types";
 
 /**
  * Whether contact details may be shown. Only `granted` when the data comes
- * from Supabase and the signed-in user holds an internal role; the static
- * source never carries contacts (the /internal routes have no sign-in).
+ * from Supabase and the signed-in user holds an internal role (RLS applies
+ * the same rule); the static source never carries contacts.
  */
 export type ContactAccess =
   | { state: "granted"; contacts: readonly InstitutionContact[] }
@@ -44,7 +49,9 @@ export const openDataContext = cache(async (): Promise<DataContext> => {
 
   if (source === "supabase") {
     const { loadSupabaseDataset } = await import("@/lib/internal/data/supabase-source");
-    const { data, internalRole, contacts } = await loadSupabaseDataset();
+    const loaded = await loadSupabaseDataset();
+    const { internalRole, contacts } = loaded;
+    const data = canonicalDataset(loaded.data);
     return {
       today,
       source,
@@ -58,7 +65,7 @@ export const openDataContext = cache(async (): Promise<DataContext> => {
   }
 
   if (!staticViews || staticViews.samples !== sampleData) {
-    const data = staticDataset(sampleData);
+    const data = canonicalDataset(staticDataset(sampleData));
     staticViews = { samples: sampleData, data, views: createViews(data) };
   }
   return {
