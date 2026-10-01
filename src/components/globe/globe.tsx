@@ -626,12 +626,13 @@ export function Globe({
             } placement`
           : reduced
             ? "Still view. Select a country to bring its link to Jaipur forward."
-            : "Drag to turn the globe. Hover or tap a point to trace its link to Jaipur."}
+            : "Drag to turn the globe. Hover or tap a point to explore its connection to Jaipur."}
       </p>
       <ul
         aria-label="Countries with the most listed partner institutions"
         aria-describedby="globe-desc"
-        className="mt-3 flex gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-wrap lg:justify-center lg:overflow-visible [&::-webkit-scrollbar]:hidden"
+        data-globe-keyboard
+        className="sr-only flex-wrap justify-center gap-1.5 focus-within:not-sr-only focus-within:mt-3 focus-within:flex"
       >
         {scene.partnerNodes
           .filter((node) => node.marker && chipIds.includes(node.id))

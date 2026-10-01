@@ -3,7 +3,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { site } from "@/lib/data";
 import { globeMarkers, globeTotals } from "@/lib/official/geo";
 import { cn } from "@/lib/utils";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LockKeyhole } from "lucide-react";
 import Link from "next/link";
 
 const chipIds = globeMarkers
@@ -13,7 +13,7 @@ const chipIds = globeMarkers
 export function Hero() {
   return (
     <section className="hero-glow relative flex min-h-[100svh] items-start overflow-hidden pt-24 pb-12 lg:items-center lg:pt-20 lg:pb-8">
-      <div className="mx-auto grid w-full max-w-7xl items-center gap-10 px-5 sm:px-8 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-8">
+      <div className="mx-auto grid w-full max-w-7xl items-center gap-8 px-5 sm:gap-10 sm:px-8 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-8">
         <div className="max-w-xl lg:max-w-[34rem]">
           <p className="hero-rise max-w-md text-[10px] leading-5 font-medium tracking-[0.12em] text-cyan uppercase sm:text-[11px] sm:tracking-[0.16em]">
             {site.university}
@@ -33,47 +33,43 @@ export function Hero() {
             className="hero-rise mt-5 max-w-md text-[15px] leading-7 text-fg-soft sm:mt-6 sm:text-base sm:leading-relaxed lg:text-[17px]"
             style={{ animationDelay: "150ms" }}
           >
-            Explore Manipal University Jaipur&apos;s international
-            collaborations, programmes and global opportunities, as published by
-            the {site.directorate}.
+            Explore Manipal University Jaipur&apos;s international collaborations,
+            programmes and global opportunities.
           </p>
           <div
-            className="hero-rise mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center"
+            className="hero-rise mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:items-center sm:gap-5"
             style={{ animationDelay: "220ms" }}
           >
             <Link
-              href="/partners"
-              className={cn(
-                buttonVariants({ size: "xl" }),
-                "group/button rounded-none",
-              )}
+              href="/student-portal"
+              className={cn(buttonVariants({ size: "xl" }), "group/button rounded-none")}
             >
-              Explore Global Partners
+              Explore the Student Portal
               <ArrowRight className="transition-transform duration-200 motion-safe:group-hover/button:translate-x-0.5" />
             </Link>
             <Link
-              href="/opportunities"
-              className={cn(
-                buttonVariants({ variant: "outline", size: "xl" }),
-                "rounded-none border-line-bold bg-transparent text-foreground hover:bg-overlay",
-              )}
+              href="/internal"
+              aria-label="Internal Portal, for DoIC staff"
+              className="group/internal inline-flex min-h-11 items-center justify-center gap-2 px-1 text-[13px] text-muted-foreground transition-colors hover:text-foreground sm:justify-start"
             >
-              Explore Opportunities
+              <LockKeyhole className="size-3.5" aria-hidden="true" />
+              <span className="underline decoration-line-bold underline-offset-4 group-hover/internal:decoration-cyan">
+                Internal Portal
+              </span>
+              <span className="text-[11px] tracking-[0.12em] text-fg-dim uppercase">For DoIC staff</span>
             </Link>
           </div>
           <p
-            className="hero-rise mt-6 max-w-md text-[12px] leading-5 text-muted-foreground"
+            className="hero-rise mt-6 text-[12px] leading-5 text-muted-foreground"
             style={{ animationDelay: "280ms" }}
             data-globe-note
           >
-            {globeTotals.institutions} institutions in {globeTotals.countries} countries,
-            mapped at country level from MUJ&apos;s official partner listing.{" "}
-            <Link
-              href="/partners"
-              className="text-foreground underline decoration-line-bold underline-offset-4 hover:decoration-cyan"
-            >
-              See every partner
-            </Link>
+            <span className="text-fg-soft tabular-nums">
+              {globeTotals.institutions} institutions · {globeTotals.countries} countries
+            </span>
+            <span className="mt-0.5 block">
+              Mapped at country level from MUJ&apos;s official partner listing.
+            </span>
           </p>
         </div>
         <div className="min-w-0">

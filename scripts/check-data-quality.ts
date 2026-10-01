@@ -275,16 +275,17 @@ const homeSources = [
   "src/app/page.tsx",
   "src/components/hero/hero.tsx",
   "src/components/globe/globe.tsx",
-  "src/components/stats/stats.tsx",
-  "src/components/editorial/classroom-section.tsx",
-  "src/components/partner-preview/partner-preview.tsx",
-  "src/components/opportunities/opportunities-section.tsx",
-  "src/components/cta/cta.tsx",
+  "src/app/student-portal/page.tsx",
 ];
 for (const file of homeSources) {
   const text = readFileSync(join(process.cwd(), file), "utf8");
   if (/\bExample\b|\(sample\)|smp-/.test(text)) error(`home: ${file} references sample data`);
 }
+const heroSource = readFileSync(join(process.cwd(), "src/components/hero/hero.tsx"), "utf8");
+if (!/globeTotals\.institutions/.test(heroSource) || !/globeTotals\.countries/.test(heroSource)) {
+  error("home: hero figures are not taken from globeTotals");
+}
+if (/agreementRows/.test(heroSource)) error("home: hero shows the agreement-row figure");
 console.log(
   `globe: ${globeNodes.length} nodes, ${globeTotals.cityLevelInstitutions} city-level and ` +
     `${globeTotals.countryLevelInstitutions} country-level institutions, ${globeTotals.agreementRows} rows, ` +

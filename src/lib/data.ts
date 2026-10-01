@@ -117,21 +117,3 @@ export const hub = {
   lat: 26.9124,
   lon: 75.7873,
 } as const;
-
-export const classroomPoints = [
-  {
-    index: "01",
-    title: "Student mobility",
-    body: "Outbound exchanges and incoming students from Collaborative Institutes, within the framework of MoUs and agreements.",
-  },
-  {
-    index: "02",
-    title: "Academic collaboration",
-    body: "Faculty exchange, joint research, and academic and delegation visits with institutions abroad.",
-  },
-  {
-    index: "03",
-    title: "Student services",
-    body: "DoIC advises international students and visitors, and assists MUJ students travelling overseas.",
-  },
-] as const;
