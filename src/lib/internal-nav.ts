@@ -1,12 +1,16 @@
 /**
  * Navigation definitions for the Internal Portal workspace.
  *
- * Each entry maps to a route under /internal and an icon from lucide-react.
- * The `role` field is a placeholder for future RBAC gating — it is not
- * enforced in this stage.
+ * Each sidebar section maps to a route under /internal and an icon from
+ * lucide-react. A section can group several list pages (`pages`): they keep
+ * their own URLs, so records, filters and bookmarks keep working, and are
+ * shown as tabs inside the section. The `role` field is a placeholder for
+ * future RBAC gating — it is not enforced in this stage.
  *
  * Pure module (no React), so route mappings can be unit-tested.
  */
+
+export type InternalNavPage = { href: string; label: string };
 
 export type InternalNavItem = {
   href: string;
@@ -15,6 +19,8 @@ export type InternalNavItem = {
   /** Future: minimum role required to see this item. */
   role: "viewer" | "editor" | "admin";
   description: string;
+  /** List pages inside the section, shown as tabs when there is more than one. */
+  pages?: readonly InternalNavPage[];
 };
 
 export const internalNav: readonly InternalNavItem[] = [
@@ -23,7 +29,8 @@ export const internalNav: readonly InternalNavItem[] = [
     label: "Dashboard",
     icon: "LayoutDashboard",
     role: "viewer",
-    description: "Overview of institutional collaboration metrics and recent activity.",
+    description: "Overview of collaboration metrics, upcoming and recent activities.",
+    pages: [{ href: "/internal/activities", label: "Activities" }],
   },
   {
     href: "/internal/universities",
@@ -34,38 +41,25 @@ export const internalNav: readonly InternalNavItem[] = [
   },
   {
     href: "/internal/programs",
-    label: "Programs",
+    label: "Programs & Opportunities",
     icon: "BookOpen",
     role: "editor",
-    description: "International program definitions and configurations.",
-  },
-  {
-    href: "/internal/opportunities",
-    label: "Opportunities",
-    icon: "Compass",
-    role: "editor",
-    description: "Student-facing opportunity listings management.",
+    description: "Programme offerings and the application calls published for them.",
+    pages: [
+      { href: "/internal/programs", label: "Programs" },
+      { href: "/internal/opportunities", label: "Opportunities" },
+    ],
   },
   {
     href: "/internal/documents",
-    label: "Documents",
+    label: "Documents & Reports",
     icon: "FolderOpen",
     role: "editor",
-    description: "Institutional documents, agreements, and file storage.",
-  },
-  {
-    href: "/internal/activities",
-    label: "Activities",
-    icon: "CalendarDays",
-    role: "viewer",
-    description: "Events, visits, delegations, and activity log.",
-  },
-  {
-    href: "/internal/reports",
-    label: "Reports",
-    icon: "BarChart3",
-    role: "admin",
-    description: "Analytics, exports, and periodic reports.",
+    description: "Official documents and operational reports.",
+    pages: [
+      { href: "/internal/documents", label: "Documents" },
+      { href: "/internal/reports", label: "Reports" },
+    ],
   },
   {
     href: "/internal/settings",
@@ -76,14 +70,33 @@ export const internalNav: readonly InternalNavItem[] = [
   },
 ] as const;
 
-/** The section a path belongs to. Dashboard matches only its own path, not every /internal/* page. */
+const underPath = (pathname: string, href: string) =>
+  pathname === href || pathname.startsWith(`${href}/`);
+
+/** The section page a path belongs to, e.g. /internal/opportunities/x → Opportunities. */
+export function findNavPage(pathname: string, item: InternalNavItem) {
+  return item.pages?.find((page) => page.href !== "/internal" && underPath(pathname, page.href));
+}
+
+/**
+ * Whether a path belongs to a section. Dashboard owns /internal itself (not
+ * every /internal/* page) plus its own pages such as Activities.
+ */
 export function isNavItemActive(pathname: string, href: string) {
+  const item = internalNav.find((entry) => entry.href === href);
+  if (item && findNavPage(pathname, item)) return true;
   if (href === "/internal") return pathname === "/internal";
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return underPath(pathname, href);
 }
 
 export function findNavItem(pathname: string) {
   return internalNav.find((item) => isNavItemActive(pathname, item.href));
+}
+
+/** Tabs for a section with more than one list page; empty otherwise. */
+export function sectionTabs(sectionHref: string): readonly InternalNavPage[] {
+  const pages = internalNav.find((item) => item.href === sectionHref)?.pages ?? [];
+  return pages.length > 1 ? pages : [];
 }
 
 export type Breadcrumb = { label: string; href: string };
@@ -96,20 +109,24 @@ function recordActionLabel(action: string) {
 }
 
 /**
- * Portal › Section › Record › Action. Each crumb links to a real page: the
- * record crumb points at the record itself, never at a sub-route such as /edit.
+ * Portal › Section › Page › Record › Action. Each crumb links to a real page:
+ * the record crumb points at the record itself, never at a sub-route such as /edit.
  */
 export function internalBreadcrumbs(pathname: string): Breadcrumb[] {
   const crumbs: Breadcrumb[] = [{ label: "Portal", href: "/internal" }];
   const section = findNavItem(pathname);
-  if (!section || section.href === "/internal") return crumbs;
-  crumbs.push({ label: section.label, href: section.href });
+  if (!section) return crumbs;
+  const page = findNavPage(pathname, section);
+  if (section.href !== "/internal") crumbs.push({ label: section.label, href: section.href });
+  if (page) crumbs.push({ label: page.label, href: page.href });
+  const base = page?.href ?? (section.href === "/internal" ? null : section.href);
+  if (!base) return crumbs;
 
-  const [record, ...action] = pathname.slice(section.href.length).split("/").filter(Boolean);
+  const [record, ...action] = pathname.slice(base.length).split("/").filter(Boolean);
   if (!record) return crumbs;
   if (record === "new") return [...crumbs, { label: "New", href: pathname }];
 
-  crumbs.push({ label: "Details", href: `${section.href}/${record}` });
+  crumbs.push({ label: "Details", href: `${base}/${record}` });
   const label = action.length > 0 ? recordActionLabel(action.join("/")) : null;
   if (label) crumbs.push({ label, href: pathname });
   return crumbs;

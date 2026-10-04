@@ -26,6 +26,15 @@ export const metadata: Metadata = {
   title: "Dashboard",
 };
 
+function ActivityGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="border-b border-hairline last:border-b-0">
+      <h3 className="px-5 pt-3 font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
 export default async function DashboardPage() {
   const [summary, mode] = await Promise.all([getOperationalSummary(), getDataMode()]);
   const { institutions, agreements, programs, opportunities, activities } = summary;
@@ -114,31 +123,57 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <Panel className="lg:col-span-3">
+        <Panel id="activities" className="scroll-mt-24 lg:col-span-3">
           <PanelHeader
-            title="Upcoming activities"
+            title="Activities"
             icon={Activity}
+            description={`${activities.total} recorded · ${activities.upcoming.length} upcoming · ${activities.byStatus.completed} completed`}
             action={
               <Link
                 href="/internal/activities"
                 className="flex items-center gap-1 text-[12px] text-fg-subtle transition-colors hover:text-foreground"
               >
-                View all
+                View all activities
                 <ArrowUpRight className="size-3.5" />
               </Link>
             }
           />
-          <LinkedList
-            emptyTitle="Nothing scheduled"
-            emptyDescription="Upcoming visits, delegations, and events will appear here."
-            items={activities.upcoming.slice(0, 5).map((activity) => ({
-              key: activity.id,
-              href: `/internal/activities/${activity.id}`,
-              title: activity.title,
-              meta: `${formatDate(activity.startDate)} · ${formatRelativeDays(activity.daysFromToday)} · ${activity.institution?.name ?? activity.country}`,
-              badge: <ActivityStatusBadge status={activity.status} />,
-            }))}
-          />
+          {activities.byStatus["needs-update"] > 0 ? (
+            <Link
+              href="/internal/activities?status=needs-update"
+              className="flex items-center justify-between gap-3 border-b border-hairline bg-warning/5 px-5 py-2.5 text-[12px] text-warning-fg transition-colors hover:bg-warning/10"
+            >
+              {activities.byStatus["needs-update"]} planned{" "}
+              {activities.byStatus["needs-update"] === 1 ? "activity has" : "activities have"} passed
+              their date and need an update
+              <ArrowUpRight className="size-3.5 shrink-0" aria-hidden />
+            </Link>
+          ) : null}
+          <ActivityGroup title="Upcoming">
+            <LinkedList
+              emptyTitle="Nothing scheduled"
+              emptyDescription="Upcoming visits, delegations, and events will appear here."
+              items={activities.upcoming.slice(0, 5).map((activity) => ({
+                key: activity.id,
+                href: `/internal/activities/${activity.id}`,
+                title: activity.title,
+                meta: `${formatDate(activity.startDate)} · ${formatRelativeDays(activity.daysFromToday)} · ${activity.institution?.name ?? activity.country}`,
+                badge: <ActivityStatusBadge status={activity.status} />,
+              }))}
+            />
+          </ActivityGroup>
+          <ActivityGroup title="Recently held">
+            <LinkedList
+              emptyTitle="No past activities recorded"
+              items={activities.recent.slice(0, 3).map((activity) => ({
+                key: activity.id,
+                href: `/internal/activities/${activity.id}`,
+                title: activity.title,
+                meta: `${formatDate(activity.startDate)} · ${activity.institution?.name ?? activity.country}`,
+                badge: <ActivityStatusBadge status={activity.status} />,
+              }))}
+            />
+          </ActivityGroup>
         </Panel>
 
         <Panel className="lg:col-span-2">

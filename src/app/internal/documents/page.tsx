@@ -10,6 +10,7 @@ import {
 } from "@/components/internal/ui/placeholder-action";
 import { RecordAction } from "@/components/internal/ui/record-action";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
+import { SectionTabs } from "@/components/internal/ui/section-tabs";
 import { SourceLink } from "@/components/internal/ui/provenance";
 import { DataNotice, SourceBadge } from "@/components/internal/ui/source-badge";
 import { getDataMode } from "@/lib/internal/data/context";
@@ -77,7 +78,7 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Documents"
+        title="Documents & Reports"
         description="Official DoIC documents published on MUJ's pages, linked at their official URLs. File storage for internal copies is not connected yet."
         actions={
           <RecordAction
@@ -88,6 +89,12 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
             reason={unavailableReasons.storage}
           />
         }
+      />
+
+      <SectionTabs
+        section="/internal/documents"
+        current="/internal/documents"
+        counts={{ "/internal/documents": all.length }}
       />
 
       <DataNotice>

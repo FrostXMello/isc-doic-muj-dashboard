@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/internal/ui/page-header";
 import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
 import { RecordAction } from "@/components/internal/ui/record-action";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
+import { SectionTabs } from "@/components/internal/ui/section-tabs";
 import { DataNotice } from "@/components/internal/ui/source-badge";
 import { StatCard } from "@/components/internal/ui/stat-card";
 import {
@@ -16,7 +17,7 @@ import {
   opportunitySorts,
   opportunityStatuses,
 } from "@/lib/internal/data/opportunities";
-import { programTypes } from "@/lib/internal/data/programs";
+import { listOfferings, programTypes } from "@/lib/internal/data/programs";
 import { DEADLINE_WARNING_DAYS, formatDate } from "@/lib/internal/dates";
 import { readEnumParam, readParam, type SearchParamsProp } from "@/lib/internal/query";
 import { opportunityStatusMeta, optionsFrom, programTypeLabel } from "@/lib/internal/status";
@@ -28,7 +29,7 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
   const params = await searchParams;
   const [options, mode] = await Promise.all([getOpportunityFilterOptions(), getDataMode()]);
 
-  const [rows, all] = await Promise.all([
+  const [rows, all, offerings] = await Promise.all([
     listOpportunities({
       q: readParam(params, "q"),
       status: readEnumParam(params, "status", opportunityStatuses),
@@ -37,6 +38,7 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
       sort: readEnumParam(params, "sort", opportunitySorts),
     }),
     listOpportunities(),
+    listOfferings(),
   ]);
 
   const count = (status: OpportunityView["status"]) =>
@@ -45,7 +47,7 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Opportunities"
+        title="Programs & Opportunities"
         description={`Application calls for programme offerings. Status is derived from opening and deadline dates; calls within ${DEADLINE_WARNING_DAYS} days of the deadline are flagged.`}
         actions={
           <RecordAction
@@ -56,6 +58,12 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
             reason={unavailableReasons.editing}
           />
         }
+      />
+
+      <SectionTabs
+        section="/internal/programs"
+        current="/internal/opportunities"
+        counts={{ "/internal/programs": offerings.length, "/internal/opportunities": all.length }}
       />
 
       <DataNotice>

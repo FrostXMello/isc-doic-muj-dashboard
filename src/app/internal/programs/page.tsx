@@ -8,8 +8,10 @@ import { PageHeader } from "@/components/internal/ui/page-header";
 import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
 import { RecordAction } from "@/components/internal/ui/record-action";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
+import { SectionTabs } from "@/components/internal/ui/section-tabs";
 import { DataNotice, SourceBadge } from "@/components/internal/ui/source-badge";
 import { getDataMode } from "@/lib/internal/data/context";
+import { listOpportunities } from "@/lib/internal/data/opportunities";
 import {
   availabilityFilters,
   getOfferingFilterOptions,
@@ -30,7 +32,7 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
   const [options, mode] = await Promise.all([getOfferingFilterOptions(), getDataMode()]);
   const selectedProgram = readEnumParam(params, "program", programTypes);
 
-  const [programs, rows, all] = await Promise.all([
+  const [programs, rows, all, opportunities] = await Promise.all([
     listPrograms(),
     listOfferings({
       q: readParam(params, "q"),
@@ -39,12 +41,13 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
       availability: readEnumParam(params, "availability", availabilityFilters),
     }),
     listOfferings(),
+    listOpportunities(),
   ]);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Programs"
+        title="Programs & Opportunities"
         description="Programme types from MUJ's official Internationalization pages, and the institutions each page names. A programme is not assumed to be available at an institution unless the source names it."
         actions={
           <RecordAction
@@ -55,6 +58,12 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
             reason={unavailableReasons.editing}
           />
         }
+      />
+
+      <SectionTabs
+        section="/internal/programs"
+        current="/internal/programs"
+        counts={{ "/internal/programs": all.length, "/internal/opportunities": opportunities.length }}
       />
 
       <DataNotice>

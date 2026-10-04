@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getDataMode } from "@/lib/internal/data/context";
-import { SearchX } from "lucide-react";
+import { ArrowLeft, SearchX } from "lucide-react";
+import Link from "next/link";
 import { ActivityStatusBadge } from "@/components/internal/badges";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
@@ -56,6 +57,13 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
 
   return (
     <div className="space-y-6">
+      <Link
+        href="/internal"
+        className="inline-flex min-h-9 items-center gap-1.5 text-[13px] text-fg-subtle transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden />
+        Dashboard
+      </Link>
       <PageHeader
         title="Activities"
         description="International visits, delegations, events, and meetings. Planned items whose date has passed are flagged for an update."

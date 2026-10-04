@@ -7,12 +7,8 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   GraduationCap,
-  FileText,
   BookOpen,
-  Compass,
   FolderOpen,
-  CalendarDays,
-  BarChart3,
   Settings,
   PanelLeftClose,
   PanelLeft,
@@ -25,12 +21,8 @@ import type { LucideIcon } from "lucide-react";
 const iconMap: Record<string, LucideIcon> = {
   LayoutDashboard,
   GraduationCap,
-  FileText,
   BookOpen,
-  Compass,
   FolderOpen,
-  CalendarDays,
-  BarChart3,
   Settings,
 };
 

@@ -4,7 +4,7 @@ import { AccountMenu } from "@/components/auth/account-menu";
 import { SignOutButton, signOutClass } from "@/components/auth/sign-out-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import type { AccountSummary } from "@/lib/auth/session";
-import { findNavItem, internalBreadcrumbs } from "@/lib/internal-nav";
+import { findNavItem, findNavPage, internalBreadcrumbs } from "@/lib/internal-nav";
 import { cn } from "@/lib/utils";
 import { Menu, ChevronRight } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -19,7 +19,8 @@ export function Topbar({
 }) {
   const pathname = usePathname();
   const breadcrumbs = internalBreadcrumbs(pathname);
-  const pageTitle = findNavItem(pathname)?.label ?? "Portal";
+  const section = findNavItem(pathname);
+  const pageTitle = (section && findNavPage(pathname, section)?.label) ?? section?.label ?? "Portal";
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-line bg-surface/80 px-4 backdrop-blur-sm sm:px-6">
@@ -36,7 +37,7 @@ export function Topbar({
       {/* Breadcrumbs — desktop */}
       <nav aria-label="Breadcrumb" className="hidden items-center gap-1.5 lg:flex">
         {breadcrumbs.map((crumb, idx) => (
-          <span key={crumb.href} className="flex items-center gap-1.5">
+          <span key={`${idx}-${crumb.href}`} className="flex items-center gap-1.5">
             {idx > 0 && (
               <ChevronRight className="size-3.5 text-fg-dim" aria-hidden />
             )}

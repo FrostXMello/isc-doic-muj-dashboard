@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { describe, it } from "node:test";
-import { findNavItem, internalBreadcrumbs, internalNav, isNavItemActive } from "@/lib/internal-nav";
+import { findNavItem, internalBreadcrumbs, internalNav, isNavItemActive, sectionTabs } from "@/lib/internal-nav";
 import { type RowNode, shouldOpenRow } from "@/lib/internal/row-click";
 
 const appDir = join(process.cwd(), "src", "app");
@@ -26,8 +26,27 @@ const internalRoutes = walk(join(appDir, "internal"))
 const resolves = (path: string) => internalRoutes.some((route) => route.test(path));
 
 describe("internal route mappings", () => {
-  it("every sidebar item points at a real page", () => {
-    for (const item of internalNav) assert.ok(resolves(item.href), `${item.label} → ${item.href}`);
+  it("every sidebar item and section page points at a real page", () => {
+    for (const item of internalNav) {
+      assert.ok(resolves(item.href), `${item.label} → ${item.href}`);
+      for (const page of item.pages ?? []) assert.ok(resolves(page.href), `${item.label} › ${page.label}`);
+    }
+  });
+
+  it("groups the consolidated sections in the sidebar", () => {
+    assert.deepEqual(
+      internalNav.map((item) => item.label),
+      ["Dashboard", "Universities & MoUs", "Programs & Opportunities", "Documents & Reports", "Settings"],
+    );
+    assert.deepEqual(sectionTabs("/internal/programs").map((t) => t.href), ["/internal/programs", "/internal/opportunities"]);
+    assert.deepEqual(sectionTabs("/internal/documents").map((t) => t.href), ["/internal/documents", "/internal/reports"]);
+    assert.deepEqual(sectionTabs("/internal"), []);
+    assert.deepEqual(sectionTabs("/internal/universities"), []);
+  });
+
+  it("no list page belongs to two sections", () => {
+    const pages = internalNav.flatMap((item) => (item.pages ?? []).map((page) => page.href));
+    assert.equal(new Set(pages).size, pages.length);
   });
 
   it("sidebar items have unique destinations and labels", () => {
@@ -55,8 +74,16 @@ describe("internal route mappings", () => {
       "/internal": "Dashboard",
       "/internal/universities": "Universities & MoUs",
       "/internal/universities/ofc-x/agreements/mou-1/edit": "Universities & MoUs",
-      "/internal/programs/abc": "Programs",
-      "/internal/reports": "Reports",
+      "/internal/programs": "Programs & Opportunities",
+      "/internal/programs/abc": "Programs & Opportunities",
+      "/internal/opportunities": "Programs & Opportunities",
+      "/internal/opportunities/o1": "Programs & Opportunities",
+      "/internal/documents/d1": "Documents & Reports",
+      "/internal/reports": "Documents & Reports",
+      "/internal/activities": "Dashboard",
+      "/internal/activities/a1": "Dashboard",
+      "/internal/settings": "Settings",
+      "/internal/activitiesx": undefined,
       "/internal/universitiesx": undefined,
       "/internal/unknown": undefined,
     };
@@ -73,11 +100,28 @@ describe("internal breadcrumbs", () => {
 
   it("maps sections, records and record actions to their own pages", () => {
     assert.deepEqual(labels("/internal"), ["Portal=/internal"]);
-    assert.deepEqual(labels("/internal/programs"), ["Portal=/internal", "Programs=/internal/programs"]);
+    assert.deepEqual(labels("/internal/universities"), ["Portal=/internal", "Universities & MoUs=/internal/universities"]);
     assert.deepEqual(labels("/internal/programs/p1"), [
       "Portal=/internal",
+      "Programs & Opportunities=/internal/programs",
       "Programs=/internal/programs",
       "Details=/internal/programs/p1",
+    ]);
+    assert.deepEqual(labels("/internal/opportunities/o1"), [
+      "Portal=/internal",
+      "Programs & Opportunities=/internal/programs",
+      "Opportunities=/internal/opportunities",
+      "Details=/internal/opportunities/o1",
+    ]);
+    assert.deepEqual(labels("/internal/reports"), [
+      "Portal=/internal",
+      "Documents & Reports=/internal/documents",
+      "Reports=/internal/reports",
+    ]);
+    assert.deepEqual(labels("/internal/activities/a1"), [
+      "Portal=/internal",
+      "Activities=/internal/activities",
+      "Details=/internal/activities/a1",
     ]);
     assert.deepEqual(labels("/internal/universities/new").at(-1), "New=/internal/universities/new");
     assert.deepEqual(labels("/internal/universities/u1/edit").slice(2), [
@@ -95,7 +139,12 @@ describe("internal breadcrumbs", () => {
   });
 
   it("every breadcrumb link resolves to a route", () => {
-    for (const path of ["/internal/universities/u1/agreements/mou-1/edit", "/internal/documents/d1"]) {
+    for (const path of [
+      "/internal/universities/u1/agreements/mou-1/edit",
+      "/internal/documents/d1",
+      "/internal/opportunities/o1",
+      "/internal/activities/a1",
+    ]) {
       for (const crumb of internalBreadcrumbs(path)) assert.ok(resolves(crumb.href), crumb.href);
     }
   });

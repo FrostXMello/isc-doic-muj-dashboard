@@ -24,6 +24,7 @@ import {
   unavailableReasons,
 } from "@/components/internal/ui/placeholder-action";
 import { DataNotice } from "@/components/internal/ui/source-badge";
+import { SectionTabs } from "@/components/internal/ui/section-tabs";
 import { StatCard } from "@/components/internal/ui/stat-card";
 import { activityStatuses, activityTypes } from "@/lib/internal/data/activities";
 import { agreementStatuses, agreementTypes } from "@/lib/internal/data/agreements";
@@ -65,11 +66,17 @@ export default async function ReportsPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Reports"
+        title="Documents & Reports"
         description={`Operational overview computed from the portal's data layer as of ${formatDate(summary.today)}.`}
         actions={
           <PlaceholderAction label="Export report" icon="download" reason={unavailableReasons.exports} />
         }
+      />
+
+      <SectionTabs
+        section="/internal/documents"
+        current="/internal/reports"
+        counts={{ "/internal/documents": documents.total }}
       />
 
       <DataNotice>
