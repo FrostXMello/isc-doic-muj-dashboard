@@ -70,6 +70,9 @@
   --color-card: var(--card);
   --color-glow: var(--glow);
   --color-cyan: var(--cyan);
+  --color-muj: var(--muj);
+  --color-muj-fg: var(--muj-fg);
+  --color-insight: var(--insight);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -153,6 +156,16 @@
   --sidebar-border: rgba(198, 214, 240, 0.14);
   --sidebar-ring: #c5daf8;
   --header-h: 4.5rem;
+  --muj: #ff8a3d;
+  --muj-fg: #ffa266;
+  --insight: rgba(255, 196, 150, 0.035);
+  --reach-1: #ff8a3d;
+  --reach-2: #7aa7ff;
+  --reach-3: #3fd0c9;
+  --reach-4: #f5c04a;
+  --reach-5: #ff7a9a;
+  --reach-6: #b18cff;
+  --reach-7: #9fd8b8;
 }
 
 [data-theme="light"] {
@@ -221,6 +234,16 @@
   --sidebar-accent-foreground: #0d1526;
   --sidebar-border: rgba(13, 21, 38, 0.13);
   --sidebar-ring: #2d5f9e;
+  --muj: #e0661f;
+  --muj-fg: #b44c0f;
+  --insight: #efe9df;
+  --reach-1: #e0661f;
+  --reach-2: #3b6fd8;
+  --reach-3: #12968f;
+  --reach-4: #c7900f;
+  --reach-5: #d94a6a;
+  --reach-6: #7d55d6;
+  --reach-7: #2f8a5b;
 }
 
 @layer base {
@@ -399,5 +422,63 @@
   .stat-glow {
     animation: none;
     opacity: 1;
+  }
+}
+
+/* ─── Dashboard ─── */
+
+/* The hero stays ink-dark in both themes so its accent colours read the same. */
+.dash-ink {
+  background:
+    radial-gradient(ellipse 55% 80% at 100% 0%, rgba(255, 138, 61, 0.2), transparent 60%),
+    radial-gradient(ellipse 45% 70% at 0% 100%, rgba(80, 130, 255, 0.16), transparent 65%),
+    linear-gradient(135deg, #0b1733 0%, #0e1f45 55%, #12224a 100%);
+  color: #f3f6fc;
+}
+
+@keyframes dash-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes dash-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes dash-ring {
+  from {
+    stroke-dashoffset: var(--ring-length);
+  }
+}
+
+.dash-rise {
+  animation: dash-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dash-grow {
+  transform-origin: left;
+  animation: dash-grow 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dash-ring {
+  animation: dash-ring 1.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dash-rise,
+  .dash-grow,
+  .dash-ring {
+    animation: none;
   }
 }

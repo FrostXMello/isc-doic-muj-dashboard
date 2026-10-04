@@ -79,7 +79,7 @@ export function Sidebar({
                   className={cn(
                     "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] tracking-[0.01em] transition-all duration-200",
                     active
-                      ? "bg-accent text-foreground shadow-[inset_2px_0_0_0_var(--cyan)]"
+                      ? "bg-accent text-foreground shadow-[inset_3px_0_0_0_var(--muj)]"
                       : "text-fg-subtle hover:bg-overlay hover:text-foreground",
                     collapsed && "justify-center px-0",
                   )}
@@ -88,7 +88,7 @@ export function Sidebar({
                     <Icon
                       className={cn(
                         "size-[18px] shrink-0 transition-colors",
-                        active ? "text-cyan" : "text-fg-faint group-hover:text-muted-foreground",
+                        active ? "text-muj" : "text-fg-faint group-hover:text-muted-foreground",
                       )}
                     />
                   )}

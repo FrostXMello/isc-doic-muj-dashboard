@@ -190,8 +190,9 @@ describe("dashboard page", () => {
     assert.deepEqual([...order].sort((a, b) => a - b), order);
   });
 
-  it("splits the second row 65/35 on desktop and stacks it on mobile", () => {
-    assert.match(page, /grid-cols-1 [^"]*lg:grid-cols-\[minmax\(0,13fr\)_minmax\(18rem,7fr\)\]/);
+  it("puts activities beside a narrower insights column on desktop and stacks them on mobile", () => {
+    assert.match(page, /grid-cols-1 [^"]*lg:grid-cols-\[minmax\(0,1\.55fr\)_minmax\(20rem,1fr\)\]/);
+    assert.ok(page.indexOf("<Activities ") < page.indexOf("<Insights "), "activities come first");
   });
 
   it("links activities to their records and keeps at most two charts", () => {
