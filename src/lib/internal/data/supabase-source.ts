@@ -178,7 +178,7 @@ const select = {
   agreements:
     "code, reference, title, agreement_type, type_label, source_section, record_status, start_date, end_date, " +
     `renewal, notes, data_source, ${provenanceColumns}, ` +
-    "institution:institutions(slug), " +
+    "institution:institutions!agreements_institution_id_fkey(slug), " +
     "areas:agreement_collaboration_areas(position, area:collaboration_areas(name))",
   programs: `program_type, name, description, general_audience, data_source, ${provenanceColumns}`,
   availability:
