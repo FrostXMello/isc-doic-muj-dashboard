@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { agreementHref } from "@/lib/internal/links";
 import { BookOpen, ClipboardList, Compass, FileText, FolderOpen, GraduationCap, Link2 } from "lucide-react";
 import { notFound } from "next/navigation";
 import {
@@ -167,7 +168,7 @@ export default async function ProgramOfferingPage({ params }: IdParamsProp) {
                 items={[
                   {
                     key: agreement.id,
-                    href: `/internal/mous/${agreement.id}`,
+                    href: agreementHref(agreement),
                     title: agreement.title,
                     meta: agreement.reference,
                     badge: <AgreementStatusBadge status={agreement.status} daysToExpiry={agreement.daysToExpiry} />,

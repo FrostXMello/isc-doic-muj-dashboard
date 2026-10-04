@@ -86,7 +86,10 @@ export type RenewalMode = "automatic" | "by-review";
 export type Agreement = Provenance & {
   id: string;
   reference: string;
+  /** Lead partner institution. */
   institutionId: string;
+  /** Further partner institutions on a multi-party agreement; never inferred. */
+  partnerInstitutionIds?: readonly string[];
   /** For official rows: the row text exactly as displayed. */
   title: string;
   type: AgreementType;
@@ -256,6 +259,7 @@ export type AgreementView = Agreement & {
   status: AgreementStatus;
   daysToExpiry: number | null;
   institution: Institution | null;
+  partners: Institution[];
 };
 
 export type InstitutionView = Institution & {

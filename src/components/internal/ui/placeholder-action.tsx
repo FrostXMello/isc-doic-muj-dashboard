@@ -109,6 +109,8 @@ export const unavailableReasons = {
     "File uploads to secure storage are planned for a later stage. Metadata is shown for planning; no file exists behind this record.",
   editing:
     "Creating and editing records in the portal is planned for a later stage. Records here are read-only.",
+  staticSource:
+    "This deployment reads the bundled official dataset, which is read-only. Editing universities and MoUs needs the Supabase data source (INTERNAL_DATA_SOURCE=supabase).",
   exports:
     "Exports are planned for a later stage and will be generated from the database, so exported figures match the system of record.",
 } as const;

@@ -5,7 +5,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(89);
+select plan(102);
 
 -- ---------------------------------------------------------------------------
 -- Fixtures (as the migration owner, which bypasses RLS)
@@ -81,6 +81,11 @@ insert into public.notifications (user_id, title) values
   ('00000000-0000-4000-a000-000000000001', 'For A'),
   ('00000000-0000-4000-a000-000000000002', 'For B');
 
+-- Ids for statements run as roles that cannot read the rows themselves.
+select set_config('test.private_agr', (select id::text from public.agreements where code = 'test-agr'), true);
+select set_config('test.public_uni', (select id::text from public.institutions where slug = 'test-public-uni'), true);
+select set_config('test.private_uni', (select id::text from public.institutions where slug = 'test-private-uni'), true);
+
 -- ---------------------------------------------------------------------------
 -- Anonymous visitor
 -- ---------------------------------------------------------------------------
@@ -126,6 +131,8 @@ select throws_ok($$ insert into public.agreement_public_summaries
   values ((select id from public.agreements limit 1), (select id from public.institutions limit 1),
           'forged', 'mou', 'Forged') $$,
   '42501', null, 'anon cannot write agreement summaries');
+select throws_ok($$ select count(*) from public.agreement_partner_institutions $$, '42501', null,
+  'anon has no access to agreement partners');
 
 reset role;
 
@@ -202,6 +209,11 @@ select throws_ok($$ insert into public.institution_contacts (code, institution_i
   '42501', null, 'student cannot insert contacts');
 select throws_ok($$ delete from public.agreement_public_summaries $$,
   '42501', null, 'student cannot delete agreement summaries');
+select is((select count(*) from public.agreement_partner_institutions), 0::bigint,
+  'student cannot read agreement partners');
+select throws_ok($$ insert into public.agreement_partner_institutions (agreement_id, institution_id)
+  values (current_setting('test.private_agr')::uuid, current_setting('test.public_uni')::uuid) $$,
+  '42501', null, 'student cannot link partner universities');
 
 reset role;
 
@@ -276,6 +288,35 @@ select is((select visibility::text from public.institution_contacts where code =
 delete from public.institution_contacts where code = 'isc-contact';
 select ok(exists (select 1 from public.institution_contacts where code = 'isc-contact'),
   'isc_team cannot delete contacts');
+select lives_ok($$ insert into public.agreement_partner_institutions (agreement_id, institution_id)
+  values (current_setting('test.private_agr')::uuid, current_setting('test.public_uni')::uuid) $$,
+  'isc_team links an additional partner university to an agreement');
+select throws_ok($$ insert into public.agreement_partner_institutions (agreement_id, institution_id)
+  values (current_setting('test.private_agr')::uuid, current_setting('test.private_uni')::uuid) $$,
+  '23514', null, 'the lead partner cannot also be listed as an additional partner');
+select throws_ok($$ insert into public.agreement_partner_institutions (agreement_id, institution_id)
+  values (current_setting('test.private_agr')::uuid, current_setting('test.public_uni')::uuid) $$,
+  '23505', null, 'a partner university is linked to an agreement only once');
+select ok(exists (select 1 from public.agreement_partner_institutions
+    where agreement_id = current_setting('test.private_agr')::uuid
+      and created_by = '00000000-0000-4000-a000-000000000003'),
+  'partner links record who created them');
+insert into public.agreements (code, reference, institution_id, title, agreement_type)
+  values ('isc-multi', 'ISC-MULTI', current_setting('test.private_uni')::uuid, 'Multi-party agreement', 'mou');
+insert into public.agreement_partner_institutions (agreement_id, institution_id)
+  values ((select id from public.agreements where code = 'isc-multi'), current_setting('test.public_uni')::uuid);
+update public.agreements set institution_id = current_setting('test.public_uni')::uuid where code = 'isc-multi';
+select ok(not exists (select 1 from public.agreement_partner_institutions p
+    join public.agreements a on a.id = p.agreement_id
+    where a.code = 'isc-multi'),
+  'moving the lead to an additional partner drops the duplicate partner row');
+delete from public.agreement_partner_institutions
+  where agreement_id = current_setting('test.private_agr')::uuid;
+select ok(not exists (select 1 from public.agreement_partner_institutions
+    where agreement_id = current_setting('test.private_agr')::uuid),
+  'isc_team removes an additional partner from an agreement');
+insert into public.agreement_partner_institutions (agreement_id, institution_id)
+  values (current_setting('test.private_agr')::uuid, current_setting('test.public_uni')::uuid);
 
 reset role;
 
@@ -309,6 +350,12 @@ select throws_ok($$ insert into public.institution_contacts (code, institution_i
 select throws_ok($$ insert into public.user_roles (user_id, role)
   values ('00000000-0000-4000-a000-000000000006', 'student') $$,
   '42501', null, 'leadership cannot grant roles');
+select ok(exists (select 1 from public.agreement_partner_institutions
+    where agreement_id = current_setting('test.private_agr')::uuid),
+  'leadership reads agreement partners');
+select throws_ok($$ insert into public.agreement_partner_institutions (agreement_id, institution_id)
+  values ((select id from public.agreements where code = 'isc-multi'), current_setting('test.private_uni')::uuid) $$,
+  '42501', null, 'leadership cannot link partner universities');
 
 reset role;
 
@@ -366,6 +413,17 @@ select ok(exists (
     where table_name = 'institution_contacts' and action = 'DELETE'
       and old_data ->> 'code' = 'isc-contact'),
   'contact changes are written to the audit log');
+select ok(exists (
+    select 1 from public.audit_logs
+    where table_name = 'agreement_partner_institutions' and action = 'INSERT'
+      and actor_id = '00000000-0000-4000-a000-000000000003'),
+  'partner links are written to the audit log');
+insert into public.agreement_partner_institutions (agreement_id, institution_id)
+  values ((select id from public.agreements where code = 'isc-multi'), current_setting('test.private_uni')::uuid);
+delete from public.agreements where code = 'isc-multi';
+select ok(not exists (select 1 from public.agreement_partner_institutions
+    where institution_id = current_setting('test.private_uni')::uuid),
+  'deleting an agreement removes its partner links');
 
 reset role;
 

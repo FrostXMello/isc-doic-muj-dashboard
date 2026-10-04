@@ -46,6 +46,28 @@ export function formatDateRange(start: string | null, end: string | null) {
   return `${formatDate(start)} – ${formatDate(end)}`;
 }
 
+/** Agreement term from its recorded dates, e.g. "5 years" or "2 years 6 months". Null when a date is missing. */
+export function formatDuration(start: string | null, end: string | null) {
+  if (!start || !end || end < start) return null;
+  const [sy, sm, sd] = start.split("-").map(Number);
+  // Terms are inclusive (1 Jan 2020 – 31 Dec 2024 is five years), so measure to the day after the end.
+  const after = new Date(dayValue(end) + DAY_MS);
+  const [ey, em, ed] = [after.getUTCFullYear(), after.getUTCMonth() + 1, after.getUTCDate()];
+  let months = (ey - sy) * 12 + (em - sm);
+  if (ed < sd) months -= 1;
+  if (months < 1) {
+    const days = daysBetween(start, end) + 1;
+    return `${days} ${days === 1 ? "day" : "days"}`;
+  }
+  const years = Math.floor(months / 12);
+  const rest = months % 12;
+  const parts = [
+    years ? `${years} ${years === 1 ? "year" : "years"}` : "",
+    rest ? `${rest} ${rest === 1 ? "month" : "months"}` : "",
+  ].filter(Boolean);
+  return parts.join(" ");
+}
+
 export function formatRelativeDays(days: number) {
   if (days === 0) return "today";
   if (days === 1) return "tomorrow";

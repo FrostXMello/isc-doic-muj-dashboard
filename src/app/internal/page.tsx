@@ -20,6 +20,7 @@ import { StatCard } from "@/components/internal/ui/stat-card";
 import { getDataMode } from "@/lib/internal/data/context";
 import { getOperationalSummary } from "@/lib/internal/data/reports";
 import { formatDate, formatRelativeDays } from "@/lib/internal/dates";
+import { agreementHref } from "@/lib/internal/links";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -45,7 +46,7 @@ export default async function DashboardPage() {
     {
       label: "Agreements expiring soon",
       count: agreements.byStatus["expiring-soon"],
-      href: "/internal/mous?status=expiring-soon",
+      href: "/internal/universities?mouStatus=expiring-soon",
       icon: Timer,
     },
     {
@@ -95,11 +96,11 @@ export default async function DashboardPage() {
           hint={`Across ${institutions.byRegion.filter((r) => r.institutions > 0).length} regions`}
         />
         <StatCard
-          label="Collaboration rows"
+          label="MoUs & agreements"
           value={agreements.total}
           icon={FileText}
           accent="var(--success)"
-          href="/internal/mous"
+          href="/internal/universities?coverage=with"
           hint={`${agreements.byStatus["not-stated"]} with status not stated · ${liveAgreements} live`}
         />
         <StatCard
@@ -180,7 +181,7 @@ export default async function DashboardPage() {
             emptyTitle="No renewals due"
             items={agreements.expiringSoon.map((agreement) => ({
               key: agreement.id,
-              href: `/internal/mous/${agreement.id}`,
+              href: agreementHref(agreement),
               title: agreement.institution?.name ?? agreement.reference,
               meta: `${agreement.reference} · ends ${formatDate(agreement.endDate)}`,
               badge: <AgreementStatusBadge status={agreement.status} daysToExpiry={agreement.daysToExpiry} />,

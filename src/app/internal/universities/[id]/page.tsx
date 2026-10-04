@@ -1,37 +1,53 @@
 import type { Metadata } from "next";
 import { BookOpen, CalendarDays, FileText, FolderOpen, Globe, Handshake, Link2 } from "lucide-react";
 import { notFound } from "next/navigation";
+import { AgreementCard } from "@/components/internal/agreement-card";
 import {
   ActivityStatusBadge,
-  AgreementStatusBadge,
   AvailabilityBadge,
   DocumentStatusBadge,
   PartnershipBadge,
 } from "@/components/internal/badges";
+import { SuccessNotice } from "@/components/internal/forms/form-fields";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
+import { EmptyState } from "@/components/internal/ui/empty-state";
+import { ManageLink } from "@/components/internal/ui/manage-action";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
-import { RecordAction } from "@/components/internal/ui/record-action";
 import { ContactsPanel, provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getInstitution } from "@/lib/internal/data/institutions";
 import { formatDate, formatDateRange } from "@/lib/internal/dates";
-import type { IdParamsProp } from "@/lib/internal/query";
-import { agreementTypeLabel, documentTypeLabel, sourceMeta } from "@/lib/internal/status";
+import { readParam, type SearchParamsRecord } from "@/lib/internal/query";
+import { documentTypeLabel, sourceMeta } from "@/lib/internal/status";
 
-export async function generateMetadata({ params }: IdParamsProp): Promise<Metadata> {
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<SearchParamsRecord>;
+};
+
+const notices: Record<string, string> = {
+  "university-created": "University added. You can now record its MoUs.",
+  "university-updated": "University details saved.",
+  "agreement-created": "MoU added.",
+  "agreement-updated": "MoU saved.",
+  "agreement-deleted": "MoU deleted.",
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const record = await getInstitution(id);
   return { title: record?.institution.name ?? "University not found" };
 }
 
-export default async function UniversityDetailPage({ params }: IdParamsProp) {
-  const { id } = await params;
+export default async function UniversityDetailPage({ params, searchParams }: Props) {
+  const [{ id }, query] = await Promise.all([params, searchParams]);
   const record = await getInstitution(id);
   if (!record) notFound();
 
-  const { institution, agreements, offerings, opportunities, activities, documents, peers, contactAccess } =
+  const { today, institution, agreements, offerings, opportunities, activities, documents, peers, contactAccess } =
     record;
+  const openAgreement = readParam(query, "agreement");
+  const notice = notices[readParam(query, "notice") ?? ""];
   const note =
     institution.source === "official"
       ? "Listed on MUJ's official International Collaboration and Partners page. The page gives no agreement dates or status, so none is shown or inferred."
@@ -56,25 +72,62 @@ export default async function UniversityDetailPage({ params }: IdParamsProp) {
         }
         actions={
           <>
-            <RecordAction
+            <ManageLink
               permission="institutions:update"
-              label="Edit"
+              href={`/internal/universities/${institution.id}/edit`}
+              label="Edit university"
               icon="edit"
-              reason={unavailableReasons.editing}
             />
-            <RecordAction
+            <ManageLink
               permission="agreements:create"
-              label="New agreement"
+              href={`/internal/universities/${institution.id}/agreements/new`}
+              label="Add MoU"
               icon="add"
               variant="primary"
-              reason={unavailableReasons.editing}
             />
           </>
         }
       />
 
+      {notice ? <SuccessNotice>{notice}</SuccessNotice> : null}
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
+          <DetailSection
+            title={`MoUs & agreements (${agreements.length})`}
+            icon={FileText}
+            description="Open an agreement for its type, status, term, documents, and linked records. Status comes only from stored state and dates."
+          >
+            {agreements.length > 0 ? (
+              <div>
+                {agreements.map((entry) => (
+                  <AgreementCard
+                    key={entry.agreement.id}
+                    entry={entry}
+                    universityId={institution.id}
+                    today={today}
+                    open={openAgreement === entry.agreement.id || agreements.length === 1}
+                  />
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                compact
+                title="No MoUs recorded"
+                description="Absence of a record means not recorded — not that no relationship exists."
+                action={
+                  <ManageLink
+                    permission="agreements:create"
+                    href={`/internal/universities/${institution.id}/agreements/new`}
+                    label="Add the first MoU"
+                    icon="add"
+                    size="sm"
+                  />
+                }
+              />
+            )}
+          </DetailSection>
+
           <DetailSection title="Partnership" icon={Handshake}>
             <KeyValueList
               items={[
@@ -83,7 +136,7 @@ export default async function UniversityDetailPage({ params }: IdParamsProp) {
                   value: <PartnershipBadge status={institution.partnershipStatus} />,
                 },
                 {
-                  label: "Agreements recorded",
+                  label: "MoUs recorded",
                   value: institution.agreementCount
                     ? `${institution.agreementCount} (${institution.activeAgreementCount} active)`
                     : "None recorded",
@@ -96,35 +149,8 @@ export default async function UniversityDetailPage({ params }: IdParamsProp) {
                   label: "Programme offerings",
                   value: institution.offeringCount || "None recorded",
                 },
-                {
-                  label: "Note",
-                  wide: true,
-                  value: note,
-                },
+                { label: "Note", wide: true, value: note },
               ]}
-            />
-          </DetailSection>
-
-          <DetailSection
-            title="Agreements"
-            icon={FileText}
-            description="Rows as listed on the source. Status is derived only from stored state and dates; official rows state neither."
-          >
-            <LinkedList
-              emptyTitle="No agreements recorded"
-              emptyDescription="Absence of a record means not recorded — not that no relationship exists."
-              items={agreements.map((agreement) => ({
-                key: agreement.id,
-                href: `/internal/mous/${agreement.id}`,
-                title: agreement.title,
-                meta: `${agreement.reference} · ${agreement.typeLabel ?? agreementTypeLabel[agreement.type]} · ${formatDateRange(agreement.startDate, agreement.endDate)}`,
-                badge: (
-                  <AgreementStatusBadge
-                    status={agreement.status}
-                    daysToExpiry={agreement.daysToExpiry}
-                  />
-                ),
-              }))}
             />
           </DetailSection>
 
@@ -194,9 +220,10 @@ export default async function UniversityDetailPage({ params }: IdParamsProp) {
             />
           </DetailSection>
 
-          <DetailSection title="Documents" icon={FolderOpen}>
+          <DetailSection title="University documents" icon={FolderOpen}>
             <LinkedList
               emptyTitle="No documents linked"
+              emptyDescription="Agreement documents are listed with each MoU."
               items={documents.map((doc) => ({
                 key: doc.id,
                 href: `/internal/documents/${doc.id}`,

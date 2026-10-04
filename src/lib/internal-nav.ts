@@ -25,17 +25,10 @@ export const internalNav: readonly InternalNavItem[] = [
   },
   {
     href: "/internal/universities",
-    label: "Universities",
+    label: "Universities & MoUs",
     icon: "GraduationCap",
     role: "viewer",
-    description: "Institutions listed on the official MUJ partner page, with provenance.",
-  },
-  {
-    href: "/internal/mous",
-    label: "MOUs",
-    icon: "FileText",
-    role: "editor",
-    description: "Collaboration rows and agreements as listed on the official partner page, with types kept as stated.",
+    description: "Partner universities, each with its MoUs and agreements, with provenance.",
   },
   {
     href: "/internal/programs",

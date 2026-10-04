@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { agreementHref } from "@/lib/internal/links";
 import { CalendarDays, FileText, FolderOpen, GraduationCap, Link2 } from "lucide-react";
 import { notFound } from "next/navigation";
 import { ActivityStatusBadge, DocumentStatusBadge } from "@/components/internal/badges";
@@ -144,7 +145,7 @@ export default async function ActivityDetailPage({ params }: IdParamsProp) {
                 items={[
                   {
                     key: agreement.id,
-                    href: `/internal/mous/${agreement.id}`,
+                    href: agreementHref(agreement),
                     title: agreement.title,
                     meta: agreement.reference,
                   },

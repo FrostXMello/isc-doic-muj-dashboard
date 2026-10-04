@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { agreementHref } from "@/lib/internal/links";
 import {
   BookOpen,
   CalendarDays,
@@ -93,7 +94,7 @@ export default async function ReportsPage() {
             value={agreements.total}
             icon={FileText}
             accent="var(--success)"
-            href="/internal/mous"
+            href="/internal/universities?coverage=with"
             hint={`${liveAgreements} live by recorded dates`}
           />
           <StatCard
@@ -219,7 +220,7 @@ export default async function ReportsPage() {
               label: agreementStatusMeta[status].label,
               count: agreements.byStatus[status],
               tone: agreementStatusMeta[status].tone,
-              href: `/internal/mous?status=${status}`,
+              href: `/internal/universities?mouStatus=${status}`,
             }))}
           />
           <div className="border-t border-hairline px-5 py-3">
@@ -247,7 +248,7 @@ export default async function ReportsPage() {
             emptyTitle="No agreements are due for renewal"
             items={agreements.expiringSoon.map((agreement) => ({
               key: agreement.id,
-              href: `/internal/mous/${agreement.id}`,
+              href: agreementHref(agreement),
               title: agreement.institution?.name ?? agreement.reference,
               meta: `${agreement.reference} · ends ${formatDate(agreement.endDate)} (${formatRelativeDays(agreement.daysToExpiry ?? 0)})`,
               badge: <AgreementStatusBadge status={agreement.status} />,

@@ -6,6 +6,7 @@
  */
 
 import { daysBetween } from "@/lib/internal/dates";
+import { agreementHref } from "@/lib/internal/links";
 import type { Dataset } from "@/lib/internal/data/dataset";
 import {
   deriveActivityStatus,
@@ -72,12 +73,20 @@ export function createViews(data: Dataset) {
       status,
       daysToExpiry: tracksExpiry && agreement.endDate ? daysBetween(today, agreement.endDate) : null,
       institution: findInstitution(agreement.institutionId),
+      partners: (agreement.partnerInstitutionIds ?? [])
+        .map((id) => findInstitution(id))
+        .filter((institution): institution is Institution => institution !== null),
     };
   }
 
+  /** Agreements the institution is a party to, as lead or additional partner. */
   function agreementsForInstitution(institutionId: string, today: string) {
     return data.agreements
-      .filter((agreement) => agreement.institutionId === institutionId)
+      .filter(
+        (agreement) =>
+          agreement.institutionId === institutionId ||
+          (agreement.partnerInstitutionIds ?? []).includes(institutionId),
+      )
       .map((agreement) => toAgreementView(agreement, today));
   }
 
@@ -165,7 +174,7 @@ export function createViews(data: Dataset) {
             id: link.id,
             kind: "agreement",
             label: agreement.reference,
-            href: `/internal/mous/${agreement.id}`,
+            href: agreementHref(agreement),
           });
         }
       } else if (link.availabilityId) {

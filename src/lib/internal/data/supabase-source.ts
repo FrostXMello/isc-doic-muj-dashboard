@@ -32,7 +32,7 @@ import type {
  * Loads the Internal Portal dataset from Supabase as the current user.
  *
  * Rows map onto the existing entity types, using each table's `slug`/`code`
- * as the entity id so URLs such as /internal/mous/agr-001 keep working.
+ * as the entity id so URLs such as /internal/universities/dir-… keep working.
  * Row level security decides what is returned. A row whose required parent
  * is not visible to the user (for example an offering whose institution is
  * hidden) is left out rather than shown half-empty.
@@ -91,6 +91,11 @@ type AgreementRow = ProvenanceRow & {
   data_source: RecordSource;
   institution: Ref<"slug">;
   areas: { position: number; area: Ref<"name"> }[];
+};
+
+type PartnerRow = {
+  agreement: Ref<"code">;
+  institution: Ref<"slug">;
 };
 
 type ProgramRow = ProvenanceRow & {
@@ -180,6 +185,7 @@ const select = {
     `renewal, notes, data_source, ${provenanceColumns}, ` +
     "institution:institutions!agreements_institution_id_fkey(slug), " +
     "areas:agreement_collaboration_areas(position, area:collaboration_areas(name))",
+  partners: "agreement:agreements(code), institution:institutions(slug)",
   programs: `program_type, name, description, general_audience, data_source, ${provenanceColumns}`,
   availability:
     "code, availability, duration, intake, application_start, application_end, eligibility, " +
@@ -392,10 +398,22 @@ export async function readSupabaseDataset(supabase: SupabaseClient): Promise<Sup
     internalRole = (roles ?? []).some((row) => INTERNAL_ROLES.has(String(row.role)));
   }
 
-  const [institutions, agreements, programs, availability, opportunities, documents, links, activities, contacts] =
+  const [
+    institutions,
+    agreements,
+    partners,
+    programs,
+    availability,
+    opportunities,
+    documents,
+    links,
+    activities,
+    contacts,
+  ] =
     await Promise.all([
       rows<InstitutionRow>("institutions", select.institutions, "slug"),
       rows<AgreementRow>("agreements", select.agreements, "code"),
+      rows<PartnerRow>("agreement_partner_institutions", select.partners, "created_at"),
       rows<ProgramRow>("programs", select.programs, "sort_order"),
       rows<AvailabilityRow>("program_availability", select.availability, "code"),
       rows<OpportunityRow>("opportunities", select.opportunities, "code"),
@@ -416,10 +434,25 @@ export async function readSupabaseDataset(supabase: SupabaseClient): Promise<Sup
   const keep = <T extends { source: RecordSource }>(row: T) =>
     sampleDataEnabled() || row.source !== "sample";
 
+  const partnersByAgreement = new Map<string, string[]>();
+  for (const row of partners) {
+    if (!row.agreement || !row.institution) continue;
+    const list = partnersByAgreement.get(row.agreement.code) ?? [];
+    list.push(row.institution.slug);
+    partnersByAgreement.set(row.agreement.code, list);
+  }
+
   return {
     data: {
       institutions: institutions.map(toInstitution).filter(present).filter(keep),
-      agreements: agreements.map(toAgreement).filter(present).filter(keep),
+      agreements: agreements
+        .map(toAgreement)
+        .filter(present)
+        .filter(keep)
+        .map((agreement) => ({
+          ...agreement,
+          partnerInstitutionIds: partnersByAgreement.get(agreement.id) ?? [],
+        })),
       programs: programs.map(toProgram),
       availability: availability.map(toAvailability).filter(present).filter(keep),
       opportunities: opportunities.map(toOpportunity).filter(present).filter(keep),
