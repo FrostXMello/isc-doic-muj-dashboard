@@ -1,4 +1,5 @@
-import { SearchX } from "lucide-react";
+import { FileBarChart, SearchX } from "lucide-react";
+import Link from "next/link";
 import { DocumentStatusBadge } from "@/components/internal/badges";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
@@ -55,46 +56,79 @@ function LinkSummary({ doc }: { doc: DocumentView }) {
   );
 }
 
-export async function DocumentsPanel({ params }: { params: SearchParamsRecord }) {
-
+/** Document list; `reportsOnly` limits it to report documents for the Reports tab. */
+export async function DocumentsPanel({
+  params,
+  reportsOnly = false,
+}: {
+  params: SearchParamsRecord;
+  reportsOnly?: boolean;
+}) {
+  const fixedType = reportsOnly ? ("report" as const) : undefined;
   const [rows, all, mode] = await Promise.all([
     listDocuments({
       q: readParam(params, "q"),
-      type: readEnumParam(params, "type", documentTypes),
+      type: fixedType ?? readEnumParam(params, "type", documentTypes),
       status: readEnumParam(params, "status", documentStatuses),
       linked: readEnumParam(params, "linked", documentLinkFilters),
     }),
-    listDocuments(),
+    listDocuments({ type: fixedType }),
     getDataMode(),
   ]);
 
+  if (reportsOnly && all.length === 0) {
+    return (
+      <EmptyState
+        icon={FileBarChart}
+        title="No reports have been added yet"
+        description={
+          <>
+            Documents of type <em>Report</em> will be listed here. Live figures and charts are on
+            the <Link href="/internal" className="text-glow hover:text-foreground">Dashboard</Link>.
+          </>
+        }
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
-      <DataNotice>
-        Official documents link to the file on jaipur.manipal.edu; the link was checked on the
-        source review date, and rows marked <em>Not publicly accessible</em> did not open without
-        signing in (or returned an error). No copies are stored here.
-        {mode.sampleData ? (
-          <>
-            {" "}
-            <strong className="font-medium">Sample</strong> document rows have no file and are
-            shown because INTERNAL_SAMPLE_DATA is on.
-          </>
-        ) : null}
-      </DataNotice>
+      {reportsOnly ? (
+        <p className="text-[13px] text-muted-foreground">
+          Report documents. Live figures and charts are on the{" "}
+          <Link href="/internal" className="text-glow hover:text-foreground">Dashboard</Link>.
+        </p>
+      ) : (
+        <DataNotice>
+          Official documents link to the file on jaipur.manipal.edu; the link was checked on the
+          source review date, and rows marked <em>Not publicly accessible</em> did not open without
+          signing in (or returned an error). No copies are stored here.
+          {mode.sampleData ? (
+            <>
+              {" "}
+              <strong className="font-medium">Sample</strong> document rows have no file and are
+              shown because INTERNAL_SAMPLE_DATA is on.
+            </>
+          ) : null}
+        </DataNotice>
+      )}
 
       <FilterBar
-        searchPlaceholder="Search title or linked record"
-        noun={{ singular: "document", plural: "documents" }}
+        searchPlaceholder={reportsOnly ? "Search report title" : "Search title or linked record"}
+        noun={reportsOnly ? { singular: "report", plural: "reports" } : { singular: "document", plural: "documents" }}
         resultCount={rows.length}
         totalCount={all.length}
         selects={[
-          {
-            name: "type",
-            label: "Type",
-            allLabel: "All types",
-            options: optionsFrom(documentTypes, documentTypeLabel),
-          },
+          ...(reportsOnly
+            ? []
+            : [
+                {
+                  name: "type",
+                  label: "Type",
+                  allLabel: "All types",
+                  options: optionsFrom(documentTypes, documentTypeLabel),
+                },
+              ]),
           {
             name: "status",
             label: "Status",

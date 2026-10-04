@@ -54,20 +54,23 @@ export function PanelHeader({
   description,
   icon: Icon,
   action,
+  level = 2,
 }: {
   title: string;
   description?: React.ReactNode;
   icon?: React.ComponentType<{ className?: string }>;
   action?: React.ReactNode;
+  level?: 2 | 3;
 }) {
+  const Heading = level === 3 ? "h3" : "h2";
   return (
     <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
       <div className="flex min-w-0 items-start gap-2.5">
         {Icon && <Icon className="mt-0.5 size-4 shrink-0 text-glow" />}
         <div className="min-w-0">
-          <h2 className="font-display text-[15px] font-medium tracking-[-0.02em] text-foreground">
+          <Heading className="font-display text-[15px] font-medium tracking-[-0.02em] text-foreground">
             {title}
-          </h2>
+          </Heading>
           {description && (
             <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
               {description}

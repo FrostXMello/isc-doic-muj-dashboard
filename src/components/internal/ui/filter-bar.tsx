@@ -183,7 +183,7 @@ export function FilterBar({
   );
 }
 
-function FilterSelectControl({
+export function FilterSelectControl({
   select,
   value,
   onChange,

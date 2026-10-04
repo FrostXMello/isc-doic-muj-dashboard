@@ -6,7 +6,6 @@ import { SectionTabs } from "@/components/internal/ui/section-tabs";
 import { resolveTab } from "@/lib/internal-nav";
 import { readParam, type SearchParamsProp } from "@/lib/internal/query";
 import { DocumentsPanel } from "./documents-panel";
-import { ReportsPanel } from "./reports-panel";
 
 const SECTION = "/internal/documents";
 
@@ -22,7 +21,7 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
     <div className="space-y-6">
       <PageHeader
         title="Documents & Reports"
-        description="Official DoIC documents, linked at their official URLs, and operational reports."
+        description="Official DoIC documents, linked at their official URLs, and report documents."
         actions={
           tab === "reports" ? (
             <PlaceholderAction label="Export report" icon="download" reason={unavailableReasons.exports} />
@@ -41,7 +40,7 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
       <SectionTabs section={SECTION} current={tab} />
 
       <div key={tab} data-tab-panel={tab}>
-        {tab === "reports" ? <ReportsPanel /> : <DocumentsPanel params={params} />}
+        <DocumentsPanel params={params} reportsOnly={tab === "reports"} />
       </div>
     </div>
   );

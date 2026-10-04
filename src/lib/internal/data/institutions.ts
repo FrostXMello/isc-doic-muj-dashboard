@@ -72,16 +72,6 @@ export async function listInstitutions(filters: InstitutionFilters = {}): Promis
 }
 
 /** Agreement counts across every university, each agreement counted once. */
-export async function getAgreementTotals() {
-  const { today, data, views } = await openDataContext();
-  const statuses = data.agreements.map((agreement) => views.toAgreementView(agreement, today).status);
-  const count = (status: AgreementStatus) => statuses.filter((value) => value === status).length;
-  return {
-    total: statuses.length,
-    count,
-  };
-}
-
 export async function getInstitutionFilterOptions() {
   const { data } = await openDataContext();
   return {

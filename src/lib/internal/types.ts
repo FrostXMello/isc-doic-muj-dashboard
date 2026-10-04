@@ -42,6 +42,8 @@ export type Provenance = {
   /** Date the source was last reviewed. */
   sourceCheckedOn: string | null;
   verification: VerificationStatus;
+  /** When the database row was last written (ISO timestamp). Absent outside Supabase mode. */
+  updatedAt?: string | null;
 };
 
 export type Institution = Provenance & {

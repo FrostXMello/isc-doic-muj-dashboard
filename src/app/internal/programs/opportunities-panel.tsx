@@ -6,7 +6,6 @@ import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
 import { DataNotice } from "@/components/internal/ui/source-badge";
-import { StatCard } from "@/components/internal/ui/stat-card";
 import {
   getOpportunityFilterOptions,
   listOpportunities,
@@ -40,9 +39,6 @@ export async function OpportunitiesPanel({ params }: { params: SearchParamsRecor
     listOpportunities(),
   ]);
 
-  const count = (status: OpportunityView["status"]) =>
-    all.filter((row) => row.status === status).length;
-
   return (
     <div className="space-y-6">
       <DataNotice>
@@ -53,27 +49,6 @@ export async function OpportunitiesPanel({ params }: { params: SearchParamsRecor
           ? " Sample calls with invented deadlines are included because INTERNAL_SAMPLE_DATA is on."
           : null}
       </DataNotice>
-
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Open" value={count("open")} accent="var(--success)" href="/internal/programs?tab=opportunities&status=open" />
-        <StatCard
-          label="Closing soon"
-          value={count("closing-soon")}
-          accent="var(--warning)"
-          href="/internal/programs?tab=opportunities&status=closing-soon"
-        />
-        <StatCard
-          label="Opens soon"
-          value={count("upcoming")}
-          accent="var(--glow)"
-          href="/internal/programs?tab=opportunities&status=upcoming"
-        />
-        <StatCard
-          label="Closed or archived"
-          value={count("closed") + count("archived")}
-          accent="var(--muted-foreground)"
-        />
-      </div>
 
       <FilterBar
         searchPlaceholder="Search call, programme, or institution"

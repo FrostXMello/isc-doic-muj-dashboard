@@ -10,7 +10,6 @@ import { unavailableReasons } from "@/components/internal/ui/placeholder-action"
 import { RecordAction } from "@/components/internal/ui/record-action";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
 import { DataNotice } from "@/components/internal/ui/source-badge";
-import { StatCard } from "@/components/internal/ui/stat-card";
 import {
   activityStatuses,
   activityTimeframes,
@@ -51,10 +50,6 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
     listActivities(),
   ]);
 
-  const upcoming = all.filter((row) => row.daysFromToday >= 0 && row.status !== "cancelled").length;
-  const needsUpdate = all.filter((row) => row.status === "needs-update").length;
-  const completed = all.filter((row) => row.status === "completed").length;
-
   return (
     <div className="space-y-6">
       <Link
@@ -86,18 +81,6 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
           ? " Fictional sample activities are included because INTERNAL_SAMPLE_DATA is on."
           : null}
       </DataNotice>
-
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Upcoming" value={upcoming} accent="var(--glow)" href="/internal/activities?when=upcoming" />
-        <StatCard
-          label="Needs update"
-          value={needsUpdate}
-          accent="var(--warning)"
-          href="/internal/activities?status=needs-update"
-        />
-        <StatCard label="Completed" value={completed} accent="var(--success)" href="/internal/activities?status=completed" />
-        <StatCard label="Total recorded" value={all.length} accent="var(--muted-foreground)" />
-      </div>
 
       <FilterBar
         searchPlaceholder="Search title, institution, or place"

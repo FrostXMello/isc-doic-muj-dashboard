@@ -10,11 +10,9 @@ import { ManageLink } from "@/components/internal/ui/manage-action";
 import { PageHeader } from "@/components/internal/ui/page-header";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
 import { DataNotice, SourceBadge } from "@/components/internal/ui/source-badge";
-import { StatCard } from "@/components/internal/ui/stat-card";
 import { agreementStatuses, agreementTypes } from "@/lib/internal/data/agreements";
 import {
   agreementCoverage,
-  getAgreementTotals,
   getInstitutionFilterOptions,
   institutionSources,
   listInstitutions,
@@ -56,11 +54,7 @@ function MouCount({ row }: { row: UniversityRow }) {
 
 export default async function UniversitiesPage({ searchParams }: SearchParamsProp) {
   const params = await searchParams;
-  const [options, mode, totals] = await Promise.all([
-    getInstitutionFilterOptions(),
-    getDataMode(),
-    getAgreementTotals(),
-  ]);
+  const [options, mode] = await Promise.all([getInstitutionFilterOptions(), getDataMode()]);
 
   const [rows, all] = await Promise.all([
     listInstitutions({
@@ -76,7 +70,6 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
     listInstitutions(),
   ]);
 
-  const withMous = all.filter((row) => row.agreementCount > 0).length;
   const deleted = readParam(params, "notice") === "university-deleted";
 
   return (
@@ -111,42 +104,6 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
           </>
         ) : null}
       </DataNotice>
-
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
-        <StatCard label="Universities" value={all.length} href="/internal/universities" />
-        <StatCard
-          label="With MoUs"
-          value={withMous}
-          hint={`${all.length - withMous} with none recorded`}
-          accent="var(--cyan)"
-          href="/internal/universities?coverage=with"
-        />
-        <StatCard
-          label="MoUs recorded"
-          value={totals.total}
-          hint="Each agreement counted once"
-          accent="var(--glow)"
-        />
-        <StatCard
-          label="Active"
-          value={totals.count("active")}
-          accent="var(--success)"
-          href="/internal/universities?mouStatus=active"
-        />
-        <StatCard
-          label="Expiring soon"
-          value={totals.count("expiring-soon")}
-          accent="var(--warning)"
-          href="/internal/universities?mouStatus=expiring-soon"
-        />
-        <StatCard
-          label="Status not stated"
-          value={totals.count("not-stated")}
-          hint="Listed on the official page"
-          accent="var(--glow)"
-          href="/internal/universities?mouStatus=not-stated"
-        />
-      </div>
 
       <FilterBar
         searchPlaceholder="Search university, country, or MoU"
