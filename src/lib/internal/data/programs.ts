@@ -33,7 +33,7 @@ export function isProgramType(value: string): value is ProgramType {
   return (programTypes as readonly string[]).includes(value);
 }
 
-/** Programme catalogue with its recorded offerings and opportunities per programme. */
+/** Programme catalogue with the number of recorded offerings per programme. */
 export async function listPrograms(filters: { audience?: ProgramAudience } = {}) {
   const { data } = await openDataContext();
   return data.programs
@@ -45,7 +45,6 @@ export async function listPrograms(filters: { audience?: ProgramAudience } = {})
         audience: programAudience[program.id],
         offeringCount: offerings.length,
         openCount: offerings.filter((row) => row.availability === "open").length,
-        opportunityCount: data.opportunities.filter((row) => row.programId === program.id).length,
       };
     });
 }

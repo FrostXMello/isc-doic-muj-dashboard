@@ -12,12 +12,10 @@ import { cn } from "@/lib/utils";
 export function SectionTabs({
   section,
   current,
-  counts,
   keep,
 }: {
   section: string;
   current: string;
-  counts?: Readonly<Record<string, number>>;
   keep?: Readonly<Record<string, string | undefined>>;
 }) {
   const tabs = sectionTabs(section);
@@ -31,7 +29,6 @@ export function SectionTabs({
       <ul className="flex min-w-max gap-1 border-b border-line">
         {tabs.map((tab) => {
           const active = tab.value === current;
-          const count = counts?.[tab.value];
           return (
             <li key={tab.value}>
               <Link
@@ -40,18 +37,13 @@ export function SectionTabs({
                 aria-current={active ? "page" : undefined}
                 data-tab={tab.value}
                 className={cn(
-                  "-mb-px inline-flex min-h-10 items-center gap-2 border-b-2 px-3 text-[13px] transition-colors",
+                  "-mb-px inline-flex min-h-10 items-center border-b-2 px-3 text-[13px] transition-colors",
                   active
                     ? "border-cyan font-medium text-foreground"
                     : "border-transparent text-fg-subtle hover:border-line-bold hover:text-foreground",
                 )}
               >
                 {tab.label}
-                {count !== undefined ? (
-                  <span className="rounded-full bg-overlay px-1.5 py-0.5 text-[11px] leading-none text-muted-foreground tabular-nums">
-                    {count}
-                  </span>
-                ) : null}
               </Link>
             </li>
           );

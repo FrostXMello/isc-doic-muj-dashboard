@@ -4,7 +4,6 @@ import {
   CalendarDays,
   Compass,
   FileText,
-  FolderOpen,
   Globe,
   GraduationCap,
   Timer,
@@ -22,7 +21,6 @@ import { DataNotice } from "@/components/internal/ui/source-badge";
 import { StatCard } from "@/components/internal/ui/stat-card";
 import { activityStatuses, activityTypes } from "@/lib/internal/data/activities";
 import { agreementStatuses, agreementTypes } from "@/lib/internal/data/agreements";
-import { documentStatuses } from "@/lib/internal/data/documents";
 import { partnershipStatuses } from "@/lib/internal/data/institutions";
 import { opportunityStatuses } from "@/lib/internal/data/opportunities";
 import { getDataMode } from "@/lib/internal/data/context";
@@ -34,7 +32,6 @@ import {
   agreementStatusMeta,
   agreementTypeLabel,
   availabilityMeta,
-  documentStatusMeta,
   opportunityStatusMeta,
   partnershipStatusMeta,
   verificationMeta,
@@ -50,30 +47,15 @@ const verificationOrder: readonly VerificationStatus[] = [
 
 export async function ReportsPanel() {
   const [summary, mode] = await Promise.all([getOperationalSummary(), getDataMode()]);
-  const { institutions, agreements, programs, opportunities, activities, documents } = summary;
+  const { institutions, agreements, programs, opportunities, activities } = summary;
 
   const liveAgreements = agreements.byStatus.active + agreements.byStatus["expiring-soon"];
   const openCalls = opportunities.byStatus.open + opportunities.byStatus["closing-soon"];
 
   return (
     <div className="space-y-8">
-      <p className="text-[13px] text-muted-foreground">
-        Figures as of {formatDate(summary.today)}. Report files published by DoIC are kept with
-        the other documents.{" "}
-        {documents.byType.report > 0 ? (
-          <Link
-            href="/internal/documents?type=report"
-            className="text-primary underline-offset-4 hover:text-foreground hover:underline"
-          >
-            View {documents.byType.report} report {documents.byType.report === 1 ? "document" : "documents"}
-          </Link>
-        ) : (
-          "No report documents are recorded yet."
-        )}
-      </p>
-
       <DataNotice>
-        Figures are counts of records in the portal data layer, imported from MUJ&apos;s official
+        Figures as of {formatDate(summary.today)} are counts of records in the portal data layer, imported from MUJ&apos;s official
         Internationalization pages and reviewed on the source date. They are not certified DoIC
         statistics: official rows are <em>source-imported</em>, not checked against signed
         agreements.
@@ -375,29 +357,6 @@ export async function ReportsPanel() {
           </div>
         </Panel>
 
-        <Panel className="lg:col-span-2">
-          <PanelHeader
-            title="Documents"
-            icon={FolderOpen}
-            description={`${documents.total} document records · ${documents.withLink} with an official link (${documents.publiclyAccessible} publicly accessible) · ${documents.withFile} with a stored file · ${documents.unlinked} not linked to any record`}
-          />
-          <div className="grid grid-cols-2 divide-hairline sm:grid-cols-4 sm:divide-x">
-            {documentStatuses.map((status) => (
-              <Link
-                key={status}
-                href={`/internal/documents?status=${status}`}
-                className="px-5 py-4 transition-colors hover:bg-overlay-subtle"
-              >
-                <p className="font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">
-                  {documentStatusMeta[status].label}
-                </p>
-                <p className="mt-1.5 font-display text-[1.5rem] leading-none text-foreground tabular-nums">
-                  {documents.byStatus[status]}
-                </p>
-              </Link>
-            ))}
-          </div>
-        </Panel>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { getDataMode } from "@/lib/internal/data/context";
 import { SearchX } from "lucide-react";
+import Link from "next/link";
 import { AudienceBadge, OpportunityStatusBadge, RelativeDays } from "@/components/internal/badges";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
@@ -45,8 +46,9 @@ export async function OpportunitiesPanel({ params }: { params: SearchParamsRecor
   return (
     <div className="space-y-6">
       <DataNotice>
-        Calls are the summer and winter school editions published on MUJ&apos;s official pages,
-        with deadlines exactly as published. Past editions are archived.
+        Each call belongs to one programme and is for that programme&apos;s audience. Deadlines are
+        as published on MUJ&apos;s pages; status follows the dates, and calls within{" "}
+        {DEADLINE_WARNING_DAYS} days of the deadline are flagged.
         {mode.sampleData
           ? " Sample calls with invented deadlines are included because INTERNAL_SAMPLE_DATA is on."
           : null}
@@ -137,7 +139,11 @@ export async function OpportunitiesPanel({ params }: { params: SearchParamsRecor
           {
             key: "program",
             header: "Programme",
-            cell: (row) => row.program.name,
+            cell: (row) => (
+              <Link href={`/internal/programs/${row.programId}`} className="hover:text-primary">
+                {row.program.name}
+              </Link>
+            ),
           },
           {
             key: "audience",

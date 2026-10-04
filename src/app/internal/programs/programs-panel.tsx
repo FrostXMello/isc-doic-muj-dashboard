@@ -43,9 +43,8 @@ export async function ProgramsPanel({ params }: { params: SearchParamsRecord }) 
   return (
     <div className="space-y-6">
       <DataNotice>
-        Offerings are recorded only where an official page names the institution for that
-        programme (pathway and dual degree pages). Availability, windows, eligibility, and credit
-        are left <em>Not recorded</em> unless the page states them.
+        Offerings are recorded only where an official page names the institution for a programme;
+        details the page does not state are left <em>Not recorded</em>.
         {mode.sampleData
           ? " Sample offerings at fictional institutions are included because INTERNAL_SAMPLE_DATA is on."
           : null}
@@ -78,9 +77,7 @@ export async function ProgramsPanel({ params }: { params: SearchParamsRecord }) 
                     </p>
                     <p className="mt-3 text-[12px] text-fg-subtle">
                       <span className="text-foreground tabular-nums">{program.offeringCount}</span>{" "}
-                      {program.offeringCount === 1 ? "offering" : "offerings"} ·{" "}
-                      <span className="text-foreground tabular-nums">{program.opportunityCount}</span>{" "}
-                      {program.opportunityCount === 1 ? "opportunity" : "opportunities"}
+                      {program.offeringCount === 1 ? "offering" : "offerings"}
                     </p>
                   </Link>
                 </li>

@@ -58,9 +58,9 @@ export function Topbar({
       </nav>
 
       {/* Page title — mobile */}
-      <h1 className="min-w-0 truncate font-display text-[15px] tracking-[-0.02em] text-foreground lg:hidden">
+      <p className="min-w-0 truncate font-display text-[15px] tracking-[-0.02em] text-foreground lg:hidden">
         {pageTitle}
-      </h1>
+      </p>
 
       {/* Spacer */}
       <div className="flex-1" />
