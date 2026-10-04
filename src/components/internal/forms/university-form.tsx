@@ -43,7 +43,7 @@ export function UniversityForm({
   const isPublic = state.values ? state.values.isPublic === "on" : initial.isPublic;
 
   return (
-    <form action={action} className="space-y-5 px-5 py-5" aria-busy={pending} noValidate>
+    <form action={action} className="space-y-5 px-6 pt-2 pb-6" aria-busy={pending} noValidate>
       {initial.slug ? <input type="hidden" name="slug" value={initial.slug} /> : null}
       <FormStatus state={state} />
 
@@ -139,7 +139,7 @@ export function UniversityForm({
         </Field>
         <div className="sm:col-span-2">
           <label className="inline-flex items-center gap-2 text-[13px] text-foreground">
-            <input type="checkbox" name="isPublic" defaultChecked={isPublic} className="accent-cyan" />
+            <input type="checkbox" name="isPublic" defaultChecked={isPublic} className="size-4 rounded accent-[var(--muj)]" />
             Show on the public website
           </label>
           <p className="mt-1 text-[12px] text-fg-faint">

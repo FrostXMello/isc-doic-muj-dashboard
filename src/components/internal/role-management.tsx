@@ -54,7 +54,7 @@ export async function RoleManagement() {
       {accountAdmin ? (
         <CreateUserForm />
       ) : (
-        <p className="px-5 py-4 text-[13px] text-muted-foreground">
+        <p className="px-6 pt-1 pb-6 text-[13px] text-muted-foreground">
           Account creation unavailable: the server has no Supabase secret key configured
           (SUPABASE_SECRET_KEY). Create accounts in the Supabase Dashboard, then grant access below.
         </p>
@@ -66,11 +66,11 @@ export async function RoleManagement() {
       description="Grant or remove roles. Internal roles open the Internal Portal (DoIC admin manages access, ISC team edits, Leadership reads); Student opens the Student Portal. Accounts without a role see an access-pending page."
     >
       {users === null ? (
-        <p className="px-5 py-4 text-[13px] text-danger-fg">
+        <p className="px-6 pt-1 pb-6 text-[13px] text-danger-fg">
           Couldn&apos;t load accounts. Refresh the page to try again.
         </p>
       ) : users.length === 0 ? (
-        <p className="px-5 py-4 text-[13px] text-muted-foreground">No accounts yet.</p>
+        <p className="px-6 pt-1 pb-6 text-[13px] text-muted-foreground">No accounts yet.</p>
       ) : (
         <ul className="divide-y divide-hairline">
           {users.map((user) => (

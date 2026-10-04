@@ -112,14 +112,14 @@ export function FilterBar({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="dash-rise space-y-4" style={{ animationDelay: "120ms" }}>
       <div className="flex flex-col gap-2.5 lg:flex-row lg:flex-wrap lg:items-center">
-        <div className="relative min-w-0 lg:w-72 lg:flex-none">
+        <div className="group relative min-w-0 lg:w-80 lg:flex-none">
           <label htmlFor={searchId} className="sr-only">
             {searchPlaceholder}
           </label>
           <Search
-            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-faint"
+            className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-fg-faint transition-colors group-focus-within:text-muj-fg"
             aria-hidden
           />
           <input
@@ -128,13 +128,13 @@ export function FilterBar({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={searchPlaceholder}
-            className="h-10 w-full rounded-lg border border-line bg-card pr-9 pl-9 text-[13px] text-foreground placeholder:text-fg-faint focus:border-glow/50 focus:outline-none"
+            className="h-11 w-full rounded-full border border-line-strong bg-card pr-10 pl-11 text-[14px] text-foreground transition-colors placeholder:text-fg-faint hover:border-line-bold focus:border-muj/70 focus:outline-none focus-visible:ring-4 focus-visible:ring-muj/15"
           />
           {query && (
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="absolute top-1/2 right-2 -translate-y-1/2 rounded p-1 text-fg-faint hover:text-foreground"
+              className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded-full p-1.5 text-fg-faint transition-colors hover:bg-overlay hover:text-foreground"
               aria-label="Clear search"
             >
               <X className="size-3.5" />
@@ -142,7 +142,7 @@ export function FilterBar({
           )}
         </div>
 
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:flex lg:flex-wrap">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap">
           {selects.map((select) => (
             <FilterSelectControl
               key={select.name}
@@ -156,14 +156,18 @@ export function FilterBar({
         </div>
       </div>
 
-      <div className="flex min-h-6 flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-muted-foreground">
-        <p aria-live="polite">
-          Showing <span className="text-foreground tabular-nums">{resultCount}</span> of{" "}
-          <span className="tabular-nums">{totalCount}</span>{" "}
-          {totalCount === 1 ? noun.singular : noun.plural}
+      <div className="flex min-h-8 flex-wrap items-baseline gap-x-4 gap-y-1 text-[13px] text-muted-foreground">
+        <p aria-live="polite" className="flex items-baseline gap-1.5">
+          <span className="font-display text-[1.6rem] leading-none font-medium tracking-[-0.04em] text-foreground tabular-nums">
+            {resultCount}
+          </span>
+          <span>
+            of <span className="tabular-nums">{totalCount}</span>{" "}
+            {totalCount === 1 ? noun.singular : noun.plural}
+          </span>
         </p>
         {pending && (
-          <span className="inline-flex items-center gap-1.5 text-glow">
+          <span className="inline-flex items-center gap-1.5 text-muj-fg">
             <LoaderCircle className="size-3.5 animate-spin" aria-hidden />
             Updating
           </span>
@@ -172,7 +176,7 @@ export function FilterBar({
           <button
             type="button"
             onClick={clearAll}
-            className="inline-flex items-center gap-1 rounded text-glow hover:text-foreground"
+            className="inline-flex items-center gap-1 rounded-full text-muj-fg transition-colors hover:text-foreground"
           >
             <X className="size-3.5" aria-hidden />
             Clear filters
@@ -204,8 +208,10 @@ function FilterSelectControl({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className={cn(
-          "h-10 w-full appearance-none rounded-lg border bg-card pr-9 pl-3 text-[13px] focus:border-glow/50 focus:outline-none lg:min-w-40",
-          isSet ? "border-glow/40 text-foreground" : "border-line text-muted-foreground",
+          "h-11 w-full cursor-pointer appearance-none rounded-full border pr-10 pl-4 text-[13px] transition-colors focus:border-muj/70 focus:outline-none focus-visible:ring-4 focus-visible:ring-muj/15 lg:min-w-40",
+          isSet
+            ? "border-muj/60 bg-muj/[0.08] font-medium text-foreground"
+            : "border-line-strong bg-card text-muted-foreground hover:border-line-bold hover:text-foreground",
         )}
       >
         {select.allLabel && <option value="">{select.allLabel}</option>}
@@ -216,7 +222,10 @@ function FilterSelectControl({
         ))}
       </select>
       <ChevronDown
-        className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-fg-faint"
+        className={cn(
+          "pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2",
+          isSet ? "text-muj-fg" : "text-fg-faint",
+        )}
         aria-hidden
       />
     </div>

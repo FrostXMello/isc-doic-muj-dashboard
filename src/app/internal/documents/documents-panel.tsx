@@ -1,4 +1,14 @@
-import { FileBarChart, SearchX } from "lucide-react";
+import {
+  BookOpen,
+  ClipboardList,
+  FileBarChart,
+  FileSignature,
+  FileText,
+  Newspaper,
+  Scale,
+  SearchX,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { DocumentStatusBadge } from "@/components/internal/badges";
 import { EmptyState } from "@/components/internal/ui/empty-state";
@@ -30,6 +40,29 @@ const linkFilterLabel: Record<DocumentLinkFilter, string> = {
   availability: "Linked to an offering",
   unlinked: "Not linked",
 };
+
+const typeIcon: Record<DocumentView["type"], LucideIcon> = {
+  agreement: FileSignature,
+  brochure: BookOpen,
+  "programme-guide": BookOpen,
+  policy: Scale,
+  report: FileBarChart,
+  form: ClipboardList,
+  newsletter: Newspaper,
+  other: FileText,
+};
+
+function TypeMark({ type }: { type: DocumentView["type"] }) {
+  const Icon = typeIcon[type];
+  return (
+    <span
+      className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muj/[0.1] text-muj-fg transition-transform group-hover:-rotate-3 motion-reduce:transition-none"
+      aria-hidden
+    >
+      <Icon className="size-4" />
+    </span>
+  );
+}
 
 function FileCell({ doc }: { doc: DocumentView }) {
   if (doc.url) {
@@ -78,16 +111,18 @@ export async function DocumentsPanel({
 
   if (reportsOnly && all.length === 0) {
     return (
+      <div className="portal-surface">
       <EmptyState
         icon={FileBarChart}
         title="No reports have been added yet"
         description={
           <>
             Documents of type <em>Report</em> will be listed here. Live figures and charts are on
-            the <Link href="/internal" className="text-glow hover:text-foreground">Dashboard</Link>.
+            the <Link href="/internal" className="text-muj-fg underline-offset-4 hover:underline">Dashboard</Link>.
           </>
         }
       />
+      </div>
     );
   }
 
@@ -96,7 +131,7 @@ export async function DocumentsPanel({
       {reportsOnly ? (
         <p className="text-[13px] text-muted-foreground">
           Report documents. Live figures and charts are on the{" "}
-          <Link href="/internal" className="text-glow hover:text-foreground">Dashboard</Link>.
+          <Link href="/internal" className="text-muj-fg underline-offset-4 hover:underline">Dashboard</Link>.
         </p>
       ) : (
         <DataNotice>
@@ -162,20 +197,32 @@ export async function DocumentsPanel({
             key: "title",
             header: "Document",
             cell: (row) => (
-              <span className="flex flex-col items-start gap-1">
-                <span className="font-medium">{row.title}</span>
-                <SourceBadge source={row.source} />
+              <span className="flex items-start gap-3">
+                <TypeMark type={row.type} />
+                <span className="flex min-w-0 flex-col items-start gap-1">
+                  <span className="font-medium">{row.title}</span>
+                  <SourceBadge source={row.source} />
+                </span>
               </span>
             ),
           },
-          { key: "type", header: "Type", cell: (row) => documentTypeLabel[row.type] },
+          {
+            key: "type",
+            header: "Type",
+            cell: (row) => (
+              <span className="text-[12px] font-medium tracking-[0.08em] text-fg-subtle uppercase">
+                {documentTypeLabel[row.type]}
+              </span>
+            ),
+          },
           { key: "related", header: "Related to", cell: (row) => <LinkSummary doc={row} /> },
           { key: "status", header: "Status", cell: (row) => <DocumentStatusBadge status={row.status} /> },
           {
             key: "updated",
             header: "Updated",
             className: "whitespace-nowrap",
-            cell: (row) => formatDate(row.updatedOn, "—"),
+            cell: (row) =>
+              row.updatedOn ? formatDate(row.updatedOn) : <span className="text-fg-faint">Not recorded</span>,
           },
           {
             key: "file",
@@ -190,7 +237,7 @@ export async function DocumentsPanel({
             badges={<DocumentStatusBadge status={row.status} />}
             meta={[
               { label: "Related to", value: <LinkSummary doc={row} /> },
-              { label: "Updated", value: formatDate(row.updatedOn, "—") },
+              { label: "Updated", value: formatDate(row.updatedOn, "Not recorded") },
             ]}
           />
         )}

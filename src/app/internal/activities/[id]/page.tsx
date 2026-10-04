@@ -132,7 +132,7 @@ export default async function ActivityDetailPage({ params }: IdParamsProp) {
                 ]}
               />
             ) : (
-              <p className="px-5 py-4 text-[13px] text-muted-foreground">
+              <p className="px-6 py-4 text-[13px] text-muted-foreground">
                 No institution recorded. Country: {activity.country}.
               </p>
             )}
@@ -152,7 +152,7 @@ export default async function ActivityDetailPage({ params }: IdParamsProp) {
                 ]}
               />
             ) : (
-              <p className="px-5 py-4 text-[13px] text-muted-foreground">No agreement linked.</p>
+              <p className="px-6 py-4 text-[13px] text-muted-foreground">No agreement linked.</p>
             )}
           </DetailSection>
         </div>

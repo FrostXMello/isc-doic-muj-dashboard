@@ -143,7 +143,7 @@ export default async function OpportunityDetailPage({ params }: IdParamsProp) {
                 />
               </>
             ) : (
-              <p className="px-5 py-4 text-[13px] text-muted-foreground">
+              <p className="px-6 py-4 text-[13px] text-muted-foreground">
                 This call is not linked to a specific offering.
               </p>
             )}
@@ -152,7 +152,7 @@ export default async function OpportunityDetailPage({ params }: IdParamsProp) {
 
         <div className="space-y-6">
           <DetailSection title="Timeline" icon={CalendarClock}>
-            <ol className="space-y-4 px-5 py-4">
+            <ol className="space-y-4 px-6 py-4">
               {[
                 { label: "Opens", date: opportunity.opensOn },
                 { label: "Deadline", date: opportunity.deadline },
@@ -160,7 +160,7 @@ export default async function OpportunityDetailPage({ params }: IdParamsProp) {
                 <li key={step.label} className="flex gap-3">
                   <span className="mt-1.5 size-2 shrink-0 rounded-full bg-glow" aria-hidden />
                   <div>
-                    <p className="font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">
+                    <p className="text-[11px] font-medium tracking-[0.14em] text-muj-fg uppercase">
                       {step.label}
                     </p>
                     <p className="text-[13px] text-foreground">{formatDate(step.date)}</p>
@@ -185,7 +185,7 @@ export default async function OpportunityDetailPage({ params }: IdParamsProp) {
                 ]}
               />
             ) : (
-              <p className="px-5 py-4 text-[13px] text-muted-foreground">
+              <p className="px-6 py-4 text-[13px] text-muted-foreground">
                 Not tied to a single institution.
               </p>
             )}

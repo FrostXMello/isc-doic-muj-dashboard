@@ -73,7 +73,7 @@ export function AgreementForm({
   const partners = new Set(Array.isArray(submittedPartners) ? submittedPartners : initial.partnerSlugs);
 
   return (
-    <form action={action} className="space-y-5 px-5 py-5" aria-busy={pending} noValidate>
+    <form action={action} className="space-y-5 px-6 pt-2 pb-6" aria-busy={pending} noValidate>
       {initial.code ? <input type="hidden" name="code" value={initial.code} /> : null}
       <FormStatus state={state} />
 
@@ -282,7 +282,7 @@ function PartnerPicker({
         />
       </div>
       <ul
-        className="mt-2 max-h-56 divide-y divide-hairline overflow-y-auto overscroll-contain rounded-lg border border-line"
+        className="mt-2 max-h-56 divide-y divide-hairline overflow-y-auto overscroll-contain rounded-2xl border border-line-strong"
         onChange={(event) => {
           const list = event.currentTarget;
           setCount(list.querySelectorAll('input[name="partners"]:checked').length);
@@ -302,7 +302,7 @@ function PartnerPicker({
                   name="partners"
                   value={institution.id}
                   defaultChecked={selected.has(institution.id) && institution.id !== initialLead}
-                  className="accent-cyan"
+                  className="size-4 rounded accent-[var(--muj)]"
                 />
                 <span className="min-w-0 flex-1 truncate">{institution.name}</span>
                 <span className="shrink-0 text-[12px] text-fg-faint">{institution.country}</span>

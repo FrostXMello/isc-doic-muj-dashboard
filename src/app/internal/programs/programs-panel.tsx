@@ -23,6 +23,12 @@ import {
   programTypeLabel,
 } from "@/lib/internal/status";
 import type { ProgramAvailabilityView } from "@/lib/internal/types";
+import { cn } from "@/lib/utils";
+
+const audienceAccent: Record<(typeof programAudiences)[number], string> = {
+  students: "var(--reach-2)",
+  faculty: "var(--muj)",
+};
 
 export async function ProgramsPanel({ params }: { params: SearchParamsRecord }) {
   const [options, mode] = await Promise.all([getOfferingFilterOptions(), getDataMode()]);
@@ -41,7 +47,7 @@ export async function ProgramsPanel({ params }: { params: SearchParamsRecord }) 
   ]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <DataNotice>
         Offerings are recorded only where an official page names the institution for a programme;
         details the page does not state are left <em>Not recorded</em>.
@@ -50,41 +56,77 @@ export async function ProgramsPanel({ params }: { params: SearchParamsRecord }) 
           : null}
       </DataNotice>
 
-      {programAudiences
-        .map((audience) => ({ audience, items: programs.filter((p) => p.audience === audience) }))
-        .filter((group) => group.items.length > 0)
-        .map((group) => (
-          <section key={group.audience} aria-labelledby={`programs-${group.audience}`}>
-            <h2
-              id={`programs-${group.audience}`}
-              className="mb-2 text-[12px] font-medium uppercase tracking-wide text-fg-subtle"
+      <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-2">
+        {programAudiences
+          .map((audience) => ({ audience, items: programs.filter((p) => p.audience === audience) }))
+          .filter((group) => group.items.length > 0)
+          .map((group, groupIndex) => (
+            <section
+              key={group.audience}
+              aria-labelledby={`programs-${group.audience}`}
+              className="dash-rise min-w-0"
+              style={{ animationDelay: `${groupIndex * 90}ms` }}
             >
-              For {audienceMeta[group.audience].label.toLowerCase()}
-            </h2>
-            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {group.items.map((program) => (
-                <li key={program.id}>
-                  <Link
-                    href={`/internal/programs/${program.id}`}
-                    className="block h-full rounded-xl border border-line bg-card p-4 transition-colors hover:border-line-bold hover:bg-surface-raised"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-[14px] font-medium text-foreground">{program.name}</p>
-                      <SourceBadge source={program.source} />
-                    </div>
-                    <p className="mt-2 line-clamp-3 text-[12px] leading-relaxed text-muted-foreground">
-                      {program.description}
-                    </p>
-                    <p className="mt-3 text-[12px] text-fg-subtle">
-                      <span className="text-foreground tabular-nums">{program.offeringCount}</span>{" "}
-                      {program.offeringCount === 1 ? "offering" : "offerings"}
-                    </p>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+              <div className="flex items-center gap-3 border-b border-line-strong pb-3">
+                <span
+                  className="size-2.5 rounded-full"
+                  style={{ background: audienceAccent[group.audience] }}
+                  aria-hidden
+                />
+                <h2
+                  id={`programs-${group.audience}`}
+                  className="font-display text-[1.25rem] leading-none font-medium tracking-[-0.03em] text-foreground"
+                >
+                  For {audienceMeta[group.audience].label.toLowerCase()}
+                </h2>
+                <span className="ml-auto text-[12px] text-fg-faint">
+                  {group.items.length} {group.items.length === 1 ? "programme" : "programmes"}
+                </span>
+              </div>
+              <ul className="divide-y divide-hairline">
+                {group.items.map((program) => (
+                  <li key={program.id}>
+                    <Link
+                      href={`/internal/programs/${program.id}`}
+                      className="portal-row-marker group grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 rounded-xl px-3 py-4 hover:bg-overlay focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    >
+                      <span className="min-w-0">
+                        <span className="flex flex-wrap items-center gap-2">
+                          <span className="text-[15px] font-medium text-foreground transition-colors group-hover:text-muj-fg">
+                            {program.name}
+                          </span>
+                          <SourceBadge source={program.source} />
+                        </span>
+                        <span className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted-foreground">
+                          {program.description}
+                        </span>
+                      </span>
+                      <span className="text-right leading-none">
+                        <span
+                          className={cn(
+                            "block font-display text-[1.6rem] font-semibold tracking-[-0.04em] tabular-nums",
+                            program.offeringCount === 0 ? "text-fg-faint" : "text-foreground",
+                          )}
+                        >
+                          {program.offeringCount}
+                        </span>
+                        <span className="mt-1 block text-[11px] text-fg-faint">
+                          {program.offeringCount === 1 ? "offering" : "offerings"}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+      </div>
+
+      <div className="flex items-baseline gap-3 pt-2">
+        <h2 className="font-display text-[1.5rem] leading-none font-medium tracking-[-0.03em] text-foreground">
+          Offerings by institution
+        </h2>
+      </div>
 
       <FilterBar
         searchPlaceholder="Search programme, institution, or country"

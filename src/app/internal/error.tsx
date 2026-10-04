@@ -3,6 +3,7 @@
 import { RefreshCw, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
+import { buttonClass } from "@/components/internal/ui/button-styles";
 
 export default function InternalError({
   error,
@@ -17,7 +18,7 @@ export default function InternalError({
 
   return (
     <div className="flex flex-col items-center justify-center px-6 py-24 text-center" role="alert">
-      <div className="mb-5 flex size-14 items-center justify-center rounded-2xl border border-danger/25 bg-danger/[0.06]">
+      <div className="mb-5 flex size-14 items-center justify-center rounded-full bg-danger/[0.1]">
         <TriangleAlert className="size-6 text-danger" aria-hidden />
       </div>
       <h1 className="font-display text-[1.5rem] font-medium tracking-[-0.03em] text-foreground">
@@ -35,15 +36,12 @@ export default function InternalError({
         <button
           type="button"
           onClick={() => retry()}
-          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 text-[13px] font-medium text-primary hover:bg-primary/15"
+          className={buttonClass("primary")}
         >
           <RefreshCw className="size-3.5" aria-hidden />
           Try again
         </button>
-        <Link
-          href="/internal"
-          className="inline-flex h-9 items-center rounded-lg border border-line px-3 text-[13px] text-muted-foreground hover:text-foreground"
-        >
+        <Link href="/internal" className={buttonClass("secondary")}>
           Back to dashboard
         </Link>
       </div>

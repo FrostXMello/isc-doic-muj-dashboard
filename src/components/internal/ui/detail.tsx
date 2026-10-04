@@ -1,8 +1,20 @@
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { EmptyState } from "@/components/internal/ui/empty-state";
-import { Panel, PanelHeader } from "@/components/internal/ui/page-header";
+import { Eyebrow, Panel, PanelHeader } from "@/components/internal/ui/page-header";
 import { cn } from "@/lib/utils";
+
+export function BackLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="group inline-flex min-h-9 items-center gap-1.5 rounded-full text-[13px] text-fg-subtle transition-colors hover:text-foreground"
+    >
+      <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5 motion-reduce:transition-none" aria-hidden />
+      {children}
+    </Link>
+  );
+}
 
 export function DetailHeader({
   backHref,
@@ -22,28 +34,18 @@ export function DetailHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <header className="space-y-4">
-      <Link
-        href={backHref}
-        className="inline-flex min-h-9 items-center gap-1.5 text-[13px] text-fg-subtle transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" aria-hidden />
-        {backLabel}
-      </Link>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <header className="dash-rise space-y-5">
+      <BackLink href={backHref}>{backLabel}</BackLink>
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
-          {eyebrow && (
-            <p className="font-mono text-[11px] tracking-[0.14em] text-fg-faint uppercase">
-              {eyebrow}
-            </p>
-          )}
-          <h1 className="mt-1.5 font-display text-[clamp(1.4rem,2.8vw,2rem)] leading-tight font-medium tracking-[-0.03em] text-foreground">
+          {eyebrow && <Eyebrow className="mb-3">{eyebrow}</Eyebrow>}
+          <h1 className="font-display text-[clamp(1.75rem,3.6vw,2.6rem)] leading-[1.02] font-medium tracking-[-0.04em] text-balance text-foreground">
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{subtitle}</p>
+            <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">{subtitle}</p>
           )}
-          {badges && <div className="mt-3 flex flex-wrap items-center gap-2">{badges}</div>}
+          {badges && <div className="mt-4 flex flex-wrap items-center gap-2">{badges}</div>}
         </div>
         {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
       </div>
@@ -89,14 +91,14 @@ export function KeyValueList({
         <div
           key={item.label}
           className={cn(
-            "border-b border-hairline px-5 py-3.5 last:border-b-0",
+            "border-t border-hairline px-6 py-4",
             item.wide && "sm:col-span-2",
           )}
         >
-          <dt className="font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">
+          <dt className="text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">
             {item.label}
           </dt>
-          <dd className="mt-1 text-[13px] leading-relaxed text-fg-soft">{item.value}</dd>
+          <dd className="mt-1.5 text-[14px] leading-relaxed text-foreground">{item.value}</dd>
         </div>
       ))}
     </dl>
@@ -125,22 +127,22 @@ export function LinkedList({
     return <EmptyState compact title={emptyTitle} description={emptyDescription} />;
   }
   return (
-    <ul className="divide-y divide-hairline">
+    <ul className="divide-y divide-hairline border-t border-hairline">
       {items.map((item) => (
         <li key={item.key}>
           <Link
             href={item.href}
-            className="group flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-overlay-subtle"
+            className="portal-row-marker group flex items-center gap-3 px-6 py-3.5 transition-colors hover:bg-overlay"
           >
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] text-foreground">{item.title}</p>
+              <p className="truncate text-[14px] text-foreground">{item.title}</p>
               {item.meta && (
                 <p className="mt-0.5 truncate text-[12px] text-muted-foreground">{item.meta}</p>
               )}
             </div>
             {item.badge}
             <ChevronRight
-              className="size-4 shrink-0 text-fg-dim transition-colors group-hover:text-fg-subtle"
+              className="size-4 shrink-0 text-fg-dim transition-[color,transform] group-hover:translate-x-0.5 group-hover:text-muj-fg motion-reduce:transition-none"
               aria-hidden
             />
           </Link>

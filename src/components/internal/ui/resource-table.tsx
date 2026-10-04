@@ -41,30 +41,30 @@ export function ResourceTable<T>({
   empty: React.ReactNode;
 }) {
   if (rows.length === 0) {
-    return <div className="rounded-xl border border-line bg-card">{empty}</div>;
+    return <div className="portal-surface">{empty}</div>;
   }
 
   return (
-    <>
-      <div className="hidden overflow-hidden rounded-xl border border-line bg-card md:block">
+    <div className="dash-rise" style={{ animationDelay: "160ms" }}>
+      <div className="hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] border-collapse text-left">
             <caption className="sr-only">{caption}</caption>
             <thead>
-              <tr className="border-b border-line">
+              <tr className="border-b border-line-strong">
                 {columns.map((column) => (
                   <th
                     key={column.key}
                     scope="col"
                     className={cn(
-                      "px-4 py-3 font-mono text-[10px] font-normal tracking-[0.12em] whitespace-nowrap text-fg-faint uppercase first:pl-5",
+                      "px-4 pt-2 pb-3 text-[11px] font-medium tracking-[0.14em] whitespace-nowrap text-fg-faint uppercase first:pl-4",
                       column.headerClassName,
                     )}
                   >
                     {column.header}
                   </th>
                 ))}
-                <th scope="col" className="w-10 px-4 py-3">
+                <th scope="col" className="w-10 px-4 pb-3">
                   <span className="sr-only">Open</span>
                 </th>
               </tr>
@@ -74,20 +74,22 @@ export function ResourceTable<T>({
                 <ClickableRow
                   key={getKey(row)}
                   href={getHref(row)}
-                  className="group cursor-pointer transition-colors hover:bg-overlay-subtle focus-within:bg-overlay-subtle"
+                  className="group cursor-pointer transition-colors hover:bg-overlay focus-within:bg-overlay motion-reduce:transition-none"
                 >
                   {columns.map((column, index) => (
                     <td
                       key={column.key}
                       className={cn(
-                        "px-4 py-3.5 align-middle text-[13px] text-fg-soft first:pl-5",
+                        "px-4 py-4 align-middle text-[13px] text-fg-soft first:pl-4",
+                        index === 0 &&
+                          "transition-shadow group-focus-within:shadow-[inset_3px_0_0_0_var(--muj)] group-hover:shadow-[inset_3px_0_0_0_var(--muj)] motion-reduce:transition-none",
                         column.className,
                       )}
                     >
                       {index === 0 ? (
                         <Link
                           href={getHref(row)}
-                          className="rounded-sm text-foreground outline-offset-2 hover:text-primary"
+                          className="rounded-sm text-[14px] text-foreground outline-offset-2 transition-colors group-hover:text-muj-fg"
                         >
                           {column.cell(row)}
                         </Link>
@@ -96,9 +98,9 @@ export function ResourceTable<T>({
                       )}
                     </td>
                   ))}
-                  <td className="px-4 py-3.5 text-right">
+                  <td className="px-4 py-4 text-right">
                     <ChevronRight
-                      className="ml-auto size-4 text-fg-dim transition-colors group-hover:text-fg-subtle"
+                      className="ml-auto size-4 text-fg-dim transition-[color,transform] group-hover:translate-x-0.5 group-hover:text-muj-fg motion-reduce:transition-none"
                       aria-hidden
                     />
                   </td>
@@ -109,31 +111,26 @@ export function ResourceTable<T>({
         </div>
       </div>
 
-      <ul className="space-y-2.5 md:hidden" aria-label={caption}>
+      <ul className="divide-y divide-hairline border-y border-hairline md:hidden" aria-label={caption}>
         {rows.map((row) => {
           const actions = renderCardActions?.(row);
           return (
-            <li
-              key={getKey(row)}
-              className="overflow-hidden rounded-xl border border-line bg-card transition-colors hover:border-line-bold"
-            >
+            <li key={getKey(row)} className="portal-row-marker">
               <Link
                 href={getHref(row)}
                 aria-label={getRowLabel(row)}
-                className="block p-4 transition-colors hover:bg-surface-raised"
+                className="block px-3 py-4 transition-colors hover:bg-overlay"
               >
                 {renderCard(row)}
               </Link>
               {actions ? (
-                <div className="flex flex-wrap items-center gap-2 border-t border-hairline px-4 py-3">
-                  {actions}
-                </div>
+                <div className="flex flex-wrap items-center gap-2 px-3 pb-4">{actions}</div>
               ) : null}
             </li>
           );
         })}
       </ul>
-    </>
+    </div>
   );
 }
 
@@ -153,17 +150,17 @@ export function ResourceCard({
     <div>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[14px] font-medium text-foreground">{title}</p>
-          {subtitle && <p className="mt-0.5 text-[12px] text-muted-foreground">{subtitle}</p>}
+          <p className="text-[15px] leading-snug font-medium text-foreground">{title}</p>
+          {subtitle && <p className="mt-1 text-[12px] text-muted-foreground">{subtitle}</p>}
         </div>
-        <ChevronRight className="mt-0.5 size-4 shrink-0 text-fg-dim" aria-hidden />
+        <ChevronRight className="mt-0.5 size-4 shrink-0 text-muj-fg" aria-hidden />
       </div>
-      {badges && <div className="mt-2.5 flex flex-wrap gap-1.5">{badges}</div>}
+      {badges && <div className="mt-3 flex flex-wrap gap-1.5">{badges}</div>}
       {meta && meta.length > 0 && (
-        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-hairline pt-3">
+        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
           {meta.map((item) => (
             <div key={item.label} className="min-w-0">
-              <dt className="font-mono text-[10px] tracking-[0.1em] text-fg-faint uppercase">
+              <dt className="text-[10px] font-medium tracking-[0.14em] text-fg-faint uppercase">
                 {item.label}
               </dt>
               <dd className="mt-0.5 truncate text-[12px] text-fg-soft">{item.value}</dd>

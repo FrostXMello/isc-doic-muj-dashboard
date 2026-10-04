@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Database, Lock, UserRound } from "lucide-react";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { RoleManagement } from "@/components/internal/role-management";
+import { buttonClass } from "@/components/internal/ui/button-styles";
 import { DetailSection, KeyValueList } from "@/components/internal/ui/detail";
 import { PageHeader } from "@/components/internal/ui/page-header";
 import { RESTRICTED_CONTACTS } from "@/components/internal/ui/provenance";
@@ -21,8 +22,9 @@ export default async function SettingsPage() {
     rows.filter((row) => row.source === kind).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
+        eyebrow="Account & access"
         title="Settings"
         description="Your account, where the portal's data comes from, and which switches are on. DoIC admins also manage portal access here."
       />
@@ -32,7 +34,7 @@ export default async function SettingsPage() {
           title="Your account"
           icon={UserRound}
           action={
-            <SignOutButton className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-[12px] text-fg-soft transition-colors hover:border-line-bold hover:text-foreground disabled:opacity-60" />
+            <SignOutButton className={buttonClass("secondary", "sm")} />
           }
         >
           <KeyValueList

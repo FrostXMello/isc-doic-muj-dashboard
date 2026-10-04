@@ -19,7 +19,7 @@ export function SourceLink({ url, title }: { url: string; title: string | null }
       href={url}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex items-center gap-1 text-primary underline-offset-4 hover:text-foreground hover:underline"
+      className="inline-flex items-center gap-1 text-muj-fg underline-offset-4 hover:text-foreground hover:underline"
     >
       {title ?? url}
       <ArrowUpRight className="size-3.5 shrink-0" aria-hidden />
@@ -104,8 +104,8 @@ export function ContactsPanel({
       ) : (
         <ul className="divide-y divide-hairline">
           {contacts.map((row) => (
-            <li key={row.id} className="px-5 py-3.5 text-[13px]">
-              <p className="font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">
+            <li key={row.id} className="px-6 py-4 text-[13px]">
+              <p className="text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">
                 {row.roleLabel}
               </p>
               <p className="mt-1 text-foreground">{row.name ?? <NotRecorded />}</p>

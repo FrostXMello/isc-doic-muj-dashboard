@@ -115,7 +115,7 @@ export async function OpportunitiesPanel({ params }: { params: SearchParamsRecor
             key: "program",
             header: "Programme",
             cell: (row) => (
-              <Link href={`/internal/programs/${row.programId}`} className="hover:text-primary">
+              <Link href={`/internal/programs/${row.programId}`} className="relative z-10 transition-colors hover:text-muj-fg">
                 {row.program.name}
               </Link>
             ),
@@ -149,7 +149,13 @@ export async function OpportunitiesPanel({ params }: { params: SearchParamsRecor
             className: "whitespace-nowrap",
             cell: (row) => (
               <span>
-                {formatDate(row.deadline, "—")}
+                {row.deadline ? (
+                  <span className="font-display text-[15px] font-medium tracking-[-0.02em] text-foreground tabular-nums">
+                    {formatDate(row.deadline)}
+                  </span>
+                ) : (
+                  <span className="text-fg-faint">Not recorded</span>
+                )}
                 <span className="block text-[12px]">
                   <RelativeDays
                     days={row.daysToDeadline}
@@ -173,8 +179,8 @@ export async function OpportunitiesPanel({ params }: { params: SearchParamsRecor
               </>
             }
             meta={[
-              { label: "Opens", value: formatDate(row.opensOn, "—") },
-              { label: "Deadline", value: formatDate(row.deadline, "—") },
+              { label: "Opens", value: formatDate(row.opensOn, "Not recorded") },
+              { label: "Deadline", value: formatDate(row.deadline, "Not recorded") },
             ]}
           />
         )}

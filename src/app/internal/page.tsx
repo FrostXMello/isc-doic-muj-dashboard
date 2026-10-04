@@ -20,8 +20,7 @@ const LIST_SIZE = 3;
 const eyebrow = "text-[11px] font-medium uppercase tracking-[0.2em]";
 const sectionTitle = "font-display text-[clamp(1.5rem,2.6vw,2rem)] leading-none font-medium tracking-[-0.035em] text-foreground";
 
-/* The hero is always ink-dark, so its accents are fixed rather than themed. */
-const snapshotAccents = ["#ff8a3d", "#ffc861", "#4fd6cf", "#86b0ff", "#ff8fab"];
+const snapshotAccents = ["var(--reach-1)", "var(--reach-4)", "var(--reach-3)", "var(--reach-2)", "var(--reach-5)"];
 const ringColors: Record<string, string> = { status: "var(--reach-2)", "end-date": "var(--reach-3)", type: "var(--muj)" };
 const tones = { overdue: "var(--warning)", upcoming: "var(--reach-2)", completed: "var(--success)" } as const;
 
@@ -58,9 +57,9 @@ function NetworkMotif() {
       aria-hidden
       viewBox="400 20 330 220"
       preserveAspectRatio="xMaxYMid meet"
-      className="pointer-events-none absolute inset-y-0 right-0 -z-10 h-full w-[55%] opacity-45"
+      className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden h-full w-[55%] opacity-45 lg:block"
     >
-      <g fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1" strokeLinecap="round">
+      <g fill="none" stroke="var(--hero-motif)" strokeWidth="1" strokeLinecap="round">
         <path className="route-flow" d="M430 70 Q495 0 560 40" />
         <path className="route-flow" d="M560 40 Q620 60 640 120" />
         <path className="route-flow" d="M430 70 Q470 150 520 170" />
@@ -68,13 +67,13 @@ function NetworkMotif() {
         <path className="route-flow" d="M520 170 Q580 230 610 220" />
         <path className="route-flow" d="M640 120 Q600 190 610 220" />
       </g>
-      <g fill="rgba(255,255,255,0.55)">
+      <g fill="var(--hero-node)">
         {nodes.map(([cx, cy]) => (
           <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r="2.5" />
         ))}
       </g>
-      <circle cx="700" cy="60" r="4" fill="#ff8a3d" />
-      <circle cx="700" cy="60" r="10" fill="none" stroke="rgba(255,138,61,0.45)" />
+      <circle cx="700" cy="60" r="4" fill="var(--muj)" />
+      <circle cx="700" cy="60" r="10" fill="none" stroke="var(--muj)" strokeOpacity="0.45" />
     </svg>
   );
 }
@@ -92,20 +91,20 @@ function Snapshot({ totals, today }: Pick<DashboardData, "totals" | "today">) {
     <section
       aria-labelledby="snapshot-heading"
       data-dashboard-section="snapshot"
-      className="dash-ink relative isolate overflow-hidden rounded-[2rem] px-5 pt-7 pb-4 shadow-[0_40px_90px_-50px_rgba(11,23,51,0.9)] sm:px-9 sm:pt-9 sm:pb-7"
+      className="dash-ink relative isolate overflow-hidden rounded-[2rem] px-5 pt-7 pb-4 sm:px-9 sm:pt-9 sm:pb-7"
     >
       <NetworkMotif />
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
         <div>
-          <p className={cn(eyebrow, "text-[#ffb27f]")}>Manipal University Jaipur · International Collaborations</p>
+          <p className={cn(eyebrow, "text-(--hero-eyebrow)")}>Manipal University Jaipur · International Collaborations</p>
           <h1 className="mt-3 font-display text-[clamp(2.25rem,5vw,3.5rem)] leading-[0.92] font-medium tracking-[-0.045em]">
             Dashboard
           </h1>
         </div>
-        <p className="text-[13px] text-white/60">As of {formatDate(today)}</p>
+        <p className="text-[13px] text-(--hero-soft)">As of {formatDate(today)}</p>
       </div>
 
-      <h2 id="snapshot-heading" className={cn(eyebrow, "mt-10 text-white/55")}>
+      <h2 id="snapshot-heading" className={cn(eyebrow, "mt-10 text-(--hero-soft)")}>
         Collaboration snapshot
       </h2>
       <ul className="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
@@ -113,13 +112,13 @@ function Snapshot({ totals, today }: Pick<DashboardData, "totals" | "today">) {
           <li
             key={metric.label}
             className={cn(
-              "border-t border-white/10 lg:border-t-0 lg:border-l lg:pl-6 lg:first:border-l-0 lg:first:pl-0",
+              "border-t border-(--hero-line) lg:border-t-0 lg:border-l lg:pl-6 lg:first:border-l-0 lg:first:pl-0",
               index === metrics.length - 1 && "col-span-2 sm:col-span-1",
             )}
           >
             <Link
               href={metric.href}
-              className="dash-rise group block py-5 focus-visible:outline-white lg:py-3"
+              className="dash-rise group block py-5 focus-visible:outline-(--hero-focus) lg:py-3"
               style={{ animationDelay: `${index * 70}ms` }}
             >
               <span
@@ -130,7 +129,7 @@ function Snapshot({ totals, today }: Pick<DashboardData, "totals" | "today">) {
               <span className="mt-4 block font-display text-[clamp(2.75rem,4.6vw,4.25rem)] leading-[0.88] font-medium tracking-[-0.05em] tabular-nums">
                 {metric.value}
               </span>
-              <span className="mt-2.5 flex items-center gap-1 text-[13px] text-white/70 transition-colors group-hover:text-white">
+              <span className="mt-2.5 flex items-center gap-1 text-[13px] text-(--hero-muted) transition-colors group-hover:text-(--hero-fg)">
                 {metric.label}
                 <ArrowUpRight
                   aria-hidden

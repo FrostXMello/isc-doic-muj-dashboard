@@ -166,7 +166,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
               }))}
             />
             {opportunities.length > 0 && (
-              <p className="border-t border-hairline px-5 py-3 text-[12px] text-muted-foreground">
+              <p className="border-t border-hairline px-6 py-3 text-[12px] text-muted-foreground">
                 {opportunities.length} application{" "}
                 {opportunities.length === 1 ? "call references" : "calls reference"} this
                 institution.
@@ -242,7 +242,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
 
           {institution.note && (
             <DetailSection title="Review note">
-              <p className="px-5 py-4 text-[13px] leading-relaxed text-muted-foreground">
+              <p className="px-6 py-4 text-[13px] leading-relaxed text-muted-foreground">
                 {institution.note}
               </p>
             </DetailSection>

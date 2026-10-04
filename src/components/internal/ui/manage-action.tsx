@@ -2,23 +2,17 @@ import "server-only";
 import { Lock, Pencil, Plus } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { buttonClass } from "@/components/internal/ui/button-styles";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { PlaceholderAction, unavailableReasons } from "@/components/internal/ui/placeholder-action";
 import { getAuthContext } from "@/lib/auth/session";
 import { resolveInternalDataSource } from "@/lib/internal/data/source";
 import { type Permission, portalRoleOf, roleAllows } from "@/lib/internal/permissions";
-import { cn } from "@/lib/utils";
 
 const icons = { add: Plus, edit: Pencil } as const;
 
 export const actionButtonClass = (variant: "primary" | "secondary", size: "sm" | "md" = "md") =>
-  cn(
-    "inline-flex items-center gap-1.5 rounded-lg border font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-cyan/40 focus-visible:outline-none",
-    size === "sm" ? "h-8 px-2.5 text-[12px]" : "h-9 px-3 text-[13px]",
-    variant === "primary"
-      ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
-      : "border-line bg-transparent text-muted-foreground hover:border-line-bold hover:text-foreground",
-  );
+  buttonClass(variant, size);
 
 async function roleAllowsCurrentUser(permission: Permission) {
   const auth = await getAuthContext();

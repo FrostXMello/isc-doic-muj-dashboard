@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SearchX } from "lucide-react";
+import Link from "next/link";
 import { PartnershipBadge } from "@/components/internal/badges";
 import { SuccessNotice } from "@/components/internal/forms/form-fields";
 import { VerificationBadge } from "@/components/internal/ui/provenance";
@@ -20,7 +21,13 @@ import {
   type UniversityRow,
 } from "@/lib/internal/data/institutions";
 import { EXPIRY_WARNING_DAYS, formatDate } from "@/lib/internal/dates";
-import { readEnumParam, readParam, type SearchParamsProp } from "@/lib/internal/query";
+import {
+  readEnumParam,
+  readParam,
+  type SearchParamsProp,
+  type SearchParamsRecord,
+} from "@/lib/internal/query";
+import { cn } from "@/lib/utils";
 import {
   agreementStatusMeta,
   agreementTypeLabel,
@@ -52,6 +59,86 @@ function MouCount({ row }: { row: UniversityRow }) {
   );
 }
 
+const regionColor = (rank: number) => `var(--reach-${(rank % 7) + 1})`;
+
+function regionHref(params: SearchParamsRecord, region: string | null) {
+  const next = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (key === "region" || key === "notice" || value === undefined) continue;
+    for (const item of Array.isArray(value) ? value : [value]) next.append(key, item);
+  }
+  if (region) next.set("region", region);
+  const query = next.toString();
+  return query ? `/internal/universities?${query}` : "/internal/universities";
+}
+
+function RegionIndex({
+  regions,
+  active,
+  params,
+}: {
+  regions: { region: string; universities: number; countries: number }[];
+  active: string | undefined;
+  params: SearchParamsRecord;
+}) {
+  const total = regions.reduce((sum, row) => sum + row.universities, 0);
+  return (
+    <nav aria-label="Browse by region" className="dash-rise">
+      <div
+        className="flex h-1.5 overflow-hidden rounded-full bg-overlay"
+        role="img"
+        aria-label={regions.map((row) => `${row.region}: ${row.universities}`).join(", ")}
+      >
+        {regions.map((row, rank) => (
+          <span
+            key={row.region}
+            className={cn("h-full transition-opacity", active && active !== row.region && "opacity-30")}
+            style={{ width: `${(row.universities / Math.max(total, 1)) * 100}%`, background: regionColor(rank) }}
+          />
+        ))}
+      </div>
+      <ul className="mt-4 grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3 xl:grid-cols-7">
+        {regions.map((row, rank) => {
+          const isActive = active === row.region;
+          return (
+            <li key={row.region}>
+              <Link
+                href={regionHref(params, isActive ? null : row.region)}
+                aria-current={isActive ? "true" : undefined}
+                className={cn(
+                  "group flex flex-col rounded-lg py-2 transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                  active && !isActive && "opacity-55 hover:opacity-100",
+                )}
+              >
+                <span className="flex items-center gap-2 text-[12px] text-muted-foreground group-hover:text-foreground">
+                  <span className="size-2 shrink-0 rounded-full" style={{ background: regionColor(rank) }} aria-hidden />
+                  <span className="truncate">{row.region}</span>
+                </span>
+                <span className="mt-1 flex items-baseline gap-1.5">
+                  <span className="font-display text-[1.6rem] leading-none font-semibold tracking-[-0.04em] text-foreground tabular-nums">
+                    {row.universities}
+                  </span>
+                  <span className="text-[11px] text-fg-faint">
+                    {row.countries} {row.countries === 1 ? "country" : "countries"}
+                  </span>
+                </span>
+                <span
+                  className={cn(
+                    "mt-2 h-0.5 w-6 rounded-full transition-[width] duration-300 group-hover:w-10 motion-reduce:transition-none",
+                    isActive && "w-full group-hover:w-full",
+                  )}
+                  style={{ background: regionColor(rank) }}
+                  aria-hidden
+                />
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
+
 export default async function UniversitiesPage({ searchParams }: SearchParamsProp) {
   const params = await searchParams;
   const [options, mode] = await Promise.all([getInstitutionFilterOptions(), getDataMode()]);
@@ -71,10 +158,21 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
   ]);
 
   const deleted = readParam(params, "notice") === "university-deleted";
+  const activeRegion = readEnumParam(params, "region", options.regions);
+  const regionRank = new Map<string, number>();
+  const regions = options.regions
+    .map((region) => {
+      const members = all.filter((row) => row.region === region);
+      return { region, universities: members.length, countries: new Set(members.map((row) => row.country)).size };
+    })
+    .filter((row) => row.universities > 0)
+    .sort((a, b) => b.universities - a.universities);
+  regions.forEach((row, rank) => regionRank.set(row.region, rank));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
+        eyebrow="Global network"
         title="Universities & MoUs"
         description={`Each partner university once, with every MoU and agreement recorded for it. Where dates are recorded, agreements ending within ${EXPIRY_WARNING_DAYS} days are flagged as expiring soon.`}
         actions={
@@ -104,6 +202,8 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
           </>
         ) : null}
       </DataNotice>
+
+      {regions.length > 0 ? <RegionIndex regions={regions} active={activeRegion} params={params} /> : null}
 
       <FilterBar
         searchPlaceholder="Search university, country, or MoU"
@@ -194,7 +294,14 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
             cell: (row) => (
               <span>
                 {row.country}
-                <span className="block text-[12px] text-fg-faint">{row.region}</span>
+                <span className="flex items-center gap-1.5 text-[12px] text-fg-faint">
+                  <span
+                    className="size-1.5 shrink-0 rounded-full"
+                    style={{ background: regionColor(regionRank.get(row.region) ?? 0) }}
+                    aria-hidden
+                  />
+                  {row.region}
+                </span>
               </span>
             ),
           },

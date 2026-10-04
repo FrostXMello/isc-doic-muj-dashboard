@@ -2,6 +2,7 @@
 
 import { Download, Eye, Lock, Pencil, Plus, Upload, X } from "lucide-react";
 import { useId, useRef } from "react";
+import { buttonClass } from "@/components/internal/ui/button-styles";
 import { cn } from "@/lib/utils";
 
 const icons = {
@@ -45,17 +46,11 @@ export function PlaceholderAction({
         onClick={() => dialogRef.current?.showModal()}
         aria-haspopup="dialog"
         title={`${label} — not available yet`}
-        className={cn(
-          "inline-flex items-center gap-1.5 rounded-lg border font-medium whitespace-nowrap transition-colors",
-          size === "sm" ? "h-8 px-2.5 text-[12px]" : "h-9 px-3 text-[13px]",
-          variant === "primary"
-            ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
-            : "border-line bg-transparent text-muted-foreground hover:border-line-bold hover:text-foreground",
-        )}
+        className={buttonClass(variant, size)}
       >
         <Icon className="size-3.5" aria-hidden />
         {label}
-        <Lock className="size-3 text-fg-faint" aria-label="Unavailable" />
+        <Lock className={cn("size-3", variant === "primary" ? "opacity-60" : "text-fg-faint")} aria-label="Unavailable" />
       </button>
 
       <dialog
@@ -64,37 +59,37 @@ export function PlaceholderAction({
         onClick={(event) => {
           if (event.target === event.currentTarget) event.currentTarget.close();
         }}
-        className="m-auto w-[min(92vw,26rem)] rounded-xl border border-line bg-card p-0 text-foreground shadow-2xl backdrop:bg-scrim backdrop:backdrop-blur-[2px]"
+        className="m-auto w-[min(92vw,26rem)] rounded-[1.5rem] border border-line bg-popover p-0 text-foreground shadow-[0_40px_80px_-30px_rgba(0,0,0,0.5)] backdrop:bg-scrim backdrop:backdrop-blur-[3px]"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-accent">
-              <Lock className="size-4 text-cyan" aria-hidden />
+        <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-2">
+          <div className="flex items-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-full bg-muj/[0.12]">
+              <Lock className="size-4 text-muj-fg" aria-hidden />
             </div>
-            <h2 id={titleId} className="font-display text-[15px] font-medium tracking-[-0.02em]">
+            <h2 id={titleId} className="font-display text-[17px] font-medium tracking-[-0.025em]">
               {label} is not available yet
             </h2>
           </div>
           <button
             type="button"
             onClick={() => dialogRef.current?.close()}
-            className="rounded-lg p-1 text-fg-subtle hover:bg-overlay hover:text-foreground"
+            className="rounded-full p-1.5 text-fg-subtle transition-colors hover:bg-overlay hover:text-foreground"
             aria-label="Close"
           >
             <X className="size-4" />
           </button>
         </div>
-        <div className="space-y-3 px-5 py-4 text-[13px] leading-relaxed text-muted-foreground">
+        <div className="space-y-3 px-6 py-3 text-[13px] leading-relaxed text-muted-foreground">
           <p>{reason}</p>
-          <p className="font-mono text-[10px] tracking-[0.1em] text-fg-faint uppercase">
+          <p className="text-[11px] font-medium tracking-[0.16em] text-fg-faint uppercase">
             Preview · no data was changed
           </p>
         </div>
-        <div className="flex justify-end border-t border-line px-5 py-3">
+        <div className="flex justify-end px-6 pt-2 pb-6">
           <button
             type="button"
             onClick={() => dialogRef.current?.close()}
-            className="h-9 rounded-lg border border-line px-3 text-[13px] text-foreground hover:bg-overlay"
+            className={buttonClass("secondary")}
           >
             Understood
           </button>

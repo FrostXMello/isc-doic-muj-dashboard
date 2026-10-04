@@ -21,13 +21,13 @@ export function DeleteRecordForm({
   const id = useId();
 
   return (
-    <form action={formAction} className="space-y-3 px-5 py-4" aria-busy={pending}>
+    <form action={formAction} className="space-y-3 px-6 pt-1 pb-6" aria-busy={pending}>
       {Object.entries(fields).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
       ))}
       <FormStatus state={state} />
       <label htmlFor={`${id}-confirm`} className="flex items-start gap-2 text-[13px] text-fg-soft">
-        <input id={`${id}-confirm`} type="checkbox" name="confirm" required className="mt-0.5 accent-cyan" />
+        <input id={`${id}-confirm`} type="checkbox" name="confirm" required className="mt-0.5 size-4 rounded accent-[var(--danger)]" />
         {confirmLabel}
       </label>
       <SubmitButton pending={pending} tone="danger">

@@ -54,7 +54,7 @@ function TermProgress({ agreement, today }: { agreement: AgreementView; today: s
   const percent = Math.max(0, Math.min(100, Math.round((elapsed / Math.max(total, 1)) * 100)));
   const tone = agreementStatusMeta[agreement.status].tone;
   return (
-    <div className="border-b border-hairline px-5 py-4">
+    <div className="border-b border-hairline px-6 py-4">
       <div className="flex justify-between text-[12px] text-muted-foreground">
         <span>{formatDate(agreement.startDate)}</span>
         <span>{formatDate(agreement.endDate)}</span>
@@ -102,10 +102,10 @@ export async function AgreementCard({
   ];
 
   return (
-    <details id={`agreement-${agreement.id}`} open={open} className="group scroll-mt-24 border-b border-hairline last:border-b-0">
-      <summary className="flex cursor-pointer list-none items-start gap-3 px-5 py-4 transition-colors hover:bg-overlay-subtle [&::-webkit-details-marker]:hidden">
+    <details id={`agreement-${agreement.id}`} open={open} className="group scroll-mt-24 border-t border-hairline">
+      <summary className="portal-row-marker flex cursor-pointer list-none items-start gap-3 px-6 py-4 hover:bg-overlay [&::-webkit-details-marker]:hidden">
         <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-medium text-foreground">{agreement.title}</p>
+          <p className="text-[14px] font-medium text-foreground">{agreement.title}</p>
           <p className="mt-0.5 text-[12px] text-muted-foreground">
             <span className="font-mono">{agreement.reference}</span> ·{" "}
             {agreement.typeLabel ?? agreementTypeLabel[agreement.type]} ·{" "}
@@ -115,12 +115,12 @@ export async function AgreementCard({
         </div>
         <AgreementStatusBadge status={agreement.status} daysToExpiry={agreement.daysToExpiry} />
         <ChevronDown
-          className="mt-0.5 size-4 shrink-0 text-fg-dim transition-transform group-open:rotate-180"
+          className="mt-0.5 size-4 shrink-0 text-fg-dim transition-transform group-open:rotate-180 group-open:text-muj-fg motion-reduce:transition-none"
           aria-hidden
         />
       </summary>
 
-      <div className="border-t border-hairline bg-overlay-subtle/40">
+      <div className="bg-overlay-subtle">
         <KeyValueList
           items={[
             {
@@ -164,7 +164,7 @@ export async function AgreementCard({
                         href={agreement.sourceUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-glow hover:text-foreground"
+                        className="inline-flex items-center gap-1 text-muj-fg hover:text-foreground"
                       >
                         {agreement.sourceTitle ?? "Open source"}
                         <ExternalLink className="size-3" aria-hidden />
@@ -183,7 +183,7 @@ export async function AgreementCard({
                       <Link
                         key={party.id}
                         href={`/internal/universities/${party.id}`}
-                        className="rounded-md border border-line bg-overlay-subtle px-2 py-0.5 text-[12px] hover:border-line-bold"
+                        className="rounded-full border border-line-strong px-2.5 py-0.5 text-[12px] transition-colors hover:border-muj/60 hover:text-foreground"
                       >
                         {party.name}
                         {party.lead ? " (lead)" : ""}
@@ -248,7 +248,7 @@ export async function AgreementCard({
           </RelatedBlock>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 border-t border-hairline px-5 py-3">
+        <div className="flex flex-wrap items-center gap-2 border-t border-hairline px-6 py-3">
           <ManageLink
             permission="agreements:update"
             href={`/internal/universities/${agreement.institutionId}/agreements/${agreement.id}/edit`}
@@ -273,7 +273,7 @@ export async function AgreementCard({
 function RelatedBlock({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="border-b border-hairline last:border-b-0 md:border-b-0">
-      <p className="px-5 pt-3 font-mono text-[10px] tracking-[0.12em] text-fg-faint uppercase">{title}</p>
+      <p className="px-6 pt-3 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">{title}</p>
       {children}
     </div>
   );

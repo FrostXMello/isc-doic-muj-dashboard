@@ -20,8 +20,9 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
   const params = await searchParams;
   const tab = resolveTab(SECTION, readParam(params, "tab"))?.value ?? "programs";
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
+        eyebrow={tab === "opportunities" ? "Open calls" : "Mobility & exchange"}
         title="Programs & Opportunities"
         description="Programmes for students and faculty, and the opportunities (application calls) published under them."
         actions={

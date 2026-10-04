@@ -18,8 +18,9 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
   const params = await searchParams;
   const tab = resolveTab(SECTION, readParam(params, "tab"))?.value ?? "documents";
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
+        eyebrow="Library"
         title="Documents & Reports"
         description="Official DoIC documents, linked at their official URLs, and report documents."
         actions={

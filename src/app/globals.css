@@ -265,6 +265,7 @@
   }
   a:focus-visible,
   button:focus-visible,
+  summary:focus-visible,
   [role="tab"]:focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 3px;
@@ -427,13 +428,58 @@
 
 /* ─── Dashboard ─── */
 
-/* The hero stays ink-dark in both themes so its accent colours read the same. */
+/* Dashboard hero: deep navy in dark theme, warm paper in light theme. */
 .dash-ink {
+  --hero-fg: #f3f6fc;
+  --hero-muted: rgba(243, 246, 252, 0.72);
+  --hero-soft: rgba(243, 246, 252, 0.56);
+  --hero-line: rgba(255, 255, 255, 0.1);
+  --hero-eyebrow: #ffb27f;
+  --hero-motif: rgba(255, 255, 255, 0.22);
+  --hero-node: rgba(255, 255, 255, 0.55);
+  --hero-focus: #ffffff;
   background:
     radial-gradient(ellipse 55% 80% at 100% 0%, rgba(255, 138, 61, 0.2), transparent 60%),
     radial-gradient(ellipse 45% 70% at 0% 100%, rgba(80, 130, 255, 0.16), transparent 65%),
     linear-gradient(135deg, #0b1733 0%, #0e1f45 55%, #12224a 100%);
-  color: #f3f6fc;
+  box-shadow: 0 40px 90px -50px rgba(11, 23, 51, 0.9);
+  color: var(--hero-fg);
+}
+
+[data-theme="light"] .dash-ink {
+  --hero-fg: #121d36;
+  --hero-muted: rgba(18, 29, 54, 0.74);
+  --hero-soft: rgba(18, 29, 54, 0.6);
+  --hero-line: rgba(18, 29, 54, 0.1);
+  --hero-eyebrow: #b44c0f;
+  --hero-motif: rgba(18, 29, 54, 0.2);
+  --hero-node: rgba(18, 29, 54, 0.42);
+  --hero-focus: #2d5f9e;
+  background:
+    radial-gradient(ellipse 55% 85% at 100% 0%, rgba(240, 120, 40, 0.16), transparent 62%),
+    radial-gradient(ellipse 45% 70% at 0% 100%, rgba(59, 111, 216, 0.09), transparent 65%),
+    linear-gradient(135deg, #fffaf2 0%, #fbf3e7 55%, #f6ecdd 100%);
+  box-shadow:
+    0 0 0 1px rgba(18, 29, 54, 0.06),
+    0 30px 70px -45px rgba(120, 72, 20, 0.35);
+}
+
+/* Shared editorial surfaces for the portal. */
+.portal-surface {
+  border-radius: 1.5rem;
+  background: var(--insight);
+}
+
+.portal-row-marker {
+  box-shadow: inset 0 0 0 0 var(--muj);
+  transition:
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.portal-row-marker:hover,
+.portal-row-marker:focus-within {
+  box-shadow: inset 3px 0 0 0 var(--muj);
 }
 
 @keyframes dash-rise {
@@ -480,5 +526,8 @@
   .dash-grow,
   .dash-ring {
     animation: none;
+  }
+  .portal-row-marker {
+    transition: none;
   }
 }

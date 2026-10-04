@@ -8,8 +8,9 @@ import {
 import { changeUserRole, deleteUserAccount, resetUserPassword } from "@/lib/auth/admin-actions";
 import { MIN_ADMIN_PASSWORD_LENGTH, type RoleChangeState } from "@/lib/auth/form-state";
 import { type AppRole, appRoles, roleLabels } from "@/lib/auth/roles";
+import { buttonClass } from "@/components/internal/ui/button-styles";
 import { cn } from "@/lib/utils";
-import { Check, KeyRound, LoaderCircle, Plus, Trash2 } from "lucide-react";
+import { Check, ChevronRight, KeyRound, LoaderCircle, Plus, Trash2 } from "lucide-react";
 import { useActionState, useId } from "react";
 
 export type ManagedUser = {
@@ -50,11 +51,12 @@ function AccountControls({ user }: { user: ManagedUser }) {
   const id = useId();
 
   return (
-    <details className="w-full text-[13px] lg:basis-full">
-      <summary className="cursor-pointer text-[12px] text-fg-subtle hover:text-foreground">
+    <details className="group/details w-full text-[13px] lg:basis-full">
+      <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-full text-[12px] text-fg-subtle transition-colors hover:text-foreground [&::-webkit-details-marker]:hidden">
+        <ChevronRight className="size-3.5 transition-transform group-open/details:rotate-90 motion-reduce:transition-none" aria-hidden />
         Password and account
       </summary>
-      <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end">
+      <div className="mt-4 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
         <form action={resetAction} className="flex flex-wrap items-end gap-2">
           <input type="hidden" name="userId" value={user.id} />
           <div>
@@ -78,17 +80,16 @@ function AccountControls({ user }: { user: ManagedUser }) {
           </button>
           <ActionResult state={resetState} />
         </form>
-        <form action={deleteAction} className="flex flex-wrap items-center gap-2">
+        <form
+          action={deleteAction}
+          className="flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-danger/30 px-4 py-3"
+        >
           <input type="hidden" name="userId" value={user.id} />
-          <label className="inline-flex items-center gap-1.5 text-[12px] text-fg-soft">
-            <input type="checkbox" name="confirm" required className="accent-cyan" />
-            Delete permanently
+          <label className="inline-flex items-center gap-2 text-[12px] text-fg-soft">
+            <input type="checkbox" name="confirm" required className="size-4 rounded accent-[var(--danger)]" />
+            I understand this deletes the account permanently
           </label>
-          <button
-            type="submit"
-            disabled={deleting}
-            className={cn(adminButtonClass, "hover:border-danger/60 hover:text-danger-fg")}
-          >
+          <button type="submit" disabled={deleting} className={buttonClass("danger", "sm")}>
             <Trash2 className="size-3.5" aria-hidden />
             Delete account
           </button>
@@ -103,11 +104,20 @@ export function UserRoleRow({ user, accountAdmin }: { user: ManagedUser; account
   const [state, action, pending] = useActionState<RoleChangeState, FormData>(changeUserRole, {});
 
   return (
-    <li className="flex flex-col gap-3 px-5 py-4 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
-      <div className="min-w-0">
-        <p className="truncate text-[14px] text-foreground">
+    <li className="portal-row-marker flex flex-col gap-3 px-6 py-5 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
+      <div className="flex min-w-0 items-center gap-3">
+        <span
+          aria-hidden
+          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muj/[0.12] font-display text-[13px] font-medium text-muj-fg uppercase"
+        >
+          {(user.name ?? user.email ?? "?").trim().charAt(0)}
+        </span>
+        <div className="min-w-0">
+        <p className="truncate text-[14px] font-medium text-foreground">
           {user.name ?? user.email ?? "Unnamed account"}
-          {user.isSelf ? <span className="ml-2 text-[12px] text-fg-subtle">(you)</span> : null}
+          {user.isSelf ? (
+            <span className="ml-2 rounded-full bg-overlay px-2 py-0.5 text-[11px] font-normal text-fg-subtle">You</span>
+          ) : null}
         </p>
         {user.name && user.email ? (
           <p className="truncate text-[12px] text-muted-foreground">{user.email}</p>
@@ -124,6 +134,7 @@ export function UserRoleRow({ user, accountAdmin }: { user: ManagedUser; account
             {state.message}
           </p>
         ) : null}
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2" aria-busy={pending}>
@@ -147,10 +158,10 @@ export function UserRoleRow({ user, accountAdmin }: { user: ManagedUser; account
                       : `Grant ${roleLabels[role]}`
                 }
                 className={cn(
-                  "inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-[12px] transition-colors focus-visible:ring-2 focus-visible:ring-cyan/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60",
+                  "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[12px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-60",
                   held
-                    ? "border-cyan/50 bg-accent text-foreground hover:border-danger/50"
-                    : "border-line text-fg-subtle hover:border-line-bold hover:text-foreground",
+                    ? "border-muj/60 bg-muj/[0.1] font-medium text-foreground hover:border-danger/50"
+                    : "border-dashed border-line-strong text-fg-subtle hover:border-muj/50 hover:text-foreground",
                 )}
               >
                 {pending ? (

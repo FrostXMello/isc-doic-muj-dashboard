@@ -26,7 +26,7 @@ export function SectionTabs({
 
   return (
     <nav aria-label="Views" className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-      <ul className="flex min-w-max gap-1 border-b border-line">
+      <ul className="flex min-w-max gap-6 border-b border-hairline">
         {tabs.map((tab) => {
           const active = tab.value === current;
           return (
@@ -37,10 +37,10 @@ export function SectionTabs({
                 aria-current={active ? "page" : undefined}
                 data-tab={tab.value}
                 className={cn(
-                  "-mb-px inline-flex min-h-10 items-center border-b-2 px-3 text-[13px] transition-colors",
+                  "relative -mb-px inline-flex min-h-12 items-center font-display text-[17px] tracking-[-0.025em] transition-colors after:absolute after:inset-x-0 after:bottom-0 after:h-[3px] after:origin-left after:rounded-full after:bg-muj after:transition-transform after:duration-300 motion-reduce:after:transition-none",
                   active
-                    ? "border-cyan font-medium text-foreground"
-                    : "border-transparent text-fg-subtle hover:border-line-bold hover:text-foreground",
+                    ? "font-medium text-foreground after:scale-x-100"
+                    : "text-fg-subtle after:scale-x-0 hover:text-foreground hover:after:scale-x-40",
                 )}
               >
                 {tab.label}
