@@ -1,39 +1,23 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import {
-  activeFilterCount,
-  buildDashboardInput,
-  computeDashboard,
-  dashboardFilterOptions,
-  parseDashboardFilters,
-  sectionHref,
-} from "@/lib/internal/analytics";
+import { buildDashboardInput, computeDashboard } from "@/lib/internal/analytics";
 import { canAccessPath } from "@/lib/auth/roles";
 import { officialDataset, type Dataset } from "@/lib/internal/data/dataset";
 import { createViews } from "@/lib/internal/data/views";
-import type {
-  Activity,
-  Agreement,
-  DocumentRecord,
-  Institution,
-  Opportunity,
-  Program,
-  ProgramAvailability,
-  ProgramType,
-} from "@/lib/internal/types";
+import type { Activity, Agreement, Institution } from "@/lib/internal/types";
 
 const today = "2026-10-04";
 const provenance = { sourceUrl: null, sourceTitle: null, sourceCheckedOn: null, verification: "unverified" } as const;
 
-function institution(id: string, country: string, extra: Partial<Institution> = {}): Institution {
+function institution(id: string): Institution {
   return {
     ...provenance,
     id,
     name: id,
     normalizedName: null,
-    country,
-    countryId: country.toLowerCase(),
+    country: "France",
+    countryId: "france",
     region: "Europe",
     city: null,
     latitude: null,
@@ -42,16 +26,15 @@ function institution(id: string, country: string, extra: Partial<Institution> = 
     note: null,
     isPublic: false,
     source: "official",
-    ...extra,
   };
 }
 
-function agreement(id: string, institutionId: string, extra: Partial<Agreement> = {}): Agreement {
+function agreement(id: string, extra: Partial<Agreement> = {}): Agreement {
   return {
     ...provenance,
     id,
     reference: id,
-    institutionId,
+    institutionId: "uni-a",
     title: id,
     type: "mou",
     typeLabel: null,
@@ -67,47 +50,7 @@ function agreement(id: string, institutionId: string, extra: Partial<Agreement> 
   };
 }
 
-function program(id: ProgramType): Program {
-  return { ...provenance, id, name: id, type: id, description: "", generalAudience: null, source: "official" };
-}
-
-function offering(id: string, programId: ProgramType, institutionId: string): ProgramAvailability {
-  return {
-    ...provenance,
-    id,
-    programId,
-    institutionId,
-    agreementId: null,
-    availability: null,
-    duration: null,
-    intake: null,
-    applicationStart: null,
-    applicationEnd: null,
-    eligibility: null,
-    creditInformation: null,
-    notes: null,
-    source: "official",
-  };
-}
-
-function opportunity(id: string, programId: ProgramType, institutionId: string | null, extra: Partial<Opportunity> = {}): Opportunity {
-  return {
-    ...provenance,
-    id,
-    title: id,
-    programId,
-    availabilityId: null,
-    institutionId,
-    opensOn: null,
-    deadline: null,
-    recordStatus: "published",
-    summary: "",
-    source: "official",
-    ...extra,
-  };
-}
-
-function activity(id: string, startDate: string, recordStatus: Activity["recordStatus"], country = "France"): Activity {
+function activity(id: string, startDate: string, recordStatus: Activity["recordStatus"]): Activity {
   return {
     ...provenance,
     id,
@@ -116,7 +59,7 @@ function activity(id: string, startDate: string, recordStatus: Activity["recordS
     startDate,
     endDate: null,
     institutionId: null,
-    country,
+    country: "France",
     city: null,
     recordStatus,
     summary: "",
@@ -126,206 +69,110 @@ function activity(id: string, startDate: string, recordStatus: Activity["recordS
   };
 }
 
-function document(id: string, type: DocumentRecord["type"], extra: Partial<DocumentRecord> = {}): DocumentRecord {
-  return {
-    ...provenance,
-    id,
-    title: id,
-    type,
-    status: "final",
-    updatedOn: null,
-    storageKey: null,
-    url: "https://example.invalid/doc.pdf",
-    publiclyAccessible: true,
-    description: null,
-    source: "official",
-    ...extra,
-  };
-}
-
-function fixture(): Dataset {
-  return {
-    institutions: [
-      institution("fr-1", "France"),
-      institution("fr-2", "France", { source: "directory" }),
-      institution("de-1", "Germany"),
-    ],
-    agreements: [
-      // Multi-party MoU led from France with a German partner: one MoU, never two.
-      agreement("mou-multi", "fr-1", { partnerInstitutionIds: ["de-1"] }),
-      agreement("mou-fr", "fr-1"),
-      agreement("mou-de", "de-1"),
-    ],
-    programs: [program("student-exchange"), program("academic-visits")],
-    availability: [
-      offering("off-1", "student-exchange", "fr-1"),
-      offering("off-2", "academic-visits", "de-1"),
-    ],
-    opportunities: [
-      opportunity("call-student", "student-exchange", "fr-1", { deadline: "2026-10-10" }),
-      opportunity("call-faculty", "academic-visits", "de-1"),
-    ],
-    documents: [document("doc-report", "report"), document("doc-form", "form", { url: null })],
+function dashboard(overrides: Partial<Dataset> = {}) {
+  const data: Dataset = {
+    institutions: [institution("uni-a"), institution("uni-b")],
+    agreements: [agreement("mou-1", { partnerInstitutionIds: ["uni-b"] }), agreement("mou-2")],
+    programs: [],
+    availability: [],
+    opportunities: [],
+    documents: [],
     documentLinks: [],
     activities: [
-      activity("act-done", "2024-03-01", "completed"),
-      activity("act-overdue", "2025-05-01", "planned", "Germany"),
-      activity("act-next", "2026-11-01", "confirmed"),
+      activity("done", "2024-03-01", "completed"),
+      activity("overdue-old", "2024-05-01", "planned"),
+      activity("overdue-new", "2025-05-01", "confirmed"),
+      activity("later", "2026-12-01", "planned"),
+      activity("soon", "2026-10-10", "confirmed"),
+      activity("dropped", "2026-11-01", "cancelled"),
     ],
+    ...overrides,
   };
+  return computeDashboard(buildDashboardInput(createViews(data), today));
 }
 
-const input = () => buildDashboardInput(createViews(fixture()), today);
+describe("dashboard activities", () => {
+  it("summarises total, upcoming, overdue, and completed", () => {
+    const { activities } = dashboard();
+    assert.equal(activities.total, 6);
+    assert.equal(activities.completed, 1);
+    assert.equal(activities.cancelled, 1);
+    assert.equal(activities.upcoming.length, 2);
+    assert.equal(activities.overdue.length, 2);
+  });
 
-describe("dashboard metrics", () => {
+  it("lists the soonest upcoming and the most recent overdue first", () => {
+    const { activities } = dashboard();
+    assert.deepEqual(activities.upcoming.map((row) => row.id), ["soon", "later"]);
+    assert.deepEqual(activities.overdue.map((row) => row.id), ["overdue-new", "overdue-old"]);
+    assert.ok(activities.overdue.every((row) => row.status === "needs-update"));
+  });
+
+  it("handles no activities", () => {
+    const { activities } = dashboard({ activities: [] });
+    assert.deepEqual([activities.total, activities.upcoming.length, activities.overdue.length, activities.completed], [0, 0, 0, 0]);
+  });
+});
+
+describe("dashboard totals and MoU status", () => {
   it("counts each record once, including multi-party MoUs", () => {
-    const d = computeDashboard(input());
-    assert.equal(d.universities.total, 3);
-    assert.equal(d.universities.directory, 1);
-    assert.equal(d.mous.total, 3);
-    const byCountry = Object.fromEntries(d.geography.countries.map((row) => [row.country, row.mous]));
-    assert.deepEqual(byCountry, { France: 2, Germany: 1 });
-    const statusSum = Object.values(d.mous.byStatus).reduce((a, b) => a + b, 0);
-    assert.equal(statusSum, d.mous.total);
+    const { totals } = dashboard();
+    assert.deepEqual(totals, { universities: 2, mous: 2, programmes: 0, opportunities: 0, documents: 0 });
   });
 
-  it("reports MoU activity and expiry as not recorded, not zero, when no dates exist", () => {
-    const d = computeDashboard(input());
-    assert.equal(d.mous.active, null);
-    assert.equal(d.mous.expired, null);
-    assert.equal(d.mous.expiringSoonCount, null);
-    assert.equal(d.mous.byStatus["not-stated"], 3);
+  it("reports MoUs without a status as not recorded instead of charting them", () => {
+    const { mous } = dashboard();
+    assert.equal(mous.total, 2);
+    assert.equal(mous.withStatus, 0);
+    assert.deepEqual(mous.byStatus, []);
   });
 
-  it("derives active, expired, and expiring counts once dates are recorded", () => {
-    const data = fixture();
-    const d = computeDashboard(
-      buildDashboardInput(
-        createViews({
-          ...data,
-          agreements: [
-            agreement("live", "fr-1", { recordStatus: "signed", startDate: "2024-01-01", endDate: "2028-01-01" }),
-            agreement("soon", "fr-1", { recordStatus: "signed", startDate: "2024-01-01", endDate: "2026-11-01" }),
-            agreement("old", "de-1", { recordStatus: "signed", startDate: "2020-01-01", endDate: "2025-01-01" }),
-          ],
-        }),
-        today,
-      ),
-    );
-    assert.equal(d.mous.active, 2);
-    assert.equal(d.mous.expiringSoonCount, 1);
-    assert.equal(d.mous.expired, 1);
-    assert.deepEqual(d.mous.expiringSoon.map((row) => row.id), ["soon"]);
+  it("charts only statuses that are recorded", () => {
+    const { mous } = dashboard({
+      agreements: [
+        agreement("live", { recordStatus: "signed", startDate: "2024-01-01", endDate: "2028-01-01" }),
+        agreement("ended", { recordStatus: "signed", startDate: "2020-01-01", endDate: "2025-01-01" }),
+        agreement("unknown"),
+      ],
+    });
+    assert.deepEqual(mous.byStatus, [
+      { status: "active", count: 1 },
+      { status: "expired", count: 1 },
+    ]);
+    assert.equal(mous.withStatus, 2);
+    assert.equal(mous.total, 3);
   });
 
-  it("splits programmes and opportunities by audience", () => {
-    const d = computeDashboard(input());
-    const students = d.programs.byAudience.find((row) => row.audience === "students");
-    const faculty = d.programs.byAudience.find((row) => row.audience === "faculty");
-    assert.deepEqual(students, { audience: "students", programmes: 1, offerings: 1, opportunities: 1 });
-    assert.deepEqual(faculty, { audience: "faculty", programmes: 1, offerings: 1, opportunities: 1 });
-    assert.deepEqual(d.programs.upcomingDeadlines.map((row) => row.id), ["call-student"]);
-  });
-
-  it("classifies activities as completed, upcoming, or overdue", () => {
-    const d = computeDashboard(input());
-    assert.equal(d.activities.completed, 1);
-    assert.deepEqual(d.activities.upcoming.map((row) => row.id), ["act-next"]);
-    assert.deepEqual(d.activities.overdue.map((row) => row.id), ["act-overdue"]);
-  });
-
-  it("fills empty years between recorded ones and only offers a trend with two or more years", () => {
-    const d = computeDashboard(input());
-    assert.deepEqual(
-      d.activities.byYear.map((row) => [row.year, row.total]),
-      [["2024", 1], ["2025", 1], ["2026", 1]],
-    );
-    assert.equal(d.activities.trendAvailable, true);
-    const single = computeDashboard(input(), { year: "2024" });
-    assert.equal(single.activities.trendAvailable, false);
-  });
-
-  it("counts documents and reports, and lists data gaps", () => {
-    const d = computeDashboard(input());
-    assert.equal(d.documents.total, 2);
-    assert.equal(d.documents.reports, 1);
-    const gap = (key: string) => d.dataGaps.find((row) => row.key === key)?.count;
-    assert.equal(gap("mou-status"), 3);
-    assert.equal(gap("directory"), 1);
-    assert.equal(gap("opportunity-deadline"), 1);
-    assert.equal(gap("document-file"), 1);
-  });
-
-  it("marks recent updates unavailable without timestamps and sorts them newest first otherwise", () => {
-    assert.equal(computeDashboard(input()).recentUpdates.available, false);
-    const data = fixture();
-    const stamped: Dataset = {
-      ...data,
-      institutions: data.institutions.map((row, i) => ({ ...row, updatedAt: `2026-09-0${i + 1}T10:00:00Z` })),
-    };
-    const d = computeDashboard(buildDashboardInput(createViews(stamped), today));
-    assert.equal(d.recentUpdates.available, true);
-    assert.deepEqual(d.recentUpdates.rows.map((row) => row.title), ["de-1", "fr-2", "fr-1"]);
-  });
-});
-
-describe("dashboard filters", () => {
-  it("narrows by country, counting a multi-party MoU for any party's country", () => {
-    const d = computeDashboard(input(), { country: "Germany" });
-    assert.equal(d.universities.total, 1);
-    assert.deepEqual(d.mous.expiringSoon, []);
-    assert.equal(d.mous.total, 2);
-    assert.equal(d.programs.offerings, 1);
-    assert.equal(d.activities.total, 1);
-    assert.equal(d.documents.total, 2, "documents have no country and are not filtered");
-  });
-
-  it("narrows programmes, offerings, and opportunities by audience only", () => {
-    const d = computeDashboard(input(), { audience: "faculty" });
-    assert.equal(d.programs.programmes, 1);
-    assert.equal(d.programs.offerings, 1);
-    assert.equal(d.programs.opportunities, 1);
-    assert.equal(d.universities.total, 3);
-    assert.equal(d.activities.total, 3);
-  });
-
-  it("ignores filter values that are not in the data", () => {
-    const options = dashboardFilterOptions(input());
-    assert.deepEqual(options.years, ["2026", "2025", "2024"]);
-    const parsed = parseDashboardFilters({ country: "Atlantis", audience: "admins", year: "1999" }, options);
-    assert.deepEqual(parsed, { country: undefined, audience: undefined, year: undefined });
-    assert.equal(activeFilterCount(parsed), 0);
-    const valid = parseDashboardFilters({ country: "France", audience: "students", year: "2025" }, options);
-    assert.equal(activeFilterCount(valid), 3);
-  });
-
-  it("carries the active filters into section links", () => {
-    assert.equal(
-      sectionHref("/internal/programs?tab=opportunities", { country: "Côte d'Ivoire", audience: "faculty" }, ["country", "audience"]),
-      "/internal/programs?tab=opportunities&country=C%C3%B4te+d%27Ivoire&audience=faculty",
-    );
-    assert.equal(sectionHref("/internal/universities", {}, ["country"]), "/internal/universities");
-  });
-});
-
-describe("official dataset", () => {
-  it("adds up without double counting", () => {
+  it("matches the official dataset", () => {
     const d = computeDashboard(buildDashboardInput(createViews(officialDataset), today));
-    assert.equal(d.universities.total, officialDataset.institutions.length);
-    assert.equal(d.mous.total, officialDataset.agreements.length);
-    assert.equal(d.geography.countries.reduce((sum, row) => sum + row.mous, 0), d.mous.total);
-    assert.equal(d.geography.byRegion.reduce((sum, row) => sum + row.mous, 0), d.mous.total);
-    assert.equal(d.programs.byAudience.reduce((sum, row) => sum + row.opportunities, 0), d.programs.opportunities);
+    assert.equal(d.totals.universities, officialDataset.institutions.length);
+    assert.equal(d.totals.mous, officialDataset.agreements.length);
+    assert.equal(d.totals.documents, officialDataset.documents.length);
+    assert.equal(d.activities.total, officialDataset.activities.length);
   });
 });
 
-describe("dashboard access", () => {
+describe("dashboard page", () => {
+  const page = readFileSync("src/app/internal/page.tsx", "utf8");
+
   it("is limited to internal roles", () => {
     assert.equal(canAccessPath("/internal", ["student"]), false);
     assert.equal(canAccessPath("/internal", []), false);
     for (const role of ["leadership", "isc_team", "doic_admin"] as const) {
       assert.equal(canAccessPath("/internal", [role]), true);
     }
+  });
+
+  it("puts activities before the totals and the MoU chart", () => {
+    const order = ["activities-heading", 'aria-label="Totals"', "mou-heading"].map((marker) => page.indexOf(marker));
+    assert.ok(order.every((index) => index > 0), "all sections present");
+    assert.deepEqual([...order].sort((a, b) => a - b), order);
+  });
+
+  it("links activities to their records and keeps at most two charts", () => {
+    assert.match(page, /href=\{`\/internal\/activities\/\$\{activity\.id\}`\}/);
+    assert.equal(page.match(/<SegmentBar/g)?.length, 2);
+    assert.doesNotMatch(page, /Filter|Breakdown|ColumnChart|Recent updates/);
   });
 
   it("keeps analytics off the section pages", () => {
@@ -336,8 +183,7 @@ describe("dashboard access", () => {
       "src/app/internal/programs/programs-panel.tsx",
       "src/app/internal/documents/documents-panel.tsx",
     ]) {
-      const source = readFileSync(file, "utf8");
-      assert.doesNotMatch(source, /StatCard|Breakdown|computeDashboard/, file);
+      assert.doesNotMatch(readFileSync(file, "utf8"), /StatCard|Breakdown|computeDashboard/, file);
     }
   });
 });

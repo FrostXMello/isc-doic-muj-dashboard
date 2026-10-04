@@ -39,20 +39,6 @@ export function formatDate(iso: string | null | undefined, fallback = "Not recor
   return dateFormatter.format(new Date(dayValue(iso)));
 }
 
-const timestampFormatter = new Intl.DateTimeFormat("en-GB", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  timeZone: OFFICE_TIME_ZONE,
-});
-
-/** A database timestamp in office time, e.g. "30 Sept 2026, 14:05". */
-export function formatTimestamp(iso: string) {
-  return timestampFormatter.format(new Date(iso));
-}
-
 export function formatDateRange(start: string | null, end: string | null) {
   if (!start && !end) return "Not recorded";
   if (start && (!end || end === start)) return formatDate(start);

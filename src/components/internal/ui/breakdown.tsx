@@ -15,16 +15,12 @@ export type BreakdownRow = {
 export function Breakdown({
   rows,
   hideZero = false,
-  emptyLabel = "No records",
 }: {
   rows: readonly BreakdownRow[];
   hideZero?: boolean;
-  /** Shown instead of the bars when every row is zero. */
-  emptyLabel?: string;
 }) {
   const visible = hideZero ? rows.filter((row) => row.count > 0) : rows;
   const total = rows.reduce((sum, row) => sum + row.count, 0);
-  if (total === 0) return <p className="px-5 py-4 text-[13px] text-fg-faint">{emptyLabel}</p>;
 
   return (
     <ul className="space-y-3 px-5 py-4">

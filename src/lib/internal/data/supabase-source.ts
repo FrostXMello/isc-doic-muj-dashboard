@@ -45,7 +45,6 @@ type ProvenanceRow = {
   source_title: string | null;
   source_checked_on: string | null;
   verification: VerificationStatus;
-  updated_at: string | null;
 };
 
 function toProvenance(row: ProvenanceRow): Provenance {
@@ -54,7 +53,6 @@ function toProvenance(row: ProvenanceRow): Provenance {
     sourceTitle: row.source_title,
     sourceCheckedOn: row.source_checked_on,
     verification: row.verification,
-    updatedAt: row.updated_at,
   };
 }
 
@@ -176,7 +174,7 @@ type ActivityRow = ProvenanceRow & {
   agreement: Ref<"code">;
 };
 
-const provenanceColumns = "source_url, source_title, source_checked_on, verification, updated_at";
+const provenanceColumns = "source_url, source_title, source_checked_on, verification";
 
 const select = {
   institutions:
