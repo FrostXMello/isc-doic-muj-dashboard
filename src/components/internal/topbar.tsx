@@ -4,39 +4,11 @@ import { AccountMenu } from "@/components/auth/account-menu";
 import { SignOutButton, signOutClass } from "@/components/auth/sign-out-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import type { AccountSummary } from "@/lib/auth/session";
-import { internalNav } from "@/lib/internal-nav";
+import { findNavItem, internalBreadcrumbs } from "@/lib/internal-nav";
 import { cn } from "@/lib/utils";
-import { Bell, Search, Menu, ChevronRight } from "lucide-react";
+import { Menu, ChevronRight } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-
-function getBreadcrumbs(pathname: string) {
-  const crumbs: { label: string; href: string }[] = [
-    { label: "Portal", href: "/internal" },
-  ];
-
-  const match = internalNav.find((item) => {
-    if (item.href === "/internal") return pathname === "/internal";
-    return pathname === item.href || pathname.startsWith(`${item.href}/`);
-  });
-
-  if (match && match.href !== "/internal") {
-    crumbs.push({ label: match.label, href: match.href });
-    if (pathname !== match.href) {
-      crumbs.push({ label: "Record", href: pathname });
-    }
-  }
-
-  return crumbs;
-}
-
-function getPageTitle(pathname: string) {
-  const match = internalNav.find((item) => {
-    if (item.href === "/internal") return pathname === "/internal";
-    return pathname === item.href || pathname.startsWith(`${item.href}/`);
-  });
-  return match?.label ?? "Portal";
-}
 
 export function Topbar({
   account,
@@ -46,13 +18,14 @@ export function Topbar({
   onMobileMenuToggle: () => void;
 }) {
   const pathname = usePathname();
-  const breadcrumbs = getBreadcrumbs(pathname);
-  const pageTitle = getPageTitle(pathname);
+  const breadcrumbs = internalBreadcrumbs(pathname);
+  const pageTitle = findNavItem(pathname)?.label ?? "Portal";
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-line bg-surface/80 px-4 backdrop-blur-sm sm:px-6">
       {/* Mobile menu toggle */}
       <button
+        type="button"
         onClick={onMobileMenuToggle}
         className="rounded-lg p-2 text-fg-subtle transition-colors hover:bg-overlay hover:text-foreground lg:hidden"
         aria-label="Toggle navigation"
@@ -68,7 +41,7 @@ export function Topbar({
               <ChevronRight className="size-3.5 text-fg-dim" aria-hidden />
             )}
             {idx === breadcrumbs.length - 1 ? (
-              <span className="text-[13px] font-medium tracking-[0.01em] text-foreground">
+              <span aria-current="page" className="text-[13px] font-medium tracking-[0.01em] text-foreground">
                 {crumb.label}
               </span>
             ) : (
@@ -94,26 +67,6 @@ export function Topbar({
       {/* Right actions */}
       <div className="flex shrink-0 items-center gap-1">
         <ThemeToggle className="mr-1" />
-
-        {/* Search (placeholder) */}
-        <button
-          className="hidden rounded-lg p-2 text-fg-faint transition-colors hover:bg-overlay hover:text-muted-foreground sm:inline-flex"
-          aria-label="Search"
-          title="Search — coming soon"
-        >
-          <Search className="size-[18px]" />
-        </button>
-
-        {/* Notifications (placeholder) */}
-        <button
-          className="relative hidden rounded-lg p-2 text-fg-faint transition-colors hover:bg-overlay hover:text-muted-foreground sm:inline-flex"
-          aria-label="Notifications"
-          title="Notifications — coming soon"
-        >
-          <Bell className="size-[18px]" />
-          {/* Unread dot placeholder */}
-          <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-cyan opacity-0" />
-        </button>
 
         {account ? (
           <>

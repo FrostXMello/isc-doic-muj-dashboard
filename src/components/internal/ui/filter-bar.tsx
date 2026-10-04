@@ -2,7 +2,7 @@
 
 import { ChevronDown, LoaderCircle, Search, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useId, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
 
 export type FilterOption = { value: string; label: string };
@@ -53,32 +53,55 @@ export function FilterBar({
     setQuery(urlQuery);
   }
 
-  function navigate(patch: Record<string, string | undefined>) {
-    const next = new URLSearchParams(params.toString());
+  // The URL only changes once a navigation commits. Until then this holds the
+  // search string last requested, so a filter change and a pending search build
+  // on each other instead of one overwriting the other with stale params.
+  const requestedSearch = useRef(params.toString());
+  const searchTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => {
+    requestedSearch.current = params.toString();
+  }, [params]);
+
+  function replaceParams(patch: Record<string, string | undefined>) {
+    clearTimeout(searchTimer.current);
+    const next = new URLSearchParams(requestedSearch.current);
     for (const [key, value] of Object.entries(patch)) {
       if (value) next.set(key, value);
       else next.delete(key);
     }
     const qs = next.toString();
+    requestedSearch.current = qs;
     startTransition(() => {
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
     });
   }
 
+  function navigate(patch: Record<string, string | undefined>) {
+    replaceParams({ q: query.trim() || undefined, ...patch });
+  }
+
   useEffect(() => {
     const trimmed = query.trim();
-    if (trimmed === urlQuery) return;
-    const timer = setTimeout(() => {
-      const next = new URLSearchParams(params.toString());
-      if (trimmed) next.set("q", trimmed);
-      else next.delete("q");
-      const qs = next.toString();
-      startTransition(() => {
-        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-      });
-    }, SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(timer);
-  }, [query, urlQuery, params, pathname, router]);
+    if (trimmed === (new URLSearchParams(requestedSearch.current).get("q") ?? "")) return;
+    searchTimer.current = setTimeout(() => replaceParams({ q: trimmed || undefined }), SEARCH_DEBOUNCE_MS);
+    // A pending search would otherwise replace a link click or Back with this
+    // page's URL, so drop it as soon as the user navigates elsewhere.
+    const abandon = (event: Event) => {
+      const navigates = event.target instanceof Element && event.target.closest("a[href], [data-row-href]");
+      if (event.type === "click" && !navigates) return;
+      clearTimeout(searchTimer.current);
+      setQuery(urlQuery);
+    };
+    document.addEventListener("click", abandon, true);
+    window.addEventListener("popstate", abandon);
+    return () => {
+      clearTimeout(searchTimer.current);
+      document.removeEventListener("click", abandon, true);
+      window.removeEventListener("popstate", abandon);
+    };
+    // replaceParams reads refs and the current pathname; params re-runs the check after a commit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, urlQuery, params, pathname]);
 
   const filterKeys = ["q", ...selects.filter((s) => s.allLabel).map((s) => s.name)];
   const active = filterKeys.some((key) => params.get(key));

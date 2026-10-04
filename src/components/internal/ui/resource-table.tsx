@@ -1,5 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { ClickableRow } from "@/components/internal/ui/clickable-row";
 import { cn } from "@/lib/utils";
 
 export type Column<T> = {
@@ -8,14 +9,15 @@ export type Column<T> = {
   cell: (row: T) => React.ReactNode;
   className?: string;
   headerClassName?: string;
-  /** Lifts the cell above the row's stretched link so buttons inside stay clickable. */
-  interactive?: boolean;
 };
 
 /**
  * Responsive record list: a table from the `md` breakpoint up, stacked cards
- * below it. The first column links to the record; the whole row is clickable
- * through a stretched link so inner links remain usable.
+ * below it. The first column links to the record and the rest of the row opens
+ * it too; links and buttons inside cells keep their own behaviour.
+ *
+ * Card content is wrapped in the record link, so it must not contain links or
+ * buttons. Put those in `renderCardActions`, which renders outside the link.
  */
 export function ResourceTable<T>({
   rows,
@@ -24,6 +26,7 @@ export function ResourceTable<T>({
   getHref,
   getRowLabel,
   renderCard,
+  renderCardActions,
   caption,
   empty,
 }: {
@@ -33,6 +36,7 @@ export function ResourceTable<T>({
   getHref: (row: T) => string;
   getRowLabel: (row: T) => string;
   renderCard: (row: T) => React.ReactNode;
+  renderCardActions?: (row: T) => React.ReactNode;
   caption: string;
   empty: React.ReactNode;
 }) {
@@ -67,23 +71,23 @@ export function ResourceTable<T>({
             </thead>
             <tbody className="divide-y divide-hairline">
               {rows.map((row) => (
-                <tr
+                <ClickableRow
                   key={getKey(row)}
-                  className="group relative transition-colors hover:bg-overlay-subtle focus-within:bg-overlay-subtle"
+                  href={getHref(row)}
+                  className="group cursor-pointer transition-colors hover:bg-overlay-subtle focus-within:bg-overlay-subtle"
                 >
                   {columns.map((column, index) => (
                     <td
                       key={column.key}
                       className={cn(
                         "px-4 py-3.5 align-middle text-[13px] text-fg-soft first:pl-5",
-                        column.interactive && "relative z-10",
                         column.className,
                       )}
                     >
                       {index === 0 ? (
                         <Link
                           href={getHref(row)}
-                          className="rounded-sm text-foreground outline-offset-2 after:absolute after:inset-0 after:content-[''] hover:text-primary"
+                          className="rounded-sm text-foreground outline-offset-2 hover:text-primary"
                         >
                           {column.cell(row)}
                         </Link>
@@ -98,7 +102,7 @@ export function ResourceTable<T>({
                       aria-hidden
                     />
                   </td>
-                </tr>
+                </ClickableRow>
               ))}
             </tbody>
           </table>
@@ -106,17 +110,28 @@ export function ResourceTable<T>({
       </div>
 
       <ul className="space-y-2.5 md:hidden" aria-label={caption}>
-        {rows.map((row) => (
-          <li key={getKey(row)}>
-            <Link
-              href={getHref(row)}
-              aria-label={getRowLabel(row)}
-              className="block rounded-xl border border-line bg-card p-4 transition-colors hover:border-line-bold hover:bg-surface-raised"
+        {rows.map((row) => {
+          const actions = renderCardActions?.(row);
+          return (
+            <li
+              key={getKey(row)}
+              className="overflow-hidden rounded-xl border border-line bg-card transition-colors hover:border-line-bold"
             >
-              {renderCard(row)}
-            </Link>
-          </li>
-        ))}
+              <Link
+                href={getHref(row)}
+                aria-label={getRowLabel(row)}
+                className="block p-4 transition-colors hover:bg-surface-raised"
+              >
+                {renderCard(row)}
+              </Link>
+              {actions ? (
+                <div className="flex flex-wrap items-center gap-2 border-t border-hairline px-4 py-3">
+                  {actions}
+                </div>
+              ) : null}
+            </li>
+          );
+        })}
       </ul>
     </>
   );

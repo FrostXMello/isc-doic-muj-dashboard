@@ -1,7 +1,7 @@
 "use client";
 
 import { Mark } from "@/components/brand/mark";
-import { internalNav } from "@/lib/internal-nav";
+import { internalNav, isNavItemActive } from "@/lib/internal-nav";
 import { site } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import {
@@ -33,11 +33,6 @@ const iconMap: Record<string, LucideIcon> = {
   BarChart3,
   Settings,
 };
-
-function isActive(pathname: string, href: string) {
-  if (href === "/internal") return pathname === "/internal";
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 export function Sidebar({
   collapsed,
@@ -81,7 +76,7 @@ export function Sidebar({
         <ul className="flex flex-col gap-0.5">
           {internalNav.map((item) => {
             const Icon = iconMap[item.icon];
-            const active = isActive(pathname, item.href);
+            const active = isNavItemActive(pathname, item.href);
 
             return (
               <li key={item.href}>
@@ -127,6 +122,7 @@ export function Sidebar({
           {!collapsed && <span className="truncate">Back to site</span>}
         </Link>
         <button
+          type="button"
           onClick={onToggle}
           className={cn(
             "group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] text-fg-subtle transition-colors duration-200 hover:bg-overlay hover:text-foreground",

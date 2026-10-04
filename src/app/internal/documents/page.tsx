@@ -166,7 +166,6 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
           {
             key: "file",
             header: "File",
-            interactive: true,
             cell: (row) => <FileCell doc={row} />,
           },
         ]}
@@ -178,10 +177,10 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
             meta={[
               { label: "Related to", value: <LinkSummary doc={row} /> },
               { label: "Updated", value: formatDate(row.updatedOn, "—") },
-              { label: "File", value: <FileCell doc={row} /> },
             ]}
           />
         )}
+        renderCardActions={(row) => <FileCell doc={row} />}
       />
     </div>
   );

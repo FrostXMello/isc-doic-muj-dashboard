@@ -78,6 +78,7 @@ export function PortalShell({
           <div className="relative z-10 h-full w-[280px] animate-[slideIn_0.25s_ease-out]">
             <Sidebar collapsed={false} onToggle={closeMobile} />
             <button
+              type="button"
               onClick={closeMobile}
               className="absolute right-3 top-4 rounded-lg p-1.5 text-fg-subtle transition-colors hover:bg-overlay hover:text-foreground"
               aria-label="Close navigation"
