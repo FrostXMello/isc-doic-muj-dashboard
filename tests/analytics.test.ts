@@ -95,52 +95,70 @@ describe("dashboard activities", () => {
   it("summarises total, upcoming, overdue, and completed", () => {
     const { activities } = dashboard();
     assert.equal(activities.total, 6);
-    assert.equal(activities.completed, 1);
+    assert.equal(activities.completed.length, 1);
     assert.equal(activities.cancelled, 1);
     assert.equal(activities.upcoming.length, 2);
     assert.equal(activities.overdue.length, 2);
   });
 
-  it("lists the soonest upcoming and the most recent overdue first", () => {
+  it("lists the soonest upcoming, the most recent overdue, and the latest completed first", () => {
     const { activities } = dashboard();
     assert.deepEqual(activities.upcoming.map((row) => row.id), ["soon", "later"]);
     assert.deepEqual(activities.overdue.map((row) => row.id), ["overdue-new", "overdue-old"]);
     assert.ok(activities.overdue.every((row) => row.status === "needs-update"));
+    assert.deepEqual(activities.completed.map((row) => row.id), ["done"]);
   });
 
   it("handles no activities", () => {
     const { activities } = dashboard({ activities: [] });
-    assert.deepEqual([activities.total, activities.upcoming.length, activities.overdue.length, activities.completed], [0, 0, 0, 0]);
+    assert.deepEqual(
+      [activities.total, activities.upcoming.length, activities.overdue.length, activities.completed.length],
+      [0, 0, 0, 0],
+    );
   });
 });
 
-describe("dashboard totals and MoU status", () => {
+describe("dashboard totals, MoU records, and regions", () => {
   it("counts each record once, including multi-party MoUs", () => {
     const { totals } = dashboard();
     assert.deepEqual(totals, { universities: 2, mous: 2, programmes: 0, opportunities: 0, documents: 0 });
   });
 
-  it("reports MoUs without a status as not recorded instead of charting them", () => {
+  it("reports missing MoU details as missing and lists no invented statuses", () => {
     const { mous } = dashboard();
     assert.equal(mous.total, 2);
-    assert.equal(mous.withStatus, 0);
+    assert.deepEqual(
+      mous.completeness.map((row) => [row.key, row.recorded]),
+      [["status", 0], ["end-date", 0], ["type", 2]],
+    );
     assert.deepEqual(mous.byStatus, []);
   });
 
-  it("charts only statuses that are recorded", () => {
+  it("lists only statuses that are recorded", () => {
     const { mous } = dashboard({
       agreements: [
         agreement("live", { recordStatus: "signed", startDate: "2024-01-01", endDate: "2028-01-01" }),
         agreement("ended", { recordStatus: "signed", startDate: "2020-01-01", endDate: "2025-01-01" }),
-        agreement("unknown"),
+        agreement("unknown", { type: "not-stated" }),
       ],
     });
     assert.deepEqual(mous.byStatus, [
       { status: "active", count: 1 },
       { status: "expired", count: 1 },
     ]);
-    assert.equal(mous.withStatus, 2);
-    assert.equal(mous.total, 3);
+    assert.deepEqual(mous.completeness.map((row) => row.recorded), [2, 2, 2]);
+  });
+
+  it("flags only record gaps that exist, each with a link", () => {
+    const { attention } = dashboard({ institutions: [institution("uni-a"), institution("uni-b"), institution("lonely")] });
+    assert.deepEqual(attention.map((row) => [row.key, row.count]), [["no-mou", 1]]);
+    assert.equal(attention[0].href, "/internal/universities?coverage=without");
+  });
+
+  it("groups universities by region and country without double counting", () => {
+    const { regions } = dashboard();
+    assert.deepEqual(regions.byRegion, [{ region: "Europe", universities: 2 }]);
+    assert.deepEqual(regions.topCountries, [{ country: "France", universities: 2 }]);
   });
 
   it("matches the official dataset", () => {
@@ -149,6 +167,7 @@ describe("dashboard totals and MoU status", () => {
     assert.equal(d.totals.mous, officialDataset.agreements.length);
     assert.equal(d.totals.documents, officialDataset.documents.length);
     assert.equal(d.activities.total, officialDataset.activities.length);
+    assert.equal(d.regions.byRegion.reduce((sum, row) => sum + row.universities, 0), d.totals.universities);
   });
 });
 
@@ -163,16 +182,23 @@ describe("dashboard page", () => {
     }
   });
 
-  it("puts activities before the totals and the MoU chart", () => {
-    const order = ["activities-heading", 'aria-label="Totals"', "mou-heading"].map((marker) => page.indexOf(marker));
+  it("orders snapshot, then activities beside MoU records, then the rest", () => {
+    const order = ["snapshot-heading", "activities-heading", "mou-heading", "regions-heading"].map((marker) =>
+      page.indexOf(`id="${marker}"`),
+    );
     assert.ok(order.every((index) => index > 0), "all sections present");
     assert.deepEqual([...order].sort((a, b) => a - b), order);
   });
 
+  it("splits the second row 65/35 on desktop and stacks it on mobile", () => {
+    assert.match(page, /grid-cols-1 [^"]*lg:grid-cols-\[minmax\(0,13fr\)_minmax\(18rem,7fr\)\]/);
+  });
+
   it("links activities to their records and keeps at most two charts", () => {
     assert.match(page, /href=\{`\/internal\/activities\/\$\{activity\.id\}`\}/);
-    assert.equal(page.match(/<SegmentBar/g)?.length, 2);
-    assert.doesNotMatch(page, /Filter|Breakdown|ColumnChart|Recent updates/);
+    const charts = (page.match(/<figure|<Breakdown/g) ?? []).length;
+    assert.ok(charts <= 2, `found ${charts} charts`);
+    assert.doesNotMatch(page, /Filter|ColumnChart|Recent updates/);
   });
 
   it("keeps analytics off the section pages", () => {
