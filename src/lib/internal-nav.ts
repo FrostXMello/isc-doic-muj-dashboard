@@ -47,7 +47,7 @@ export const internalNav: readonly InternalNavItem[] = [
   },
   {
     href: "/internal/programs",
-    label: "Programs",
+    label: "Programs & Opportunities",
     icon: "BookOpen",
     role: "editor",
     description: "Programmes for students and faculty, their offerings, and the opportunities (application calls) under each.",
@@ -58,7 +58,7 @@ export const internalNav: readonly InternalNavItem[] = [
   },
   {
     href: "/internal/documents",
-    label: "Documents",
+    label: "Documents & Reports",
     icon: "FolderOpen",
     role: "editor",
     description: "Official documents, with operational reports as a subsection.",

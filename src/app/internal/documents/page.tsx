@@ -21,7 +21,7 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Documents"
+        title="Documents & Reports"
         description="Official DoIC documents, linked at their official URLs, and operational reports."
         actions={
           tab === "reports" ? (

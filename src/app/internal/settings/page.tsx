@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { Database, Link2, Lock, UserRound } from "lucide-react";
+import { Database, Lock, UserRound } from "lucide-react";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { RoleManagement } from "@/components/internal/role-management";
 import { DetailSection, KeyValueList } from "@/components/internal/ui/detail";
 import { PageHeader } from "@/components/internal/ui/page-header";
-import { RESTRICTED_CONTACTS, SourceLink } from "@/components/internal/ui/provenance";
+import { RESTRICTED_CONTACTS } from "@/components/internal/ui/provenance";
 import { getAccountSummary } from "@/lib/auth/session";
 import { openDataContext } from "@/lib/internal/data/context";
 import { formatDate } from "@/lib/internal/dates";
-import { officialSources, SOURCE_REVIEWED_ON } from "@/lib/official/source";
+import { SOURCE_REVIEWED_ON } from "@/lib/official/source";
 
 export const metadata: Metadata = { title: "Settings" };
 
@@ -94,20 +94,6 @@ export default async function SettingsPage() {
           />
         </DetailSection>
       </div>
-
-      <DetailSection
-        title="Official sources"
-        icon={Link2}
-        description="Pages on jaipur.manipal.edu the dataset was imported from. Records link back to the specific page."
-      >
-        <ul className="divide-y divide-hairline">
-          {Object.entries(officialSources).map(([key, page]) => (
-            <li key={key} className="px-5 py-3 text-[13px]">
-              <SourceLink url={page.url} title={page.title} />
-            </li>
-          ))}
-        </ul>
-      </DetailSection>
     </div>
   );
 }

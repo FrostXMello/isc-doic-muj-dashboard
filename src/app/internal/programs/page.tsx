@@ -22,7 +22,7 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Programs"
+        title="Programs & Opportunities"
         description="Programmes for students and faculty, and the opportunities (application calls) published under them."
         actions={
           tab === "opportunities" ? (

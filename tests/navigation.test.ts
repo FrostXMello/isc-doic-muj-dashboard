@@ -49,7 +49,7 @@ describe("internal route mappings", () => {
   it("keeps five sections, with Opportunities under Programs and Reports under Documents", () => {
     assert.deepEqual(
       internalNav.map((item) => item.label),
-      ["Dashboard", "Universities & MoUs", "Programs", "Documents", "Settings"],
+      ["Dashboard", "Universities & MoUs", "Programs & Opportunities", "Documents & Reports", "Settings"],
     );
     assert.deepEqual(sectionTabs("/internal/programs").map((t) => t.label), ["Programs", "Opportunities"]);
     assert.deepEqual(sectionTabs("/internal/documents").map((t) => t.label), ["Documents", "Reports"]);
@@ -87,12 +87,12 @@ describe("internal route mappings", () => {
       "/internal": "Dashboard",
       "/internal/universities": "Universities & MoUs",
       "/internal/universities/ofc-x/agreements/mou-1/edit": "Universities & MoUs",
-      "/internal/programs": "Programs",
-      "/internal/programs/abc": "Programs",
-      "/internal/opportunities": "Programs",
-      "/internal/opportunities/o1": "Programs",
-      "/internal/documents/d1": "Documents",
-      "/internal/reports": "Documents",
+      "/internal/programs": "Programs & Opportunities",
+      "/internal/programs/abc": "Programs & Opportunities",
+      "/internal/opportunities": "Programs & Opportunities",
+      "/internal/opportunities/o1": "Programs & Opportunities",
+      "/internal/documents/d1": "Documents & Reports",
+      "/internal/reports": "Documents & Reports",
       "/internal/activities": "Dashboard",
       "/internal/activities/a1": "Dashboard",
       "/internal/settings": "Settings",
@@ -116,21 +116,21 @@ describe("internal breadcrumbs", () => {
     assert.deepEqual(labels("/internal/universities"), ["Portal=/internal", "Universities & MoUs=/internal/universities"]);
     assert.deepEqual(labels("/internal/programs/p1"), [
       "Portal=/internal",
-      "Programs=/internal/programs",
+      "Programs & Opportunities=/internal/programs",
       "Details=/internal/programs/p1",
     ]);
     assert.deepEqual(labels("/internal/opportunities/o1"), [
       "Portal=/internal",
-      "Programs=/internal/programs",
+      "Programs & Opportunities=/internal/programs",
       "Opportunities=/internal/programs?tab=opportunities",
       "Details=/internal/opportunities/o1",
     ]);
     assert.deepEqual(labels("/internal/reports"), [
       "Portal=/internal",
-      "Documents=/internal/documents",
+      "Documents & Reports=/internal/documents",
       "Reports=/internal/documents?tab=reports",
     ]);
-    assert.deepEqual(labels("/internal/documents"), ["Portal=/internal", "Documents=/internal/documents"]);
+    assert.deepEqual(labels("/internal/documents"), ["Portal=/internal", "Documents & Reports=/internal/documents"]);
     assert.deepEqual(labels("/internal/activities/a1"), [
       "Portal=/internal",
       "Activities=/internal/activities",
@@ -195,16 +195,16 @@ describe("tabbed section pages", () => {
 
   it("names the selected tab in breadcrumbs and the mobile title, and keeps the section active", () => {
     const crumbs = (path: string, tab?: string) => internalBreadcrumbs(path, tab).map((c) => c.label);
-    assert.deepEqual(crumbs("/internal/programs"), ["Portal", "Programs"]);
-    assert.deepEqual(crumbs("/internal/programs", "opportunities"), ["Portal", "Programs", "Opportunities"]);
-    assert.deepEqual(crumbs("/internal/documents", "reports"), ["Portal", "Documents", "Reports"]);
-    assert.deepEqual(crumbs("/internal/documents", "bogus"), ["Portal", "Documents"]);
+    assert.deepEqual(crumbs("/internal/programs"), ["Portal", "Programs & Opportunities"]);
+    assert.deepEqual(crumbs("/internal/programs", "opportunities"), ["Portal", "Programs & Opportunities", "Opportunities"]);
+    assert.deepEqual(crumbs("/internal/documents", "reports"), ["Portal", "Documents & Reports", "Reports"]);
+    assert.deepEqual(crumbs("/internal/documents", "bogus"), ["Portal", "Documents & Reports"]);
     assert.equal(navTitle("/internal/programs", "opportunities"), "Opportunities");
-    assert.equal(navTitle("/internal/programs"), "Programs");
+    assert.equal(navTitle("/internal/programs"), "Programs & Opportunities");
     assert.equal(navTitle("/internal/opportunities/o1"), "Opportunities");
     assert.equal(navTitle("/internal/documents", "reports"), "Reports");
     for (const path of ["/internal/programs", "/internal/opportunities/o1"]) {
-      assert.equal(findNavItem(path)?.label, "Programs", path);
+      assert.equal(findNavItem(path)?.label, "Programs & Opportunities", path);
     }
   });
 
