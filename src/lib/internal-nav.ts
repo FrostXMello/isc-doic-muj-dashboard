@@ -41,10 +41,10 @@ export const internalNav: readonly InternalNavItem[] = [
   },
   {
     href: "/internal/programs",
-    label: "Programs & Opportunities",
+    label: "Programs",
     icon: "BookOpen",
     role: "editor",
-    description: "Programme offerings and the application calls published for them.",
+    description: "Programmes for students and faculty, their offerings, and the opportunities (application calls) under each.",
     pages: [
       { href: "/internal/programs", label: "Programs" },
       { href: "/internal/opportunities", label: "Opportunities" },
@@ -52,10 +52,10 @@ export const internalNav: readonly InternalNavItem[] = [
   },
   {
     href: "/internal/documents",
-    label: "Documents & Reports",
+    label: "Documents",
     icon: "FolderOpen",
     role: "editor",
-    description: "Official documents and operational reports.",
+    description: "Official documents, with operational reports as a subsection.",
     pages: [
       { href: "/internal/documents", label: "Documents" },
       { href: "/internal/reports", label: "Reports" },
@@ -118,7 +118,7 @@ export function internalBreadcrumbs(pathname: string): Breadcrumb[] {
   if (!section) return crumbs;
   const page = findNavPage(pathname, section);
   if (section.href !== "/internal") crumbs.push({ label: section.label, href: section.href });
-  if (page) crumbs.push({ label: page.label, href: page.href });
+  if (page && page.href !== section.href) crumbs.push({ label: page.label, href: page.href });
   const base = page?.href ?? (section.href === "/internal" ? null : section.href);
   if (!base) return crumbs;
 

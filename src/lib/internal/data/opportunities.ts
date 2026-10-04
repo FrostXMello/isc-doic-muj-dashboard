@@ -1,4 +1,5 @@
 import { matchesQuery, openDataContext, uniqueSorted } from "@/lib/internal/data/context";
+import { type ProgramAudience, programAudience } from "@/lib/internal/status";
 import type { OpportunityStatus, OpportunityView, ProgramType } from "@/lib/internal/types";
 
 export const opportunityStatuses: readonly OpportunityStatus[] = [
@@ -17,6 +18,7 @@ export type OpportunityFilters = {
   q?: string;
   status?: OpportunityStatus;
   program?: ProgramType;
+  audience?: ProgramAudience;
   country?: string;
   sort?: OpportunitySort;
 };
@@ -41,6 +43,7 @@ export async function listOpportunities(filters: OpportunityFilters = {}) {
         ) &&
         (!filters.status || row.status === filters.status) &&
         (!filters.program || row.programId === filters.program) &&
+        (!filters.audience || programAudience[row.programId] === filters.audience) &&
         (!filters.country || row.institution?.country === filters.country),
     )
     .sort(sorters[filters.sort ?? "deadline"]);

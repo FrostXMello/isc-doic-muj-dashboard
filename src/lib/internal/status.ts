@@ -165,6 +165,30 @@ export const availabilityMeta: Record<AvailabilityState | "not-recorded", Status
   "not-recorded": { label: "Not recorded", tone: "muted" },
 };
 
+export type ProgramAudience = "students" | "faculty";
+
+export const programAudiences: readonly ProgramAudience[] = ["students", "faculty"];
+
+/**
+ * Who each programme type is for, as its official DoIC name and description
+ * state (e.g. "Academic and Delegation Visits (Faculty Exchange)"). A property
+ * of the fixed programme vocabulary, so opportunities inherit it from their
+ * programme rather than from a per-record guess.
+ */
+export const programAudience: Record<ProgramType, ProgramAudience> = {
+  "student-exchange": "students",
+  "semester-exchange": "students",
+  "pathway-programs": "students",
+  "academic-visits": "faculty",
+  "dual-degree": "students",
+  "summer-winter-school": "students",
+};
+
+export const audienceMeta: Record<ProgramAudience, StatusMeta> = {
+  students: { label: "Students", tone: "info" },
+  faculty: { label: "Faculty", tone: "neutral" },
+};
+
 export const programTypeLabel: Record<ProgramType, string> = {
   "student-exchange": "Student Exchange",
   "semester-exchange": "Semester Exchange",

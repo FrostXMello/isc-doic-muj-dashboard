@@ -78,7 +78,7 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Documents & Reports"
+        title="Documents"
         description="Official DoIC documents published on MUJ's pages, linked at their official URLs. File storage for internal copies is not connected yet."
         actions={
           <RecordAction

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getDataMode } from "@/lib/internal/data/context";
 import { SearchX } from "lucide-react";
-import { OpportunityStatusBadge, RelativeDays } from "@/components/internal/badges";
+import { AudienceBadge, OpportunityStatusBadge, RelativeDays } from "@/components/internal/badges";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
 import { PageHeader } from "@/components/internal/ui/page-header";
@@ -20,7 +20,13 @@ import {
 import { listOfferings, programTypes } from "@/lib/internal/data/programs";
 import { DEADLINE_WARNING_DAYS, formatDate } from "@/lib/internal/dates";
 import { readEnumParam, readParam, type SearchParamsProp } from "@/lib/internal/query";
-import { opportunityStatusMeta, optionsFrom, programTypeLabel } from "@/lib/internal/status";
+import {
+  audienceMeta,
+  opportunityStatusMeta,
+  optionsFrom,
+  programAudiences,
+  programTypeLabel,
+} from "@/lib/internal/status";
 import type { OpportunityView } from "@/lib/internal/types";
 
 export const metadata: Metadata = { title: "Opportunities" };
@@ -34,6 +40,7 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
       q: readParam(params, "q"),
       status: readEnumParam(params, "status", opportunityStatuses),
       program: readEnumParam(params, "program", programTypes),
+      audience: readEnumParam(params, "audience", programAudiences),
       country: readEnumParam(params, "country", options.countries),
       sort: readEnumParam(params, "sort", opportunitySorts),
     }),
@@ -47,8 +54,8 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Programs & Opportunities"
-        description={`Application calls for programme offerings. Status is derived from opening and deadline dates; calls within ${DEADLINE_WARNING_DAYS} days of the deadline are flagged.`}
+        title="Programs"
+        description={`Opportunities are the application calls published under a programme; each one belongs to exactly one programme and inherits its audience. Status is derived from opening and deadline dates; calls within ${DEADLINE_WARNING_DAYS} days of the deadline are flagged.`}
         actions={
           <RecordAction
             permission="opportunities:create"
@@ -101,6 +108,12 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
         resultCount={rows.length}
         totalCount={all.length}
         selects={[
+          {
+            name: "audience",
+            label: "Audience",
+            allLabel: "Students and faculty",
+            options: optionsFrom(programAudiences, audienceMeta),
+          },
           {
             name: "status",
             label: "Status",
@@ -156,6 +169,11 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
             cell: (row) => row.program.name,
           },
           {
+            key: "audience",
+            header: "Audience",
+            cell: (row) => <AudienceBadge program={row.programId} />,
+          },
+          {
             key: "institution",
             header: "University",
             cell: (row) =>
@@ -196,7 +214,12 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
           <ResourceCard
             title={row.title}
             subtitle={`${row.program.name} · ${row.institution?.name ?? "Not institution-specific"}`}
-            badges={<OpportunityStatusBadge status={row.status} />}
+            badges={
+              <>
+                <AudienceBadge program={row.programId} />
+                <OpportunityStatusBadge status={row.status} />
+              </>
+            }
             meta={[
               { label: "Opens", value: formatDate(row.opensOn, "—") },
               { label: "Deadline", value: formatDate(row.deadline, "—") },

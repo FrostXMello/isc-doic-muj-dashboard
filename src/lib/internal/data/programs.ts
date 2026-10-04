@@ -1,4 +1,5 @@
 import { matchesQuery, openDataContext, uniqueSorted } from "@/lib/internal/data/context";
+import { type ProgramAudience, programAudience } from "@/lib/internal/status";
 import type { AvailabilityState, ProgramType } from "@/lib/internal/types";
 
 export type AvailabilityFilter = AvailabilityState | "not-recorded";
@@ -25,19 +26,49 @@ export type OfferingFilters = {
   program?: ProgramType;
   country?: string;
   availability?: AvailabilityFilter;
+  audience?: ProgramAudience;
 };
 
-/** Programme catalogue with the number of recorded offerings per programme. */
-export async function listPrograms() {
+export function isProgramType(value: string): value is ProgramType {
+  return (programTypes as readonly string[]).includes(value);
+}
+
+/** Programme catalogue with its recorded offerings and opportunities per programme. */
+export async function listPrograms(filters: { audience?: ProgramAudience } = {}) {
   const { data } = await openDataContext();
-  return data.programs.map((program) => {
-    const offerings = data.availability.filter((row) => row.programId === program.id);
-    return {
-      ...program,
-      offeringCount: offerings.length,
-      openCount: offerings.filter((row) => row.availability === "open").length,
-    };
-  });
+  return data.programs
+    .filter((program) => !filters.audience || programAudience[program.id] === filters.audience)
+    .map((program) => {
+      const offerings = data.availability.filter((row) => row.programId === program.id);
+      return {
+        ...program,
+        audience: programAudience[program.id],
+        offeringCount: offerings.length,
+        openCount: offerings.filter((row) => row.availability === "open").length,
+        opportunityCount: data.opportunities.filter((row) => row.programId === program.id).length,
+      };
+    });
+}
+
+/** One programme with everything recorded under it. Opportunities link through their programme. */
+export async function getProgram(id: string) {
+  if (!isProgramType(id)) return null;
+  const { today, data, views } = await openDataContext();
+  const program = data.programs.find((row) => row.id === id);
+  if (!program) return null;
+  return {
+    program,
+    audience: programAudience[program.id],
+    offerings: data.availability
+      .filter((row) => row.programId === id)
+      .map((row) => views.toAvailabilityView(row, today))
+      .sort((a, b) => (a.institution?.name ?? "").localeCompare(b.institution?.name ?? "")),
+    opportunities: data.opportunities
+      .filter((row) => row.programId === id)
+      .map((row) => views.toOpportunityView(row, today))
+      .sort((a, b) => (b.deadline ?? "").localeCompare(a.deadline ?? "")),
+    documents: views.documentsLinkedTo({ programId: id }),
+  };
 }
 
 export async function listOfferings(filters: OfferingFilters = {}) {
@@ -55,6 +86,7 @@ export async function listOfferings(filters: OfferingFilters = {}) {
           row.intake,
         ) &&
         (!filters.program || row.programId === filters.program) &&
+        (!filters.audience || programAudience[row.programId] === filters.audience) &&
         (!filters.country || row.institution?.country === filters.country) &&
         (!filters.availability || (row.availability ?? "not-recorded") === filters.availability),
     )

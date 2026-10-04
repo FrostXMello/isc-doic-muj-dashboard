@@ -3,10 +3,12 @@ import { formatRelativeDays } from "@/lib/internal/dates";
 import {
   activityStatusMeta,
   agreementStatusMeta,
+  audienceMeta,
   availabilityMeta,
   documentStatusMeta,
   opportunityStatusMeta,
   partnershipStatusMeta,
+  programAudience,
 } from "@/lib/internal/status";
 import type {
   ActivityStatus,
@@ -15,6 +17,7 @@ import type {
   DocumentStatus,
   OpportunityStatus,
   PartnershipStatus,
+  ProgramType,
 } from "@/lib/internal/types";
 
 export function AgreementStatusBadge({
@@ -42,6 +45,11 @@ export function PartnershipBadge({ status }: { status: PartnershipStatus }) {
 export function AvailabilityBadge({ availability }: { availability: AvailabilityState | null }) {
   const meta = availabilityMeta[availability ?? "not-recorded"];
   return <StatusBadge label={meta.label} tone={meta.tone} />;
+}
+
+export function AudienceBadge({ program }: { program: ProgramType }) {
+  const meta = audienceMeta[programAudience[program]];
+  return <StatusBadge label={`For ${meta.label.toLowerCase()}`} tone={meta.tone} />;
 }
 
 export function OpportunityStatusBadge({ status }: { status: OpportunityStatus }) {

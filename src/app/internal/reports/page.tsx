@@ -66,8 +66,8 @@ export default async function ReportsPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Documents & Reports"
-        description={`Operational overview computed from the portal's data layer as of ${formatDate(summary.today)}.`}
+        title="Documents"
+        description={`Reports: an operational overview computed from the portal's data layer as of ${formatDate(summary.today)}.`}
         actions={
           <PlaceholderAction label="Export report" icon="download" reason={unavailableReasons.exports} />
         }
@@ -78,6 +78,20 @@ export default async function ReportsPage() {
         current="/internal/reports"
         counts={{ "/internal/documents": documents.total }}
       />
+
+      <p className="text-[13px] text-muted-foreground">
+        Report files published by DoIC are kept with the other documents.{" "}
+        {documents.byType.report > 0 ? (
+          <Link
+            href="/internal/documents?type=report"
+            className="text-primary underline-offset-4 hover:text-foreground hover:underline"
+          >
+            View {documents.byType.report} report {documents.byType.report === 1 ? "document" : "documents"}
+          </Link>
+        ) : (
+          "No report documents are recorded yet."
+        )}
+      </p>
 
       <DataNotice>
         Figures are counts of records in the portal data layer, imported from MUJ&apos;s official

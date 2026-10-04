@@ -4,6 +4,7 @@ import { BookOpen, ClipboardList, Compass, FileText, FolderOpen, GraduationCap, 
 import { notFound } from "next/navigation";
 import {
   AgreementStatusBadge,
+  AudienceBadge,
   AvailabilityBadge,
   DocumentStatusBadge,
   OpportunityStatusBadge,
@@ -14,13 +15,16 @@ import { unavailableReasons } from "@/components/internal/ui/placeholder-action"
 import { RecordAction } from "@/components/internal/ui/record-action";
 import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
-import { getOffering } from "@/lib/internal/data/programs";
+import { getOffering, getProgram } from "@/lib/internal/data/programs";
+import { ProgramOverview } from "./program-overview";
 import { formatDate, formatDateRange } from "@/lib/internal/dates";
 import type { IdParamsProp } from "@/lib/internal/query";
 import { documentTypeLabel } from "@/lib/internal/status";
 
 export async function generateMetadata({ params }: IdParamsProp): Promise<Metadata> {
   const { id } = await params;
+  const program = await getProgram(id);
+  if (program) return { title: program.program.name };
   const record = await getOffering(id);
   if (!record) return { title: "Offering not found" };
   const { offering } = record;
@@ -36,6 +40,9 @@ const availabilityExplanation = {
 
 export default async function ProgramOfferingPage({ params }: IdParamsProp) {
   const { id } = await params;
+  const programRecord = await getProgram(id);
+  if (programRecord) return <ProgramOverview record={programRecord} />;
+
   const record = await getOffering(id);
   if (!record) notFound();
 
@@ -46,8 +53,8 @@ export default async function ProgramOfferingPage({ params }: IdParamsProp) {
   return (
     <div className="space-y-6">
       <DetailHeader
-        backHref="/internal/programs"
-        backLabel="All programs"
+        backHref={`/internal/programs/${program.id}`}
+        backLabel={program.name}
         eyebrow={program.name}
         title={institution ? `${program.name} · ${institution.name}` : program.name}
         subtitle={
@@ -55,6 +62,7 @@ export default async function ProgramOfferingPage({ params }: IdParamsProp) {
         }
         badges={
           <>
+            <AudienceBadge program={program.id} />
             <AvailabilityBadge availability={offering.availability} />
             <SourceBadge source={offering.source} />
             <VerificationBadge status={offering.verification} />

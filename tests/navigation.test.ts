@@ -33,10 +33,10 @@ describe("internal route mappings", () => {
     }
   });
 
-  it("groups the consolidated sections in the sidebar", () => {
+  it("keeps five sections, with Opportunities under Programs and Reports under Documents", () => {
     assert.deepEqual(
       internalNav.map((item) => item.label),
-      ["Dashboard", "Universities & MoUs", "Programs & Opportunities", "Documents & Reports", "Settings"],
+      ["Dashboard", "Universities & MoUs", "Programs", "Documents", "Settings"],
     );
     assert.deepEqual(sectionTabs("/internal/programs").map((t) => t.href), ["/internal/programs", "/internal/opportunities"]);
     assert.deepEqual(sectionTabs("/internal/documents").map((t) => t.href), ["/internal/documents", "/internal/reports"]);
@@ -74,12 +74,12 @@ describe("internal route mappings", () => {
       "/internal": "Dashboard",
       "/internal/universities": "Universities & MoUs",
       "/internal/universities/ofc-x/agreements/mou-1/edit": "Universities & MoUs",
-      "/internal/programs": "Programs & Opportunities",
-      "/internal/programs/abc": "Programs & Opportunities",
-      "/internal/opportunities": "Programs & Opportunities",
-      "/internal/opportunities/o1": "Programs & Opportunities",
-      "/internal/documents/d1": "Documents & Reports",
-      "/internal/reports": "Documents & Reports",
+      "/internal/programs": "Programs",
+      "/internal/programs/abc": "Programs",
+      "/internal/opportunities": "Programs",
+      "/internal/opportunities/o1": "Programs",
+      "/internal/documents/d1": "Documents",
+      "/internal/reports": "Documents",
       "/internal/activities": "Dashboard",
       "/internal/activities/a1": "Dashboard",
       "/internal/settings": "Settings",
@@ -103,21 +103,21 @@ describe("internal breadcrumbs", () => {
     assert.deepEqual(labels("/internal/universities"), ["Portal=/internal", "Universities & MoUs=/internal/universities"]);
     assert.deepEqual(labels("/internal/programs/p1"), [
       "Portal=/internal",
-      "Programs & Opportunities=/internal/programs",
       "Programs=/internal/programs",
       "Details=/internal/programs/p1",
     ]);
     assert.deepEqual(labels("/internal/opportunities/o1"), [
       "Portal=/internal",
-      "Programs & Opportunities=/internal/programs",
+      "Programs=/internal/programs",
       "Opportunities=/internal/opportunities",
       "Details=/internal/opportunities/o1",
     ]);
     assert.deepEqual(labels("/internal/reports"), [
       "Portal=/internal",
-      "Documents & Reports=/internal/documents",
+      "Documents=/internal/documents",
       "Reports=/internal/reports",
     ]);
+    assert.deepEqual(labels("/internal/documents"), ["Portal=/internal", "Documents=/internal/documents"]);
     assert.deepEqual(labels("/internal/activities/a1"), [
       "Portal=/internal",
       "Activities=/internal/activities",

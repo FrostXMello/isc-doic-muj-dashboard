@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { BookOpen, CalendarClock, Compass, GraduationCap, Link2 } from "lucide-react";
 import { notFound } from "next/navigation";
-import { AvailabilityBadge, OpportunityStatusBadge } from "@/components/internal/badges";
+import { AvailabilityBadge, AudienceBadge, OpportunityStatusBadge } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { NotRecorded } from "@/components/internal/ui/page-header";
 import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
@@ -49,13 +49,14 @@ export default async function OpportunityDetailPage({ params }: IdParamsProp) {
   return (
     <div className="space-y-6">
       <DetailHeader
-        backHref="/internal/opportunities"
-        backLabel="All opportunities"
+        backHref={`/internal/programs/${program.id}`}
+        backLabel={program.name}
         eyebrow={program.name}
         title={opportunity.title}
         subtitle={institution ? `${institution.name} · ${institution.country}` : "Not tied to one institution"}
         badges={
           <>
+            <AudienceBadge program={program.id} />
             <OpportunityStatusBadge status={opportunity.status} />
             <SourceBadge source={opportunity.source} />
             <VerificationBadge status={opportunity.verification} />

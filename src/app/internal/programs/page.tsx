@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { SearchX } from "lucide-react";
 import Link from "next/link";
-import { AvailabilityBadge } from "@/components/internal/badges";
+import { AudienceBadge, AvailabilityBadge } from "@/components/internal/badges";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
 import { PageHeader } from "@/components/internal/ui/page-header";
@@ -21,22 +21,28 @@ import {
 } from "@/lib/internal/data/programs";
 import { formatDateRange } from "@/lib/internal/dates";
 import { readEnumParam, readParam, type SearchParamsProp } from "@/lib/internal/query";
-import { availabilityMeta, optionsFrom, programTypeLabel } from "@/lib/internal/status";
+import {
+  audienceMeta,
+  availabilityMeta,
+  optionsFrom,
+  programAudiences,
+  programTypeLabel,
+} from "@/lib/internal/status";
 import type { ProgramAvailabilityView } from "@/lib/internal/types";
-import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Programs" };
 
 export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
   const params = await searchParams;
   const [options, mode] = await Promise.all([getOfferingFilterOptions(), getDataMode()]);
-  const selectedProgram = readEnumParam(params, "program", programTypes);
+  const audience = readEnumParam(params, "audience", programAudiences);
 
   const [programs, rows, all, opportunities] = await Promise.all([
-    listPrograms(),
+    listPrograms({ audience }),
     listOfferings({
       q: readParam(params, "q"),
-      program: selectedProgram,
+      audience,
+      program: readEnumParam(params, "program", programTypes),
       country: readEnumParam(params, "country", options.countries),
       availability: readEnumParam(params, "availability", availabilityFilters),
     }),
@@ -47,8 +53,8 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Programs & Opportunities"
-        description="Programme types from MUJ's official Internationalization pages, and the institutions each page names. A programme is not assumed to be available at an institution unless the source names it."
+        title="Programs"
+        description="Programme types from MUJ's official Internationalization pages, grouped by who they are for. Open a programme to see its offerings and opportunities. A programme is not assumed to be available at an institution unless the source names it."
         actions={
           <RecordAction
             permission="programs:create"
@@ -75,38 +81,43 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
           : null}
       </DataNotice>
 
-      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-label="Programme types">
-        {programs.map((program) => {
-          const active = selectedProgram === program.id;
-          return (
-            <li key={program.id}>
-              <Link
-                href={active ? "/internal/programs" : `/internal/programs?program=${program.id}`}
-                aria-current={active ? "true" : undefined}
-                className={cn(
-                  "block h-full rounded-xl border p-4 transition-colors",
-                  active
-                    ? "border-cyan/40 bg-cyan/[0.06]"
-                    : "border-line bg-card hover:border-line-bold hover:bg-surface-raised",
-                )}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-[14px] font-medium text-foreground">{program.name}</p>
-                  <SourceBadge source={program.source} />
-                </div>
-                <p className="mt-2 line-clamp-3 text-[12px] leading-relaxed text-muted-foreground">
-                  {program.description}
-                </p>
-                <p className="mt-3 text-[12px] text-fg-subtle">
-                  <span className="text-foreground tabular-nums">{program.offeringCount}</span>{" "}
-                  {program.offeringCount === 1 ? "offering" : "offerings"} ·{" "}
-                  <span className="text-foreground tabular-nums">{program.openCount}</span> open
-                </p>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      {programAudiences
+        .map((audience) => ({ audience, items: programs.filter((p) => p.audience === audience) }))
+        .filter((group) => group.items.length > 0)
+        .map((group) => (
+          <section key={group.audience} aria-labelledby={`programs-${group.audience}`}>
+            <h2
+              id={`programs-${group.audience}`}
+              className="mb-2 text-[12px] font-medium uppercase tracking-wide text-fg-subtle"
+            >
+              For {audienceMeta[group.audience].label.toLowerCase()}
+            </h2>
+            <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {group.items.map((program) => (
+                <li key={program.id}>
+                  <Link
+                    href={`/internal/programs/${program.id}`}
+                    className="block h-full rounded-xl border border-line bg-card p-4 transition-colors hover:border-line-bold hover:bg-surface-raised"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-[14px] font-medium text-foreground">{program.name}</p>
+                      <SourceBadge source={program.source} />
+                    </div>
+                    <p className="mt-2 line-clamp-3 text-[12px] leading-relaxed text-muted-foreground">
+                      {program.description}
+                    </p>
+                    <p className="mt-3 text-[12px] text-fg-subtle">
+                      <span className="text-foreground tabular-nums">{program.offeringCount}</span>{" "}
+                      {program.offeringCount === 1 ? "offering" : "offerings"} ·{" "}
+                      <span className="text-foreground tabular-nums">{program.opportunityCount}</span>{" "}
+                      {program.opportunityCount === 1 ? "opportunity" : "opportunities"}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
 
       <FilterBar
         searchPlaceholder="Search programme, institution, or country"
@@ -114,6 +125,12 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
         resultCount={rows.length}
         totalCount={all.length}
         selects={[
+          {
+            name: "audience",
+            label: "Audience",
+            allLabel: "Students and faculty",
+            options: optionsFrom(programAudiences, audienceMeta),
+          },
           {
             name: "program",
             label: "Programme type",
@@ -153,6 +170,11 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
             key: "program",
             header: "Programme",
             cell: (row) => <span className="font-medium">{row.program.name}</span>,
+          },
+          {
+            key: "audience",
+            header: "Audience",
+            cell: (row) => <AudienceBadge program={row.programId} />,
           },
           {
             key: "institution",
@@ -195,7 +217,12 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
           <ResourceCard
             title={row.program.name}
             subtitle={`${row.institution?.name ?? "—"} · ${row.institution?.country ?? "—"}`}
-            badges={<AvailabilityBadge availability={row.availability} />}
+            badges={
+              <>
+                <AudienceBadge program={row.programId} />
+                <AvailabilityBadge availability={row.availability} />
+              </>
+            }
             meta={[
               { label: "Duration", value: row.duration ?? "Not recorded" },
               {
