@@ -2,15 +2,19 @@
  * Navigation definitions for the Internal Portal workspace.
  *
  * Each sidebar section maps to a route under /internal and an icon from
- * lucide-react. A section can group several list pages (`pages`): they keep
- * their own URLs, so records, filters and bookmarks keep working, and are
- * shown as tabs inside the section. The `role` field is a placeholder for
- * future RBAC gating — it is not enforced in this stage.
+ * lucide-react. A section can own further pages (`pages`, e.g. Activities
+ * under Dashboard) or be one list page with internal tabs (`tabs`), selected
+ * by the `tab` query parameter. A tab's `recordBase` is where its detail
+ * pages live, so /internal/opportunities/x still belongs to Programs ›
+ * Opportunities. The `role` field is a placeholder for future RBAC gating —
+ * it is not enforced in this stage.
  *
  * Pure module (no React), so route mappings can be unit-tested.
  */
 
 export type InternalNavPage = { href: string; label: string };
+
+export type InternalNavTab = { value: string; label: string; recordBase: string };
 
 export type InternalNavItem = {
   href: string;
@@ -19,8 +23,10 @@ export type InternalNavItem = {
   /** Future: minimum role required to see this item. */
   role: "viewer" | "editor" | "admin";
   description: string;
-  /** List pages inside the section, shown as tabs when there is more than one. */
+  /** Separate pages that belong to the section. */
   pages?: readonly InternalNavPage[];
+  /** Views of the section's own list page; the first is the default. */
+  tabs?: readonly InternalNavTab[];
 };
 
 export const internalNav: readonly InternalNavItem[] = [
@@ -45,9 +51,9 @@ export const internalNav: readonly InternalNavItem[] = [
     icon: "BookOpen",
     role: "editor",
     description: "Programmes for students and faculty, their offerings, and the opportunities (application calls) under each.",
-    pages: [
-      { href: "/internal/programs", label: "Programs" },
-      { href: "/internal/opportunities", label: "Opportunities" },
+    tabs: [
+      { value: "programs", label: "Programs", recordBase: "/internal/programs" },
+      { value: "opportunities", label: "Opportunities", recordBase: "/internal/opportunities" },
     ],
   },
   {
@@ -56,9 +62,9 @@ export const internalNav: readonly InternalNavItem[] = [
     icon: "FolderOpen",
     role: "editor",
     description: "Official documents, with operational reports as a subsection.",
-    pages: [
-      { href: "/internal/documents", label: "Documents" },
-      { href: "/internal/reports", label: "Reports" },
+    tabs: [
+      { value: "documents", label: "Documents", recordBase: "/internal/documents" },
+      { value: "reports", label: "Reports", recordBase: "/internal/reports" },
     ],
   },
   {
@@ -73,9 +79,39 @@ export const internalNav: readonly InternalNavItem[] = [
 const underPath = (pathname: string, href: string) =>
   pathname === href || pathname.startsWith(`${href}/`);
 
-/** The section page a path belongs to, e.g. /internal/opportunities/x → Opportunities. */
+/** The separate section page a path belongs to, e.g. /internal/activities/x → Activities. */
 export function findNavPage(pathname: string, item: InternalNavItem) {
   return item.pages?.find((page) => page.href !== "/internal" && underPath(pathname, page.href));
+}
+
+/** Tabs of a section's list page; empty when it has none. */
+export function sectionTabs(sectionHref: string): readonly InternalNavTab[] {
+  return internalNav.find((item) => item.href === sectionHref)?.tabs ?? [];
+}
+
+/** The selected tab of a section's list page; unknown or missing values fall back to the first tab. */
+export function resolveTab(sectionHref: string, value: string | null | undefined) {
+  const tabs = sectionTabs(sectionHref);
+  return tabs.find((tab) => tab.value === value) ?? tabs[0];
+}
+
+/** URL of a tab. The default tab is the bare section URL, so there is one canonical address per view. */
+export function tabHref(sectionHref: string, value: string, keep?: URLSearchParams) {
+  const params = new URLSearchParams(keep);
+  params.delete("tab");
+  if (value !== sectionTabs(sectionHref)[0]?.value) params.set("tab", value);
+  const qs = params.toString();
+  return qs ? `${sectionHref}?${qs}` : sectionHref;
+}
+
+/**
+ * The tab a location belongs to: on the list page it is the `tab` parameter,
+ * on a detail page the tab whose records live under that path.
+ */
+export function findNavTab(pathname: string, item: InternalNavItem, tabParam?: string | null) {
+  if (!item.tabs) return undefined;
+  if (pathname === item.href) return resolveTab(item.href, tabParam);
+  return item.tabs.find((tab) => underPath(pathname, tab.recordBase));
 }
 
 /**
@@ -84,7 +120,7 @@ export function findNavPage(pathname: string, item: InternalNavItem) {
  */
 export function isNavItemActive(pathname: string, href: string) {
   const item = internalNav.find((entry) => entry.href === href);
-  if (item && findNavPage(pathname, item)) return true;
+  if (item && (findNavPage(pathname, item) || findNavTab(pathname, item))) return true;
   if (href === "/internal") return pathname === "/internal";
   return underPath(pathname, href);
 }
@@ -93,10 +129,13 @@ export function findNavItem(pathname: string) {
   return internalNav.find((item) => isNavItemActive(pathname, item.href));
 }
 
-/** Tabs for a section with more than one list page; empty otherwise. */
-export function sectionTabs(sectionHref: string): readonly InternalNavPage[] {
-  const pages = internalNav.find((item) => item.href === sectionHref)?.pages ?? [];
-  return pages.length > 1 ? pages : [];
+/** Title for the current location: the non-default tab or section page, else the section. */
+export function navTitle(pathname: string, tabParam?: string | null) {
+  const section = findNavItem(pathname);
+  if (!section) return "Portal";
+  const tab = findNavTab(pathname, section, tabParam);
+  if (tab && tab !== section.tabs?.[0]) return tab.label;
+  return findNavPage(pathname, section)?.label ?? section.label;
 }
 
 export type Breadcrumb = { label: string; href: string };
@@ -109,18 +148,24 @@ function recordActionLabel(action: string) {
 }
 
 /**
- * Portal › Section › Page › Record › Action. Each crumb links to a real page:
- * the record crumb points at the record itself, never at a sub-route such as /edit.
+ * Portal › Section › Tab or page › Record › Action. Each crumb links to a real
+ * page: a tab crumb to its view of the section list, the record crumb to the
+ * record itself, never to a sub-route such as /edit.
  */
-export function internalBreadcrumbs(pathname: string): Breadcrumb[] {
+export function internalBreadcrumbs(pathname: string, tabParam?: string | null): Breadcrumb[] {
   const crumbs: Breadcrumb[] = [{ label: "Portal", href: "/internal" }];
   const section = findNavItem(pathname);
   if (!section) return crumbs;
-  const page = findNavPage(pathname, section);
   if (section.href !== "/internal") crumbs.push({ label: section.label, href: section.href });
-  if (page && page.href !== section.href) crumbs.push({ label: page.label, href: page.href });
-  const base = page?.href ?? (section.href === "/internal" ? null : section.href);
-  if (!base) return crumbs;
+
+  const page = findNavPage(pathname, section);
+  const tab = findNavTab(pathname, section, tabParam);
+  if (page) crumbs.push({ label: page.label, href: page.href });
+  if (tab && tab !== section.tabs?.[0]) {
+    crumbs.push({ label: tab.label, href: tabHref(section.href, tab.value) });
+  }
+  const base = tab?.recordBase ?? page?.href ?? (section.href === "/internal" ? null : section.href);
+  if (!base || pathname === section.href) return crumbs;
 
   const [record, ...action] = pathname.slice(base.length).split("/").filter(Boolean);
   if (!record) return crumbs;

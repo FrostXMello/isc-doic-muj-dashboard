@@ -49,7 +49,7 @@ export default async function DashboardPage() {
     {
       label: "Records flagged for review",
       count: needsReview,
-      href: "/internal/reports",
+      href: "/internal/documents?tab=reports",
       icon: FileText,
     },
     {
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
     {
       label: "Calls closing soon",
       count: opportunities.byStatus["closing-soon"],
-      href: "/internal/opportunities?status=closing-soon",
+      href: "/internal/programs?tab=opportunities&status=closing-soon",
       icon: Compass,
     },
     {
@@ -101,7 +101,7 @@ export default async function DashboardPage() {
           value={institutions.countries}
           icon={Globe}
           accent="var(--cyan)"
-          href="/internal/reports"
+          href="/internal/documents?tab=reports"
           hint={`Across ${institutions.byRegion.filter((r) => r.institutions > 0).length} regions`}
         />
         <StatCard
@@ -229,9 +229,9 @@ export default async function DashboardPage() {
           <ul className="divide-y divide-hairline">
             {[
               { label: "Browse universities", href: "/internal/universities", icon: GraduationCap },
-              { label: "Open application calls", href: "/internal/opportunities?status=open", icon: Compass },
+              { label: "Open application calls", href: "/internal/programs?tab=opportunities&status=open", icon: Compass },
               { label: "Upcoming activities", href: "/internal/activities?when=upcoming", icon: CalendarDays },
-              { label: "View reports", href: "/internal/reports", icon: TrendingUp },
+              { label: "View reports", href: "/internal/documents?tab=reports", icon: TrendingUp },
             ].map((action) => (
               <li key={action.label}>
                 <Link

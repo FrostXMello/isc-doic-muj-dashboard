@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { agreementHref } from "@/lib/internal/links";
 import {
   BookOpen,
@@ -18,13 +17,8 @@ import {
 } from "@/components/internal/badges";
 import { Breakdown } from "@/components/internal/ui/breakdown";
 import { LinkedList } from "@/components/internal/ui/detail";
-import { PageHeader, Panel, PanelHeader } from "@/components/internal/ui/page-header";
-import {
-  PlaceholderAction,
-  unavailableReasons,
-} from "@/components/internal/ui/placeholder-action";
+import { Panel, PanelHeader } from "@/components/internal/ui/page-header";
 import { DataNotice } from "@/components/internal/ui/source-badge";
-import { SectionTabs } from "@/components/internal/ui/section-tabs";
 import { StatCard } from "@/components/internal/ui/stat-card";
 import { activityStatuses, activityTypes } from "@/lib/internal/data/activities";
 import { agreementStatuses, agreementTypes } from "@/lib/internal/data/agreements";
@@ -54,9 +48,7 @@ const verificationOrder: readonly VerificationStatus[] = [
   "verified",
 ];
 
-export const metadata: Metadata = { title: "Reports" };
-
-export default async function ReportsPage() {
+export async function ReportsPanel() {
   const [summary, mode] = await Promise.all([getOperationalSummary(), getDataMode()]);
   const { institutions, agreements, programs, opportunities, activities, documents } = summary;
 
@@ -65,22 +57,9 @@ export default async function ReportsPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Documents"
-        description={`Reports: an operational overview computed from the portal's data layer as of ${formatDate(summary.today)}.`}
-        actions={
-          <PlaceholderAction label="Export report" icon="download" reason={unavailableReasons.exports} />
-        }
-      />
-
-      <SectionTabs
-        section="/internal/documents"
-        current="/internal/reports"
-        counts={{ "/internal/documents": documents.total }}
-      />
-
       <p className="text-[13px] text-muted-foreground">
-        Report files published by DoIC are kept with the other documents.{" "}
+        Figures as of {formatDate(summary.today)}. Report files published by DoIC are kept with
+        the other documents.{" "}
         {documents.byType.report > 0 ? (
           <Link
             href="/internal/documents?type=report"
@@ -130,7 +109,7 @@ export default async function ReportsPage() {
             value={openCalls}
             icon={Compass}
             accent="var(--warning)"
-            href="/internal/opportunities?status=open"
+            href="/internal/programs?tab=opportunities&status=open"
           />
           <StatCard
             label="Upcoming activities"
@@ -330,7 +309,7 @@ export default async function ReportsPage() {
               label: opportunityStatusMeta[status].label,
               count: opportunities.byStatus[status],
               tone: opportunityStatusMeta[status].tone,
-              href: `/internal/opportunities?status=${status}`,
+              href: `/internal/programs?tab=opportunities&status=${status}`,
             }))}
           />
           <div className="border-t border-hairline">

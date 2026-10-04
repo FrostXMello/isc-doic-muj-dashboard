@@ -4,10 +4,10 @@ import { AccountMenu } from "@/components/auth/account-menu";
 import { SignOutButton, signOutClass } from "@/components/auth/sign-out-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import type { AccountSummary } from "@/lib/auth/session";
-import { findNavItem, findNavPage, internalBreadcrumbs } from "@/lib/internal-nav";
+import { internalBreadcrumbs, navTitle } from "@/lib/internal-nav";
 import { cn } from "@/lib/utils";
 import { Menu, ChevronRight } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export function Topbar({
@@ -18,9 +18,9 @@ export function Topbar({
   onMobileMenuToggle: () => void;
 }) {
   const pathname = usePathname();
-  const breadcrumbs = internalBreadcrumbs(pathname);
-  const section = findNavItem(pathname);
-  const pageTitle = (section && findNavPage(pathname, section)?.label) ?? section?.label ?? "Portal";
+  const tab = useSearchParams().get("tab");
+  const breadcrumbs = internalBreadcrumbs(pathname, tab);
+  const pageTitle = navTitle(pathname, tab);
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-line bg-surface/80 px-4 backdrop-blur-sm sm:px-6">

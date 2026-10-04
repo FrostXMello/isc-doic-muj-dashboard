@@ -2,7 +2,19 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import { describe, it } from "node:test";
-import { findNavItem, internalBreadcrumbs, internalNav, isNavItemActive, sectionTabs } from "@/lib/internal-nav";
+import { NextRequest } from "next/server";
+import { GET as legacyOpportunities } from "@/app/internal/opportunities/route";
+import { GET as legacyReports } from "@/app/internal/reports/route";
+import {
+  findNavItem,
+  internalBreadcrumbs,
+  internalNav,
+  isNavItemActive,
+  navTitle,
+  resolveTab,
+  sectionTabs,
+  tabHref,
+} from "@/lib/internal-nav";
 import { type RowNode, shouldOpenRow } from "@/lib/internal/row-click";
 
 const appDir = join(process.cwd(), "src", "app");
@@ -23,13 +35,14 @@ const internalRoutes = walk(join(appDir, "internal"))
     return new RegExp(`^/${pattern.join("/")}$`);
   });
 
-const resolves = (path: string) => internalRoutes.some((route) => route.test(path));
+const resolves = (href: string) => internalRoutes.some((route) => route.test(href.split(/[?#]/)[0]));
 
 describe("internal route mappings", () => {
   it("every sidebar item and section page points at a real page", () => {
     for (const item of internalNav) {
       assert.ok(resolves(item.href), `${item.label} → ${item.href}`);
       for (const page of item.pages ?? []) assert.ok(resolves(page.href), `${item.label} › ${page.label}`);
+      for (const tab of item.tabs ?? []) assert.ok(resolves(tab.recordBase), `${item.label} › ${tab.label}`);
     }
   });
 
@@ -38,8 +51,8 @@ describe("internal route mappings", () => {
       internalNav.map((item) => item.label),
       ["Dashboard", "Universities & MoUs", "Programs", "Documents", "Settings"],
     );
-    assert.deepEqual(sectionTabs("/internal/programs").map((t) => t.href), ["/internal/programs", "/internal/opportunities"]);
-    assert.deepEqual(sectionTabs("/internal/documents").map((t) => t.href), ["/internal/documents", "/internal/reports"]);
+    assert.deepEqual(sectionTabs("/internal/programs").map((t) => t.label), ["Programs", "Opportunities"]);
+    assert.deepEqual(sectionTabs("/internal/documents").map((t) => t.label), ["Documents", "Reports"]);
     assert.deepEqual(sectionTabs("/internal"), []);
     assert.deepEqual(sectionTabs("/internal/universities"), []);
   });
@@ -109,13 +122,13 @@ describe("internal breadcrumbs", () => {
     assert.deepEqual(labels("/internal/opportunities/o1"), [
       "Portal=/internal",
       "Programs=/internal/programs",
-      "Opportunities=/internal/opportunities",
+      "Opportunities=/internal/programs?tab=opportunities",
       "Details=/internal/opportunities/o1",
     ]);
     assert.deepEqual(labels("/internal/reports"), [
       "Portal=/internal",
       "Documents=/internal/documents",
-      "Reports=/internal/reports",
+      "Reports=/internal/documents?tab=reports",
     ]);
     assert.deepEqual(labels("/internal/documents"), ["Portal=/internal", "Documents=/internal/documents"]);
     assert.deepEqual(labels("/internal/activities/a1"), [
@@ -147,6 +160,83 @@ describe("internal breadcrumbs", () => {
     ]) {
       for (const crumb of internalBreadcrumbs(path)) assert.ok(resolves(crumb.href), crumb.href);
     }
+  });
+});
+
+describe("tabbed section pages", () => {
+  const sections = ["/internal/programs", "/internal/documents"];
+
+  it("every tab of a section links to that section's single list page", () => {
+    for (const section of sections) {
+      const tabs = sectionTabs(section);
+      assert.equal(tabs.length, 2, section);
+      for (const tab of tabs) {
+        const url = new URL(tabHref(section, tab.value), "http://portal");
+        assert.equal(url.pathname, section, tab.value);
+        assert.equal(resolveTab(section, url.searchParams.get("tab"))?.value, tab.value);
+      }
+    }
+    assert.equal(tabHref("/internal/programs", "programs"), "/internal/programs");
+    assert.equal(tabHref("/internal/programs", "opportunities"), "/internal/programs?tab=opportunities");
+    assert.equal(tabHref("/internal/documents", "reports"), "/internal/documents?tab=reports");
+  });
+
+  it("falls back to the first tab for a missing or unknown tab", () => {
+    assert.equal(resolveTab("/internal/programs", null)?.value, "programs");
+    assert.equal(resolveTab("/internal/programs", "reports")?.value, "programs");
+    assert.equal(resolveTab("/internal/documents", "nope")?.value, "documents");
+  });
+
+  it("carries only the parameters asked for across tabs", () => {
+    const keep = new URLSearchParams({ audience: "faculty", tab: "programs" });
+    assert.equal(tabHref("/internal/programs", "opportunities", keep), "/internal/programs?audience=faculty&tab=opportunities");
+    assert.equal(tabHref("/internal/programs", "programs", keep), "/internal/programs?audience=faculty");
+  });
+
+  it("names the selected tab in breadcrumbs and the mobile title, and keeps the section active", () => {
+    const crumbs = (path: string, tab?: string) => internalBreadcrumbs(path, tab).map((c) => c.label);
+    assert.deepEqual(crumbs("/internal/programs"), ["Portal", "Programs"]);
+    assert.deepEqual(crumbs("/internal/programs", "opportunities"), ["Portal", "Programs", "Opportunities"]);
+    assert.deepEqual(crumbs("/internal/documents", "reports"), ["Portal", "Documents", "Reports"]);
+    assert.deepEqual(crumbs("/internal/documents", "bogus"), ["Portal", "Documents"]);
+    assert.equal(navTitle("/internal/programs", "opportunities"), "Opportunities");
+    assert.equal(navTitle("/internal/programs"), "Programs");
+    assert.equal(navTitle("/internal/opportunities/o1"), "Opportunities");
+    assert.equal(navTitle("/internal/documents", "reports"), "Reports");
+    for (const path of ["/internal/programs", "/internal/opportunities/o1"]) {
+      assert.equal(findNavItem(path)?.label, "Programs", path);
+    }
+  });
+
+  it("redirects the old list URLs to the unified page, keeping their filters", () => {
+    const target = (handler: (request: NextRequest) => unknown, url: string) => {
+      try {
+        handler(new NextRequest(new URL(url, "http://portal")));
+      } catch (error) {
+        const digest = String((error as { digest?: string }).digest);
+        assert.match(digest, /^NEXT_REDIRECT;/);
+        return digest.split(";")[2];
+      }
+      assert.fail(`${url} did not redirect`);
+    };
+    assert.equal(
+      target(legacyOpportunities, "/internal/opportunities?status=open&audience=students"),
+      "/internal/programs?status=open&audience=students&tab=opportunities",
+    );
+    assert.equal(target(legacyOpportunities, "/internal/opportunities"), "/internal/programs?tab=opportunities");
+    assert.equal(target(legacyReports, "/internal/reports"), "/internal/documents?tab=reports");
+  });
+
+  it("no source link points at the retired list pages", () => {
+    const stale: string[] = [];
+    for (const file of walk(join(process.cwd(), "src")).filter((f) => /\.tsx?$/.test(f))) {
+      if (file.endsWith("internal-nav.ts")) continue; // recordBase config, not links
+      const text = readFileSync(file, "utf8");
+      for (const match of text.matchAll(/["`]\/internal\/(opportunities|reports)(?=[?#"`])/g)) {
+        stale.push(`${relative(process.cwd(), file)}: ${match[0]}`);
+      }
+    }
+    assert.deepEqual(stale, []);
   });
 });
 

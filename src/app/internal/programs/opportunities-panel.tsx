@@ -1,14 +1,9 @@
-import type { Metadata } from "next";
 import { getDataMode } from "@/lib/internal/data/context";
 import { SearchX } from "lucide-react";
 import { AudienceBadge, OpportunityStatusBadge, RelativeDays } from "@/components/internal/badges";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
-import { PageHeader } from "@/components/internal/ui/page-header";
-import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
-import { RecordAction } from "@/components/internal/ui/record-action";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
-import { SectionTabs } from "@/components/internal/ui/section-tabs";
 import { DataNotice } from "@/components/internal/ui/source-badge";
 import { StatCard } from "@/components/internal/ui/stat-card";
 import {
@@ -17,9 +12,9 @@ import {
   opportunitySorts,
   opportunityStatuses,
 } from "@/lib/internal/data/opportunities";
-import { listOfferings, programTypes } from "@/lib/internal/data/programs";
+import { programTypes } from "@/lib/internal/data/programs";
 import { DEADLINE_WARNING_DAYS, formatDate } from "@/lib/internal/dates";
-import { readEnumParam, readParam, type SearchParamsProp } from "@/lib/internal/query";
+import { readEnumParam, readParam, type SearchParamsRecord } from "@/lib/internal/query";
 import {
   audienceMeta,
   opportunityStatusMeta,
@@ -29,13 +24,10 @@ import {
 } from "@/lib/internal/status";
 import type { OpportunityView } from "@/lib/internal/types";
 
-export const metadata: Metadata = { title: "Opportunities" };
-
-export default async function OpportunitiesPage({ searchParams }: SearchParamsProp) {
-  const params = await searchParams;
+export async function OpportunitiesPanel({ params }: { params: SearchParamsRecord }) {
   const [options, mode] = await Promise.all([getOpportunityFilterOptions(), getDataMode()]);
 
-  const [rows, all, offerings] = await Promise.all([
+  const [rows, all] = await Promise.all([
     listOpportunities({
       q: readParam(params, "q"),
       status: readEnumParam(params, "status", opportunityStatuses),
@@ -45,7 +37,6 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
       sort: readEnumParam(params, "sort", opportunitySorts),
     }),
     listOpportunities(),
-    listOfferings(),
   ]);
 
   const count = (status: OpportunityView["status"]) =>
@@ -53,26 +44,6 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Programs"
-        description={`Opportunities are the application calls published under a programme; each one belongs to exactly one programme and inherits its audience. Status is derived from opening and deadline dates; calls within ${DEADLINE_WARNING_DAYS} days of the deadline are flagged.`}
-        actions={
-          <RecordAction
-            permission="opportunities:create"
-            label="New call"
-            icon="add"
-            variant="primary"
-            reason={unavailableReasons.editing}
-          />
-        }
-      />
-
-      <SectionTabs
-        section="/internal/programs"
-        current="/internal/opportunities"
-        counts={{ "/internal/programs": offerings.length, "/internal/opportunities": all.length }}
-      />
-
       <DataNotice>
         Calls are the summer and winter school editions published on MUJ&apos;s official pages,
         with deadlines exactly as published. Past editions are archived.
@@ -82,18 +53,18 @@ export default async function OpportunitiesPage({ searchParams }: SearchParamsPr
       </DataNotice>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Open" value={count("open")} accent="var(--success)" href="/internal/opportunities?status=open" />
+        <StatCard label="Open" value={count("open")} accent="var(--success)" href="/internal/programs?tab=opportunities&status=open" />
         <StatCard
           label="Closing soon"
           value={count("closing-soon")}
           accent="var(--warning)"
-          href="/internal/opportunities?status=closing-soon"
+          href="/internal/programs?tab=opportunities&status=closing-soon"
         />
         <StatCard
           label="Opens soon"
           value={count("upcoming")}
           accent="var(--glow)"
-          href="/internal/opportunities?status=upcoming"
+          href="/internal/programs?tab=opportunities&status=upcoming"
         />
         <StatCard
           label="Closed or archived"
