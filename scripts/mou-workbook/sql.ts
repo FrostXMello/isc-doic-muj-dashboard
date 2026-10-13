@@ -146,18 +146,19 @@ export function importSql(plan: Plan): string {
           ? `record_status = case when record_status = 'not-stated' then ${lit(fill.recordStatus)}::public.agreement_record_status else record_status end`
           : null,
       ].filter(Boolean);
-      if (sets.length === 0) continue;
-      push(
-        `-- Agreement ${agreement.code} (MoU list row ${agreement.excelRow})`,
-        ledger(
-          plan,
-          "agreements",
-          "update",
-          `a.id, 'update', to_jsonb(a) from public.agreements a where a.code = ${lit(agreement.code)}`,
-        ),
-        `update public.agreements set ${sets.join(", ")}`,
-        `where code = ${lit(agreement.code)};`,
-      );
+      push(`-- Agreement ${agreement.code} (MoU list row ${agreement.excelRow})`);
+      if (sets.length > 0) {
+        push(
+          ledger(
+            plan,
+            "agreements",
+            "update",
+            `a.id, 'update', to_jsonb(a) from public.agreements a where a.code = ${lit(agreement.code)}`,
+          ),
+          `update public.agreements set ${sets.join(", ")}`,
+          `where code = ${lit(agreement.code)};`,
+        );
+      }
     } else {
       push(
         `-- New agreement ${agreement.code} (MoU list row ${agreement.excelRow})`,

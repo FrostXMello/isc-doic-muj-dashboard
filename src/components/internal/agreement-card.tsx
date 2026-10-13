@@ -6,6 +6,7 @@ import {
   AvailabilityBadge,
   DocumentStatusBadge,
 } from "@/components/internal/badges";
+import { AgreementRegisterFacts } from "@/components/internal/university-register";
 import { KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { ManageLink } from "@/components/internal/ui/manage-action";
 import { NotRecorded } from "@/components/internal/ui/page-header";
@@ -21,6 +22,7 @@ import {
   formatRelativeDays,
 } from "@/lib/internal/dates";
 import { agreementStatusMeta, agreementTypeLabel, documentTypeLabel } from "@/lib/internal/status";
+import type { AgreementEntry } from "@/lib/internal/register-view";
 import type { AgreementView } from "@/lib/internal/types";
 import { cn } from "@/lib/utils";
 
@@ -88,11 +90,14 @@ export async function AgreementCard({
   universityId,
   today,
   open,
+  register,
 }: {
   entry: UniversityAgreement;
   universityId: string;
   today: string;
   open: boolean;
+  /** DoIC register details, officers, workflow, and renewal rows for this agreement. */
+  register?: AgreementEntry;
 }) {
   const { agreement, role, offerings, activities, documents } = entry;
   const duration = formatDuration(agreement.startDate, agreement.endDate);
@@ -209,6 +214,13 @@ export async function AgreementCard({
         />
         <TermProgress agreement={agreement} today={today} />
 
+        {register ? (
+          <div className="border-b border-hairline px-6 py-4">
+            <p className="mb-3 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">DoIC MoU register</p>
+            <AgreementRegisterFacts entry={register} showHeading={false} />
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-1 border-t border-hairline md:grid-cols-3 md:divide-x md:divide-hairline">
           <RelatedBlock title="Documents">
             <LinkedList
@@ -256,6 +268,15 @@ export async function AgreementCard({
             icon="edit"
             size="sm"
           />
+          {role === "lead" ? (
+            <ManageLink
+              permission="agreements:update"
+              href={`/internal/universities/${agreement.institutionId}/agreements/${agreement.id}/edit#register`}
+              label="Edit register details"
+              icon="edit"
+              size="sm"
+            />
+          ) : null}
           {role === "partner" && agreement.institution ? (
             <Link
               href={`/internal/universities/${agreement.institution.id}`}

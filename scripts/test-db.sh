@@ -117,6 +117,10 @@ if [ -f "$import_sql" ] && [ -f "$rollback_sql" ]; then
   unlinked="$(psql_db -d doic_import -t -A -c "
     select count(*) from public.source_workbook_rows
     where match_status in ('matched', 'created') and institution_id is null")"
+  expected_details="$(grep -c "insert into public.agreement_details" "$import_sql" || true)"
+  details_now="$(psql_db -d doic_import -t -A -c "select count(*) from public.agreement_details")"
+  if [ "$details_now" = "$expected_details" ]; then echo "ok   every planned agreement detail row was imported ($details_now)"; else
+    echo "FAIL $details_now agreement detail rows imported, $expected_details planned"; failed=1; fi
   if [ "$unlinked" = "0" ]; then echo "ok   every matched source row is linked to its university"; else
     echo "FAIL $unlinked matched source rows lost their university"; failed=1; fi
   psql_db -d doic_import -f "$rollback_sql" >/dev/null

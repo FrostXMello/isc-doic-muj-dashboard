@@ -54,6 +54,7 @@ export function DetailHeader({
 }
 
 export function DetailSection({
+  id,
   title,
   description,
   icon,
@@ -61,6 +62,7 @@ export function DetailSection({
   children,
   className,
 }: {
+  id?: string;
   title: string;
   description?: React.ReactNode;
   icon?: React.ComponentType<{ className?: string }>;
@@ -69,7 +71,7 @@ export function DetailSection({
   className?: string;
 }) {
   return (
-    <Panel className={className}>
+    <Panel id={id} className={cn(id && "scroll-mt-24", className)}>
       <PanelHeader title={title} description={description} icon={icon} action={action} />
       {children}
     </Panel>

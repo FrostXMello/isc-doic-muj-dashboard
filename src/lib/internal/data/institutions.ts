@@ -1,10 +1,11 @@
-import { matchesQuery, openDataContext, uniqueSorted } from "@/lib/internal/data/context";
-import { personKey } from "@/lib/internal/workbook/source";
+import { openDataContext, uniqueSorted } from "@/lib/internal/data/context";
+import { loadRegister } from "@/lib/internal/data/register";
+import { expirySortKey } from "@/lib/internal/expiry";
+import { buildUniversityEntry, matchesEntry, type UniversityEntry } from "@/lib/internal/register-view";
 import type {
   AgreementStatus,
   AgreementType,
   AgreementView,
-  InstitutionContact,
   InstitutionView,
   PartnershipStatus,
   RecordSource,
@@ -38,48 +39,38 @@ export type InstitutionFilters = {
   coverage?: AgreementCoverage;
 };
 
-/** Current MUJ (DoIC) nodal officer for a university, merged across its agreements. */
-export type NodalOfficer = { name: string | null; phones: string[] };
+export const universitySorts = ["name", "country", "expiry"] as const;
+export type UniversitySort = (typeof universitySorts)[number];
 
-/** `null`: contacts are not available to this user or deployment. */
-export type UniversityRow = InstitutionView & { agreements: AgreementView[]; officers: NodalOfficer[] | null };
+export type UniversityRow = InstitutionView & { agreements: AgreementView[]; entry: UniversityEntry };
 
-export const DOIC_OFFICER_ROLE = "MUJ Nodal Officer";
-
-/** Every distinct current officer, in record order; the same person is listed once. */
-export function nodalOfficers(contacts: readonly InstitutionContact[], institutionId: string): NodalOfficer[] {
-  const officers = new Map<string, NodalOfficer>();
-  for (const contact of contacts) {
-    if (contact.institutionId !== institutionId || contact.roleLabel !== DOIC_OFFICER_ROLE) continue;
-    const key = contact.name ? personKey(contact.name) : `phone:${contact.phone ?? contact.email ?? contact.id}`;
-    const officer = officers.get(key) ?? { name: contact.name, phones: [] };
-    if (contact.phone && !officer.phones.includes(contact.phone)) officer.phones.push(contact.phone);
-    officers.set(key, officer);
+function sortRows(rows: UniversityRow[], sort: UniversitySort) {
+  const byName = (a: UniversityRow, b: UniversityRow) => a.name.localeCompare(b.name);
+  if (sort === "country") return rows.sort((a, b) => a.country.localeCompare(b.country) || byName(a, b));
+  if (sort === "expiry") {
+    return rows.sort((a, b) => {
+      const [ga, va] = expirySortKey(a.entry.expiry);
+      const [gb, vb] = expirySortKey(b.entry.expiry);
+      return ga - gb || va - vb || byName(a, b);
+    });
   }
-  return [...officers.values()];
+  return rows.sort(byName);
 }
 
-export async function listInstitutions(filters: InstitutionFilters = {}): Promise<UniversityRow[]> {
-  const { today, data, views, contactAccess } = await openDataContext();
-  return data.institutions
-    .map((institution) => ({
-      ...views.toInstitutionView(institution, today),
-      agreements: views.agreementsForInstitution(institution.id, today),
-      officers: contactAccess.state === "granted" ? nodalOfficers(contactAccess.contacts, institution.id) : null,
-    }))
+export async function listInstitutions(
+  filters: InstitutionFilters = {},
+  sort: UniversitySort = "name",
+): Promise<UniversityRow[]> {
+  const [{ today, data, views, contactAccess }, register] = await Promise.all([openDataContext(), loadRegister()]);
+  const rows = data.institutions
+    .map((institution) => {
+      const view = views.toInstitutionView(institution, today);
+      const agreements = views.agreementsForInstitution(institution.id, today);
+      return { ...view, agreements, entry: buildUniversityEntry(view, agreements, contactAccess, register) };
+    })
     .filter(
       (row) =>
-        (matchesQuery(filters.q, row.name, row.normalizedName, row.country, row.city) ||
-          (row.officers ?? []).some((officer) => matchesQuery(filters.q, officer.name, ...officer.phones)) ||
-          row.agreements.some((agreement) =>
-            matchesQuery(
-              filters.q,
-              agreement.reference,
-              agreement.title,
-              agreement.typeLabel,
-              ...agreement.collaborationAreas,
-            ),
-          )) &&
+        matchesEntry(row.entry, filters.q) &&
         (!filters.region || row.region === filters.region) &&
         (!filters.country || row.country === filters.country) &&
         (!filters.status || row.partnershipStatus === filters.status) &&
@@ -90,8 +81,8 @@ export async function listInstitutions(filters: InstitutionFilters = {}): Promis
           row.agreements.some((agreement) => agreement.type === filters.agreementType)) &&
         (!filters.coverage ||
           (filters.coverage === "with" ? row.agreements.length > 0 : row.agreements.length === 0)),
-    )
-    .sort((a, b) => a.name.localeCompare(b.name));
+    );
+  return sortRows(rows, sort);
 }
 
 /** Agreement counts across every university, each agreement counted once. */
@@ -112,14 +103,17 @@ export async function listInstitutionOptions() {
 }
 
 export async function getInstitution(id: string) {
-  const { today, data, views, contactAccess } = await openDataContext();
+  const [{ today, data, views, contactAccess }, register] = await Promise.all([openDataContext(), loadRegister()]);
   const institution = data.institutions.find((row) => row.id === id);
   if (!institution) return null;
+  const view = views.toInstitutionView(institution, today);
 
   return {
     today,
     contactAccess,
-    institution: views.toInstitutionView(institution, today),
+    register,
+    entry: buildUniversityEntry(view, views.agreementsForInstitution(id, today), contactAccess, register),
+    institution: view,
     agreements: views
       .agreementsForInstitution(id, today)
       .sort((a, b) => (b.startDate ?? "9999").localeCompare(a.startDate ?? "9999"))

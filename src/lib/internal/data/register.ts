@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { openDataContext } from "@/lib/internal/data/context";
 import type { CellValue, SheetKey } from "@/lib/internal/workbook/source";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -143,33 +144,30 @@ async function registerClient(): Promise<RegisterClient> {
   return { client };
 }
 
-/** Register details and source rows for one university and its agreements. */
-export async function loadInstitutionRegister(
-  institutionId: string,
-  agreementIds: readonly string[],
-): Promise<RegisterAccess> {
+/** The register migration has not been applied to this database yet. */
+function missingRelation(error: { code?: string }) {
+  return error.code === "42P01" || error.code === "42703" || error.code === "PGRST200" || error.code === "PGRST205";
+}
+
+/**
+ * Every register detail, source row, and contact note the user may read
+ * (a few hundred rows). Memoised per request so the list, search, and
+ * detail pages share one read.
+ */
+export const loadRegister = cache(async (): Promise<RegisterAccess> => {
   const access = await registerClient();
   if (!("client" in access)) return { state: "restricted", reason: access.restricted };
   const { client } = access;
 
   const [details, rows, notes] = await Promise.all([
-    agreementIds.length === 0
-      ? Promise.resolve({ data: [], error: null })
-      : client
-          .from("agreement_details")
-          .select(`${detailColumns}, agreement:agreements!inner(code)`)
-          .in("agreement.code", [...agreementIds]),
+    client.from("agreement_details").select(`${detailColumns}, agreement:agreements(code)`).range(0, 9999),
     client
       .from("source_workbook_rows")
-      .select(`${sourceColumns}, institution:institutions!inner(slug), agreement:agreements(code)`)
-      .eq("institution.slug", institutionId)
+      .select(`${sourceColumns}, institution:institutions(slug), agreement:agreements(code)`)
       .order("sheet")
-      .order("excel_row"),
-    client
-      .from("institution_contacts")
-      .select("code, source_note, institution:institutions!inner(slug)")
-      .eq("institution.slug", institutionId)
-      .not("source_note", "is", null),
+      .order("excel_row")
+      .range(0, 9999),
+    client.from("institution_contacts").select("code, source_note").not("source_note", "is", null).range(0, 9999),
   ]);
   for (const result of [details, rows, notes]) {
     if (result.error && missingRelation(result.error)) return { state: "restricted", reason: "not-migrated" };
@@ -194,28 +192,4 @@ export async function loadInstitutionRegister(
       ]),
     ),
   };
-}
-
-/** The register migration has not been applied to this database yet. */
-function missingRelation(error: { code?: string }) {
-  return error.code === "42P01" || error.code === "42703" || error.code === "PGRST200" || error.code === "PGRST205";
-}
-
-/** Source rows from one worksheet, e.g. the National MoUs sheet. */
-export async function loadRegisterSheet(sheet: SheetKey): Promise<RegisterAccess> {
-  const access = await registerClient();
-  if (!("client" in access)) return { state: "restricted", reason: access.restricted };
-  const { data, error } = await access.client
-    .from("source_workbook_rows")
-    .select(`${sourceColumns}, institution:institutions(slug), agreement:agreements(code)`)
-    .eq("sheet", sheet)
-    .order("excel_row");
-  if (error && missingRelation(error)) return { state: "restricted", reason: "not-migrated" };
-  if (error) throw new Error(`Supabase query on source_workbook_rows failed: ${error.message}`);
-  return {
-    state: "granted",
-    details: new Map(),
-    rows: ((data ?? []) as unknown as SourceRow[]).map(toRegisterRow),
-    contactNotes: new Map(),
-  };
-}
+});

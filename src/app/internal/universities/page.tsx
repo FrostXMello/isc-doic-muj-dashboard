@@ -1,41 +1,42 @@
 import type { Metadata } from "next";
-import { ChevronLeft, ChevronRight, SearchX } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, SearchX } from "lucide-react";
 import Link from "next/link";
 import { SuccessNotice } from "@/components/internal/forms/form-fields";
-import { getDataMode } from "@/lib/internal/data/context";
+import {
+  AgreementRegisterFacts,
+  ContactRows,
+  ExpiryIndicator,
+  ExpiryLegend,
+  Facts,
+  OfficerList,
+  RegisterNotice,
+  UniversityRegisterRows,
+} from "@/components/internal/university-register";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
 import { ManageLink } from "@/components/internal/ui/manage-action";
 import { PageHeader } from "@/components/internal/ui/page-header";
-import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
 import { DataNotice } from "@/components/internal/ui/source-badge";
-import { StatusBadge } from "@/components/internal/ui/status-badge";
-import { EXPIRY_WARNING_DAYS, formatDate, formatRelativeDays } from "@/lib/internal/dates";
 import { agreementStatuses, agreementTypes } from "@/lib/internal/data/agreements";
+import { getDataMode } from "@/lib/internal/data/context";
 import {
   agreementCoverage,
   getInstitutionFilterOptions,
   institutionSources,
   listInstitutions,
-  type NodalOfficer,
   partnershipStatuses,
   type UniversityRow,
+  universitySorts,
 } from "@/lib/internal/data/institutions";
+import { loadRegister } from "@/lib/internal/data/register";
 import {
   readEnumParam,
   readParam,
   type SearchParamsProp,
   type SearchParamsRecord,
 } from "@/lib/internal/query";
+import { agreementStatusMeta, agreementTypeLabel, optionsFrom, partnershipStatusMeta, sourceMeta } from "@/lib/internal/status";
 import { cn } from "@/lib/utils";
-import {
-  agreementStatusMeta,
-  agreementTypeLabel,
-  optionsFrom,
-  partnershipStatusMeta,
-  sourceMeta,
-  type Tone,
-} from "@/lib/internal/status";
 
 export const metadata: Metadata = { title: "Universities & MoUs" };
 
@@ -123,19 +124,23 @@ function RegionIndex({
 
 export default async function UniversitiesPage({ searchParams }: SearchParamsProp) {
   const params = await searchParams;
-  const [options, mode] = await Promise.all([getInstitutionFilterOptions(), getDataMode()]);
+  const [options, mode, register] = await Promise.all([getInstitutionFilterOptions(), getDataMode(), loadRegister()]);
+  const sort = readEnumParam(params, "sort", universitySorts) ?? "name";
 
   const [rows, all] = await Promise.all([
-    listInstitutions({
-      q: readParam(params, "q"),
-      region: readEnumParam(params, "region", options.regions),
-      country: readEnumParam(params, "country", options.countries),
-      status: readEnumParam(params, "status", partnershipStatuses),
-      source: readEnumParam(params, "source", institutionSources),
-      coverage: readEnumParam(params, "coverage", agreementCoverage),
-      agreementStatus: readEnumParam(params, "mouStatus", agreementStatuses),
-      agreementType: readEnumParam(params, "mouType", agreementTypes),
-    }),
+    listInstitutions(
+      {
+        q: readParam(params, "q"),
+        region: readEnumParam(params, "region", options.regions),
+        country: readEnumParam(params, "country", options.countries),
+        status: readEnumParam(params, "status", partnershipStatuses),
+        source: readEnumParam(params, "source", institutionSources),
+        coverage: readEnumParam(params, "coverage", agreementCoverage),
+        agreementStatus: readEnumParam(params, "mouStatus", agreementStatuses),
+        agreementType: readEnumParam(params, "mouType", agreementTypes),
+      },
+      sort,
+    ),
     listInstitutions(),
   ]);
 
@@ -168,25 +173,34 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
       <PageHeader
         eyebrow="Global network"
         title="Universities & MoUs"
-        description="Each partner university once, with its DoIC nodal officer. Open a university for its MoUs, dates, rankings, contacts, and register history."
+        description="Every partner university with its DoIC nodal officers and expiry at a glance. Expand a university for each MoU's reference, dates, rankings, partner officers, documents, workflow, and renewal history."
         actions={
-          <ManageLink
-            permission="institutions:create"
-            href="/internal/universities/new"
-            label="Add university"
-            icon="add"
-            variant="primary"
-          />
+          <>
+            <Link
+              href="/internal/universities/national"
+              className="inline-flex h-9 items-center rounded-full border border-line-strong px-4 text-[13px] text-fg-soft transition-colors hover:border-line-bold hover:text-foreground"
+            >
+              National collaborations
+            </Link>
+            <ManageLink
+              permission="institutions:create"
+              href="/internal/universities/new"
+              label="Add university"
+              icon="add"
+              variant="primary"
+            />
+          </>
         }
       />
 
       {deleted ? <SuccessNotice>University deleted.</SuccessNotice> : null}
 
       <DataNotice>
-        DoIC nodal officers come from the official partner page and the DoIC MoU register. Where a
-        university has more than one current officer, all are listed. Contact details are internal:
-        they appear only for DoIC roles when the portal reads the access-controlled database
-        {mode.source === "supabase" ? "" : " (this deployment reads the static dataset, so they show as Restricted)"}.
+        Officers, contacts, and register details come from the official partner page and the DoIC
+        MoU register (0_MoU details.xlsx). They are internal and shown only to DoIC roles reading
+        the access-controlled database
+        {mode.source === "supabase" ? "" : "; this deployment reads the static dataset, so they show as Restricted"}.
+        Values written as &ldquo;NA&rdquo; or similar are shown as recorded; formula output is never shown.
         {mode.sampleData ? (
           <>
             {" "}
@@ -194,12 +208,15 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
             &hellip;&rdquo;) are fictional and shown because INTERNAL_SAMPLE_DATA is on.
           </>
         ) : null}
+        <span className="mt-1 block">
+          <RegisterNotice register={register} />
+        </span>
       </DataNotice>
 
       {regions.length > 0 ? <RegionIndex regions={regions} active={activeRegion} params={params} /> : null}
 
       <FilterBar
-        searchPlaceholder="Search university, country, or officer"
+        searchPlaceholder="Search name, country, officer, email, phone, reference"
         noun={{ singular: "university", plural: "universities" }}
         resultCount={rows.length}
         totalCount={all.length}
@@ -247,73 +264,46 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
             name: "source",
             label: "Source",
             allLabel: "All sources",
-            options: institutionSources.map((value) => ({
-              value,
-              label: sourceMeta[value].label,
-            })),
+            options: institutionSources.map((value) => ({ value, label: sourceMeta[value].label })),
+          },
+          {
+            name: "sort",
+            label: "Sort",
+            defaultValue: "name",
+            options: [
+              { value: "name", label: "Name" },
+              { value: "country", label: "Country" },
+              { value: "expiry", label: "Soonest expiry" },
+            ],
           },
         ]}
       />
 
-      <ul aria-label="Expiry colours" className="flex flex-wrap gap-x-4 gap-y-2 text-[12px] text-fg-subtle">
-        {expiryLegend.map((entry) => (
-          <li key={entry.label} className="flex items-center gap-2">
-            <StatusBadge label={entry.label} tone={entry.tone} />
-            {entry.description}
-          </li>
-        ))}
-      </ul>
+      <ExpiryLegend />
 
-      <ResourceTable<UniversityRow>
-        caption="Universities with their DoIC nodal officers"
-        rows={pageRows}
-        getKey={(row) => row.id}
-        getHref={(row) => `/internal/universities/${row.id}`}
-        getRowLabel={(row) => `${row.name}, ${row.country}`}
-        empty={
-          <EmptyState
-            icon={SearchX}
-            title="No universities match these filters"
-            description="Try a different search term or clear the filters."
-          />
-        }
-        columns={[
-          {
-            key: "name",
-            header: "University",
-            cell: (row) => <span className="font-medium">{row.name}</span>,
-          },
-          { key: "country", header: "Country", cell: (row) => row.country },
-          {
-            key: "expiry",
-            header: "Expiry",
-            className: "whitespace-nowrap",
-            cell: (row) => <Expiry row={row} />,
-          },
-          {
-            key: "officer",
-            header: "DoIC nodal officer",
-            cell: (row) => <Officers officers={row.officers} show="name" />,
-          },
-          {
-            key: "phone",
-            header: "Contact number",
-            className: "whitespace-nowrap",
-            cell: (row) => <Officers officers={row.officers} show="phone" />,
-          },
-        ]}
-        renderCard={(row) => (
-          <ResourceCard
-            title={row.name}
-            subtitle={row.country}
-            badges={<Expiry row={row} />}
-            meta={[
-              { label: "DoIC nodal officer", value: <Officers officers={row.officers} show="name" /> },
-              { label: "Contact number", value: <Officers officers={row.officers} show="phone" /> },
-            ]}
-          />
-        )}
-      />
+      {pageRows.length === 0 ? (
+        <EmptyState
+          icon={SearchX}
+          title="No universities match these filters"
+          description="Try a different search term or clear the filters."
+        />
+      ) : (
+        <section aria-label="Universities" className="overflow-hidden rounded-3xl border border-line bg-card">
+          <div
+            aria-hidden
+            className="hidden grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1.6fr)] gap-6 border-b border-hairline px-6 py-3 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase md:grid"
+          >
+            <span>University</span>
+            <span>Expiry</span>
+            <span>DoIC nodal officer</span>
+          </div>
+          <ul className="divide-y divide-hairline">
+            {pageRows.map((row) => (
+              <UniversityEntryRow key={row.id} row={row} />
+            ))}
+          </ul>
+        </section>
+      )}
 
       {lastPage > 1 ? (
         <nav aria-label="University pages" className="flex items-center justify-between text-[13px]">
@@ -340,66 +330,115 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
   );
 }
 
-const expiryLegend: { label: string; tone: Tone; description: string }[] = [
-  { label: "Active", tone: "positive", description: "in force" },
-  { label: "Expiring soon", tone: "warning", description: `ends within ${EXPIRY_WARNING_DAYS} days` },
-  { label: "Expired", tone: "danger", description: "end date has passed" },
-];
+function agreementSummary(row: UniversityRow) {
+  if (row.agreements.length === 0) return "No MoU recorded";
+  const types = [...new Set(row.agreements.map((a) => a.typeLabel ?? agreementTypeLabel[a.type]))];
+  const label = row.agreements.length === 1 ? "1 agreement" : `${row.agreements.length} agreements`;
+  return `${label} · ${types.slice(0, 2).join(", ")}${types.length > 2 ? ` +${types.length - 2}` : ""}`;
+}
 
-/**
- * The expiry that matters most for a university: the earliest end date among
- * its agreements still in force, otherwise the most recent one that ended.
- * Coloured with the agreement's derived status.
- */
-function Expiry({ row }: { row: UniversityRow }) {
-  const dated = row.agreements.filter(
-    (agreement) =>
-      agreement.endDate &&
-      (agreement.status === "active" || agreement.status === "expiring-soon" || agreement.status === "expired"),
-  );
-  const live = dated
-    .filter((agreement) => agreement.status !== "expired")
-    .sort((a, b) => a.endDate!.localeCompare(b.endDate!));
-  const ended = dated
-    .filter((agreement) => agreement.status === "expired")
-    .sort((a, b) => b.endDate!.localeCompare(a.endDate!));
-  const shown = live[0] ?? ended[0];
-
-  if (!shown) {
-    const openEnded = row.agreements.some((agreement) => agreement.status === "active");
-    return <span className="text-fg-faint">{openEnded ? "No end date recorded" : "Not recorded"}</span>;
-  }
-  const meta = agreementStatusMeta[shown.status];
-  const days = shown.daysToExpiry ?? 0;
+/** One university: key facts always visible, everything else in an expandable panel. */
+function UniversityEntryRow({ row }: { row: UniversityRow }) {
+  const { entry } = row;
+  const hasMore =
+    entry.agreements.length > 0 ||
+    entry.universityRows.length > 0 ||
+    entry.universityContacts.length > 0 ||
+    entry.earlierOfficers.length > 0;
   return (
-    <span className="flex flex-col items-start gap-0.5">
-      <StatusBadge label={formatDate(shown.endDate)} tone={meta.tone} title={meta.label} />
-      <span className="text-[11px] text-fg-faint">
-        {meta.label} · {days < 0 ? "ended" : "ends"} {formatRelativeDays(days)}
-        {dated.length > 1 ? ` · +${dated.length - 1} more` : ""}
-      </span>
-    </span>
+    <li className="group/entry">
+      <div className="grid grid-cols-1 gap-3 px-5 py-4 sm:px-6 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1.6fr)] md:gap-6">
+        <div className="min-w-0">
+          <Link
+            href={`/internal/universities/${row.id}`}
+            className="text-[15px] font-medium text-foreground underline-offset-2 hover:text-muj-fg hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring rounded-sm"
+          >
+            {row.name}
+          </Link>
+          {row.normalizedName && row.normalizedName !== row.name ? (
+            <span className="block text-[12px] text-fg-faint">{row.normalizedName}</span>
+          ) : null}
+          <p className="mt-0.5 text-[13px] text-muted-foreground">
+            {[row.city, row.country, row.region].filter(Boolean).join(" · ")}
+          </p>
+          <p className="mt-1 text-[12px] text-fg-faint">
+            {agreementSummary(row)}
+            {entry.faculties.length > 0 ? ` · ${entry.faculties.join(", ")}` : ""}
+          </p>
+        </div>
+        <div className="min-w-0">
+          <span className="mb-1 block text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase md:hidden">
+            Expiry
+          </span>
+          <ExpiryIndicator expiry={entry.expiry} compact />
+        </div>
+        <div className="min-w-0 text-[13px]">
+          <span className="mb-1 block text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase md:hidden">
+            DoIC nodal officer
+          </span>
+          <OfficerList officers={entry.officers} compact />
+        </div>
+      </div>
+
+      {hasMore ? (
+        <details className="group border-t border-hairline/60">
+          <summary className="flex min-h-10 cursor-pointer list-none items-center gap-2 px-5 py-2 text-[12.5px] text-fg-subtle transition-colors hover:bg-overlay-subtle hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring sm:px-6 [&::-webkit-details-marker]:hidden">
+            <ChevronDown
+              className="size-4 shrink-0 transition-transform group-open:rotate-180 group-open:text-muj-fg motion-reduce:transition-none"
+              aria-hidden
+            />
+            <span className="group-open:hidden">Show all details</span>
+            <span className="hidden group-open:inline">Hide details</span>
+            <span className="sr-only">for {row.name}</span>
+          </summary>
+          <div className="space-y-5 bg-overlay-subtle px-5 pt-2 pb-5 sm:px-6">
+            <Facts
+              items={[
+                entry.qsRankings.length > 0 ? { label: "QS ranking", value: entry.qsRankings.join(" · ") } : null,
+                entry.theRankings.length > 0 ? { label: "THE ranking", value: entry.theRankings.join(" · ") } : null,
+                entry.faculties.length > 0 ? { label: "Faculty", value: entry.faculties.join(" · ") } : null,
+                entry.departments.length > 0 ? { label: "Department", value: entry.departments.join(" · ") } : null,
+                entry.earlierOfficers.length > 0
+                  ? { label: "Earlier DoIC nodal officer", value: <OfficerList officers={entry.earlierOfficers} /> }
+                  : null,
+                entry.universityContacts.length > 0
+                  ? { label: "Other contacts", value: <ContactRows contacts={entry.universityContacts} />, wide: true }
+                  : null,
+              ]}
+            />
+
+            {entry.agreements.length > 0 ? (
+              <ol className="space-y-3" aria-label={`Agreements with ${row.name}`}>
+                {entry.agreements.map((agreementEntry) => (
+                  <li
+                    key={agreementEntry.agreement.id}
+                    className={cn("rounded-2xl border border-line bg-card px-4 py-4 sm:px-5")}
+                  >
+                    <AgreementRegisterFacts entry={agreementEntry} />
+                  </li>
+                ))}
+              </ol>
+            ) : null}
+
+            {entry.universityRows.length > 0 ? (
+              <div className="rounded-2xl border border-dashed border-line-strong px-4 py-4 sm:px-5">
+                <p className="mb-3 text-[12px] text-fg-subtle">
+                  Register rows for this university that do not say which agreement they belong to:
+                </p>
+                <UniversityRegisterRows rows={entry.universityRows} />
+              </div>
+            ) : null}
+
+            <Link
+              href={`/internal/universities/${row.id}`}
+              className="inline-flex text-[13px] text-muj-fg underline-offset-2 hover:underline"
+            >
+              Open the university page to edit
+            </Link>
+          </div>
+        </details>
+      ) : null}
+    </li>
   );
 }
 
-/**
- * Officer names or numbers, one line per officer so the two columns line up.
- * A university with several current officers lists all of them.
- */
-function Officers({ officers, show }: { officers: NodalOfficer[] | null; show: "name" | "phone" }) {
-  if (officers === null) return <span className="text-fg-faint">Restricted</span>;
-  if (officers.length === 0) return <span className="text-fg-faint">Not recorded</span>;
-  return (
-    <span className="flex flex-col gap-0.5">
-      {officers.map((officer, index) => (
-        <span key={index} className="whitespace-normal">
-          {show === "name"
-            ? (officer.name ?? <span className="text-fg-faint">Name not recorded</span>)
-            : officer.phones.length > 0
-              ? officer.phones.join(", ")
-              : <span className="text-fg-faint">Not recorded</span>}
-        </span>
-      ))}
-    </span>
-  );
-}

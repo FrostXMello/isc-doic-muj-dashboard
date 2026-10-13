@@ -5,18 +5,20 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(27);
+select plan(34);
 
 insert into auth.users (id, email) values
   ('00000000-0000-4000-d000-000000000001', 'wb.doic@test.local'),
   ('00000000-0000-4000-d000-000000000002', 'wb.team@test.local'),
   ('00000000-0000-4000-d000-000000000003', 'wb.leader@test.local'),
-  ('00000000-0000-4000-d000-000000000004', 'wb.student@test.local');
+  ('00000000-0000-4000-d000-000000000004', 'wb.student@test.local'),
+  ('00000000-0000-4000-d000-000000000005', 'wb.iscadmin@test.local');
 insert into public.user_roles (user_id, role) values
   ('00000000-0000-4000-d000-000000000001', 'doic_admin'),
   ('00000000-0000-4000-d000-000000000002', 'isc_team'),
   ('00000000-0000-4000-d000-000000000003', 'leadership'),
-  ('00000000-0000-4000-d000-000000000004', 'student');
+  ('00000000-0000-4000-d000-000000000004', 'student'),
+  ('00000000-0000-4000-d000-000000000005', 'isc_admin');
 
 insert into public.regions (slug, name) values ('wbt-region', 'Register Region');
 insert into public.countries (slug, name, region_id)
@@ -91,6 +93,36 @@ select throws_ok($$ update public.source_workbook_rows set source_values = '{}' 
 select lives_ok($$ delete from public.agreement_details where faculty = 'FoSTA' $$, 'doic_admin deletes agreement details');
 reset role;
 select is((select count(*)::int from public.agreement_details where faculty = 'FoSTA'), 0, 'the delete is stored');
+
+-- Contacts edited from the university page.
+insert into public.institution_contacts (code, institution_id, role_label, full_name, source_note)
+  values ('wbt-contact', (select id from public.institutions where slug = 'wbt-uni'), 'Partner Nodal Officer', 'Jane Partner', 'ext. 12');
+select throws_ok($$ update public.institution_contacts set source_note = repeat('x', 501) where code = 'wbt-contact' $$,
+  '23514', null, 'contact notes are limited to 500 characters');
+
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-d000-000000000003","role":"authenticated"}', true);
+select throws_ok($$ insert into public.institution_contacts (code, institution_id, role_label, full_name)
+  values ('wbt-leader', (select id from public.institutions where slug = 'wbt-uni'), 'MUJ Nodal Officer', 'X') $$,
+  '42501', null, 'leadership cannot add contacts');
+reset role;
+
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-d000-000000000002","role":"authenticated"}', true);
+select lives_ok($$ update public.institution_contacts set source_note = 'Phone: +1 555 0100 ext. 12' where code = 'wbt-contact' $$,
+  'isc_team edits a contact note');
+delete from public.institution_contacts where code = 'wbt-contact';
+reset role;
+select is((select count(*)::int from public.institution_contacts where code = 'wbt-contact'), 1, 'isc_team cannot delete contacts');
+
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-d000-000000000005","role":"authenticated"}', true);
+select lives_ok($$ insert into public.agreement_details (agreement_id, remarks)
+  values ((select id from public.agreements where code = 'wbt-agr-two'), 'Admin note')
+  on conflict (agreement_id) do update set remarks = excluded.remarks $$, 'isc_admin upserts agreement details');
+select lives_ok($$ delete from public.institution_contacts where code = 'wbt-contact' $$, 'isc_admin deletes a contact');
+reset role;
+select is((select count(*)::int from public.institution_contacts where code = 'wbt-contact'), 0, 'the contact delete is stored');
 
 select ok(exists (select 1 from public.audit_logs where table_name = 'source_workbook_rows' and action = 'UPDATE'),
   'match corrections are audited');

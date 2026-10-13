@@ -123,6 +123,25 @@ PGPASSWORD="$SUPABASE_DB_PASSWORD" PGSSLMODE=require psql "$(cat supabase/.temp/
 
 After that, the Super admin assigns DoIC and ISC admins in `/internal/admin/users`. Super admin is never granted through sign-up, an email address, or the portal's first login.
 
+**DoIC MoU register** (the `0_MoU details.xlsx` workbook; owner only, after the administration rollout):
+
+- `supabase/migrations/20261013090000_mou_workbook.sql` adds `agreement_details` (one row per agreement: DoIC reference, period, expiry text, recorded status, rankings, faculty, department, opportunities, remarks, document link), `source_workbook_rows` (every row of all five sheets as recorded, with formula cells kept apart and never displayed), `contacts.source_note`, and a private import ledger. RLS: internal roles read; `isc_team` and above insert/update; content admins delete and correct matches; every change is audited. Rollback: `supabase/rollbacks/20261013090000_mou_workbook.down.sql`.
+- `npm run db:mou:plan` reads the extraction in `data/private/` and writes `data/private/mou-import-report.md` (reconciliation and data issues), `supabase/private/mou-workbook-import.sql` (one transaction, idempotent, only fills fields that are empty), and `supabase/private/mou-workbook-rollback.sql` (removes exactly what the batch added and restores the values it changed). Matching decisions live in `scripts/mou-workbook/decisions.ts`; nothing is matched by guesswork.
+- `npm run test:db` loads the seeds into a throwaway database, imports twice, checks counts and links, rolls back, and compares against a snapshot.
+- Apply (after reviewing the report):
+
+```bash
+export SUPABASE_DB_PASSWORD="$(security find-generic-password -s doic-supabase-db -w)"
+PGPASSWORD="$SUPABASE_DB_PASSWORD" PGSSLMODE=require pg_dump "$(cat supabase/.temp/pooler-url)" \
+  --data-only --schema=public -f "supabase/private/backup-$(date +%Y%m%d%H%M).sql"
+npx supabase db push --linked   # 20261005090000, 20261005090100, 20261013090000
+PGPASSWORD="$SUPABASE_DB_PASSWORD" PGSSLMODE=require psql "$(cat supabase/.temp/pooler-url)" \
+  -v ON_ERROR_STOP=1 -f supabase/private/mou-workbook-import.sql
+```
+
+- Undo the import with the same `psql` command and `-f supabase/private/mou-workbook-rollback.sql`.
+- In the portal: the universities list shows DoIC officers and expiry per university and expands to every MoU's register details; `/internal/universities/national` lists the National MoUs sheet; university pages add, edit, and (content admins) delete contacts; an agreement's edit page has a "DoIC register details" section. Until the migration is applied these show a "not imported" notice.
+
 ## Authentication
 
 - `/login` is the only sign-in page. Server actions in `src/lib/auth/actions.ts` handle sign-in, sign-out, reset requests, and password updates; no secret reaches the client.
@@ -166,7 +185,7 @@ After that, the Super admin assigns DoIC and ISC admins in `/internal/admin/user
 ## Next planned work
 
 1. Apply the admin-control migrations and provision the first Super admin (see Administration rollout), then onboard staff from `/internal/admin/users`.
-2. Editing nodal contacts in the portal; bulk actions where they are safe.
+2. Apply the DoIC MoU register migration and import (see above); DoIC to review the unpaired rows listed in `data/private/mou-import-report.md`. Bulk actions where they are safe.
 3. DoIC review: confirm the `needs-review` records and add agreement dates and status from signed documents; then mark confirmed records `verified`.
 4. Push filters into SQL when record counts grow (the repository currently loads the visible dataset per request).
 

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BookOpen, CalendarDays, FileText, FolderOpen, Globe, Handshake, Link2 } from "lucide-react";
+import { BookMarked, BookOpen, CalendarDays, FileText, FolderOpen, Globe, Handshake, Link2, Lock, UserRound } from "lucide-react";
 import { notFound } from "next/navigation";
 import { AgreementCard } from "@/components/internal/agreement-card";
 import {
@@ -11,12 +11,21 @@ import {
 import { SuccessNotice } from "@/components/internal/forms/form-fields";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { EmptyState } from "@/components/internal/ui/empty-state";
-import { ManageLink } from "@/components/internal/ui/manage-action";
+import { canManage, ManageLink } from "@/components/internal/ui/manage-action";
+import Link from "next/link";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import { ContactsPanel, provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
+import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
+import {
+  ContactRows,
+  ExpiryIndicator,
+  Facts,
+  OfficerList,
+  RegisterNotice,
+  UniversityRegisterRows,
+} from "@/components/internal/university-register";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getInstitution } from "@/lib/internal/data/institutions";
-import { formatDate, formatDateRange } from "@/lib/internal/dates";
+import { formatDateRange } from "@/lib/internal/dates";
 import { readParam, type SearchParamsRecord } from "@/lib/internal/query";
 import { documentTypeLabel, sourceMeta } from "@/lib/internal/status";
 
@@ -31,6 +40,10 @@ const notices: Record<string, string> = {
   "agreement-created": "MoU added.",
   "agreement-updated": "MoU saved.",
   "agreement-deleted": "MoU deleted.",
+  "register-updated": "Register details saved.",
+  "contact-created": "Contact added.",
+  "contact-updated": "Contact saved.",
+  "contact-deleted": "Contact deleted.",
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -44,8 +57,9 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
   const record = await getInstitution(id);
   if (!record) notFound();
 
-  const { today, institution, agreements, offerings, opportunities, activities, documents, peers, contactAccess } =
+  const { today, institution, agreements, offerings, opportunities, activities, documents, peers, contactAccess, register, entry } =
     record;
+  const registerByAgreement = new Map(entry.agreements.map((item) => [item.agreement.id, item]));
   const openAgreement = readParam(query, "agreement");
   const notice = notices[readParam(query, "notice") ?? ""];
   const note =
@@ -107,6 +121,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
                     universityId={institution.id}
                     today={today}
                     open={openAgreement === entry.agreement.id || agreements.length === 1}
+                    register={registerByAgreement.get(entry.agreement.id)}
                   />
                 ))}
               </div>
@@ -142,8 +157,8 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
                     : "None recorded",
                 },
                 {
-                  label: "Next expiry",
-                  value: institution.nextExpiry ? formatDate(institution.nextExpiry) : <NotRecorded />,
+                  label: "Expiry",
+                  value: <ExpiryIndicator expiry={entry.expiry} />,
                 },
                 {
                   label: "Programme offerings",
@@ -152,6 +167,34 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
                 { label: "Note", wide: true, value: note },
               ]}
             />
+          </DetailSection>
+
+          <DetailSection
+            title="DoIC MoU register"
+            icon={BookMarked}
+            description="University-wide values from the register. Each MoU's own register details are listed with the MoU above."
+          >
+            <div className="space-y-4 px-6 pb-5">
+              <RegisterNotice register={register} />
+              <Facts
+                items={[
+                  entry.qsRankings.length > 0 ? { label: "QS ranking", value: entry.qsRankings.join(" · ") } : null,
+                  entry.theRankings.length > 0 ? { label: "THE ranking", value: entry.theRankings.join(" · ") } : null,
+                  entry.faculties.length > 0 ? { label: "Faculty", value: entry.faculties.join(" · ") } : null,
+                  entry.departments.length > 0 ? { label: "Department", value: entry.departments.join(" · ") } : null,
+                ]}
+              />
+              {entry.universityRows.length > 0 ? (
+                <>
+                  <p className="text-[12px] text-fg-subtle">
+                    Register rows for this university that do not say which agreement they belong to:
+                  </p>
+                  <UniversityRegisterRows rows={entry.universityRows} />
+                </>
+              ) : register.state === "granted" ? (
+                <p className="text-[12px] text-fg-faint">Every register row for this university is listed with its MoU.</p>
+              ) : null}
+            </div>
           </DetailSection>
 
           <DetailSection title="Programme offerings" icon={BookOpen}>
@@ -238,7 +281,44 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
             <KeyValueList className="sm:grid-cols-1" items={provenanceItems(institution)} />
           </DetailSection>
 
-          <ContactsPanel access={contactAccess} institutionId={institution.id} />
+          <DetailSection
+            id="contacts"
+            title="Nodal officers & contacts"
+            icon={contactAccess.state === "granted" ? UserRound : Lock}
+            description="Internal only. From the official partner page and the DoIC MoU register; do not publish."
+            action={
+              <ManageLink
+                permission="institutions:update"
+                href={`/internal/universities/${institution.id}/contacts/new`}
+                label="Add contact"
+                icon="add"
+                size="sm"
+              />
+            }
+          >
+            {contactAccess.state === "restricted" ? (
+              <p className="px-6 pb-5 text-[13px] text-fg-faint">
+                {contactAccess.reason === "static-source"
+                  ? "Contacts are stored only in the access-controlled database; this deployment reads the static dataset."
+                  : "Your account does not hold an internal DoIC role."}
+              </p>
+            ) : (
+              <div className="space-y-4 px-6 pb-5 text-[13px]">
+                <div>
+                  <p className="mb-1.5 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">DoIC nodal officer</p>
+                  <OfficerList officers={entry.officers} />
+                </div>
+                {entry.earlierOfficers.length > 0 ? (
+                  <div>
+                    <p className="mb-1.5 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">Earlier nodal officer</p>
+                    <OfficerList officers={entry.earlierOfficers} />
+                  </div>
+                ) : null}
+                {entry.universityContacts.length > 0 ? <ContactRows contacts={entry.universityContacts} /> : null}
+                <ManageContacts universityId={institution.id} contacts={contactAccess.contacts.filter((row) => row.institutionId === institution.id)} />
+              </div>
+            )}
+          </DetailSection>
 
           {institution.note && (
             <DetailSection title="Review note">
@@ -262,5 +342,43 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
         </div>
       </div>
     </div>
+  );
+}
+
+/** Every contact with its edit link, for roles that may edit them. */
+async function ManageContacts({
+  universityId,
+  contacts,
+}: {
+  universityId: string;
+  contacts: readonly { id: string; roleLabel: string; name: string | null; agreementId: string | null }[];
+}) {
+  if (contacts.length === 0 || !(await canManage("institutions:update"))) return null;
+  return (
+    <details className="group rounded-xl border border-line">
+      <summary className="cursor-pointer list-none px-3 py-2 text-[12px] text-fg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+        Edit contacts ({contacts.length})
+      </summary>
+      <ul className="divide-y divide-hairline border-t border-hairline">
+        {contacts.map((contact) => (
+          <li key={contact.id} className="flex items-center justify-between gap-3 px-3 py-2">
+            <span className="min-w-0">
+              <span className="block truncate text-foreground">{contact.name ?? "Name not recorded"}</span>
+              <span className="block text-[11px] text-fg-faint">
+                {contact.roleLabel}
+                {contact.agreementId ? ` · ${contact.agreementId}` : ""}
+              </span>
+            </span>
+            <Link
+              href={`/internal/universities/${universityId}/contacts/${contact.id}/edit`}
+              className="shrink-0 text-[12px] text-muj-fg hover:text-foreground"
+              aria-label={`Edit ${contact.roleLabel} ${contact.name ?? ""}`.trim()}
+            >
+              Edit
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }
