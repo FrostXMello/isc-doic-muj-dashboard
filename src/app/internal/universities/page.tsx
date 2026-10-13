@@ -1,26 +1,26 @@
 import type { Metadata } from "next";
-import { SearchX } from "lucide-react";
+import { ChevronLeft, ChevronRight, SearchX } from "lucide-react";
 import Link from "next/link";
-import { PartnershipBadge } from "@/components/internal/badges";
 import { SuccessNotice } from "@/components/internal/forms/form-fields";
-import { VerificationBadge } from "@/components/internal/ui/provenance";
 import { getDataMode } from "@/lib/internal/data/context";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
 import { ManageLink } from "@/components/internal/ui/manage-action";
 import { PageHeader } from "@/components/internal/ui/page-header";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
-import { DataNotice, SourceBadge } from "@/components/internal/ui/source-badge";
+import { DataNotice } from "@/components/internal/ui/source-badge";
+import { StatusBadge } from "@/components/internal/ui/status-badge";
+import { EXPIRY_WARNING_DAYS, formatDate, formatRelativeDays } from "@/lib/internal/dates";
 import { agreementStatuses, agreementTypes } from "@/lib/internal/data/agreements";
 import {
   agreementCoverage,
   getInstitutionFilterOptions,
   institutionSources,
   listInstitutions,
+  type NodalOfficer,
   partnershipStatuses,
   type UniversityRow,
 } from "@/lib/internal/data/institutions";
-import { EXPIRY_WARNING_DAYS, formatDate } from "@/lib/internal/dates";
 import {
   readEnumParam,
   readParam,
@@ -34,30 +34,12 @@ import {
   optionsFrom,
   partnershipStatusMeta,
   sourceMeta,
+  type Tone,
 } from "@/lib/internal/status";
 
 export const metadata: Metadata = { title: "Universities & MoUs" };
 
-function mouSummary(row: UniversityRow) {
-  if (row.agreements.length === 0) return null;
-  const types = [...new Set(row.agreements.map((a) => a.typeLabel ?? agreementTypeLabel[a.type]))];
-  return types.length > 2 ? `${types.slice(0, 2).join(", ")} +${types.length - 2}` : types.join(", ");
-}
-
-function MouCount({ row }: { row: UniversityRow }) {
-  if (row.agreementCount === 0) return <span className="text-fg-faint">None recorded</span>;
-  return (
-    <span>
-      <span className="tabular-nums">
-        {row.agreementCount} MoU{row.agreementCount === 1 ? "" : "s"}
-        {row.activeAgreementCount > 0 ? (
-          <span className="text-fg-faint"> · {row.activeAgreementCount} active</span>
-        ) : null}
-      </span>
-      <span className="block max-w-56 truncate text-[12px] text-fg-faint">{mouSummary(row)}</span>
-    </span>
-  );
-}
+const PAGE_SIZE = 25;
 
 const regionColor = (rank: number) => `var(--reach-${(rank % 7) + 1})`;
 
@@ -159,7 +141,6 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
 
   const deleted = readParam(params, "notice") === "university-deleted";
   const activeRegion = readEnumParam(params, "region", options.regions);
-  const regionRank = new Map<string, number>();
   const regions = options.regions
     .map((region) => {
       const members = all.filter((row) => row.region === region);
@@ -167,14 +148,27 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
     })
     .filter((row) => row.universities > 0)
     .sort((a, b) => b.universities - a.universities);
-  regions.forEach((row, rank) => regionRank.set(row.region, rank));
+
+  const lastPage = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const page = Math.min(lastPage, Math.max(1, Number.parseInt(readParam(params, "page") ?? "1", 10) || 1));
+  const pageRows = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const pageHref = (target: number) => {
+    const next = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (key === "page" || key === "notice" || value === undefined) continue;
+      for (const item of Array.isArray(value) ? value : [value]) next.append(key, item);
+    }
+    if (target > 1) next.set("page", String(target));
+    const qs = next.toString();
+    return qs ? `/internal/universities?${qs}` : "/internal/universities";
+  };
 
   return (
     <div className="space-y-8">
       <PageHeader
         eyebrow="Global network"
         title="Universities & MoUs"
-        description={`Each partner university once, with every MoU and agreement recorded for it. Where dates are recorded, agreements ending within ${EXPIRY_WARNING_DAYS} days are flagged as expiring soon.`}
+        description="Each partner university once, with its DoIC nodal officer. Open a university for its MoUs, dates, rankings, contacts, and register history."
         actions={
           <ManageLink
             permission="institutions:create"
@@ -189,11 +183,10 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
       {deleted ? <SuccessNotice>University deleted.</SuccessNotice> : null}
 
       <DataNotice>
-        <strong className="font-medium">Official MUJ source</strong> institutions and their
-        collaboration rows are imported from the official partner page, which gives no dates or
-        status, so those MoUs show <em>Status not stated</em>. Only rows whose wording names an
-        agreement type carry that type. <strong className="font-medium">Earlier directory</strong>{" "}
-        names are not on the official page and await DoIC review.
+        DoIC nodal officers come from the official partner page and the DoIC MoU register. Where a
+        university has more than one current officer, all are listed. Contact details are internal:
+        they appear only for DoIC roles when the portal reads the access-controlled database
+        {mode.source === "supabase" ? "" : " (this deployment reads the static dataset, so they show as Restricted)"}.
         {mode.sampleData ? (
           <>
             {" "}
@@ -206,7 +199,7 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
       {regions.length > 0 ? <RegionIndex regions={regions} active={activeRegion} params={params} /> : null}
 
       <FilterBar
-        searchPlaceholder="Search university, country, or MoU"
+        searchPlaceholder="Search university, country, or officer"
         noun={{ singular: "university", plural: "universities" }}
         resultCount={rows.length}
         totalCount={all.length}
@@ -262,9 +255,18 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
         ]}
       />
 
+      <ul aria-label="Expiry colours" className="flex flex-wrap gap-x-4 gap-y-2 text-[12px] text-fg-subtle">
+        {expiryLegend.map((entry) => (
+          <li key={entry.label} className="flex items-center gap-2">
+            <StatusBadge label={entry.label} tone={entry.tone} />
+            {entry.description}
+          </li>
+        ))}
+      </ul>
+
       <ResourceTable<UniversityRow>
-        caption="Universities and their MoUs"
-        rows={rows}
+        caption="Universities with their DoIC nodal officers"
+        rows={pageRows}
         getKey={(row) => row.id}
         getHref={(row) => `/internal/universities/${row.id}`}
         getRowLabel={(row) => `${row.name}, ${row.country}`}
@@ -279,82 +281,125 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
           {
             key: "name",
             header: "University",
-            cell: (row) => (
-              <span className="font-medium">
-                {row.name}
-                {row.normalizedName && row.normalizedName !== row.name ? (
-                  <span className="block text-[12px] font-normal text-fg-faint">{row.normalizedName}</span>
-                ) : null}
-              </span>
-            ),
+            cell: (row) => <span className="font-medium">{row.name}</span>,
           },
-          {
-            key: "location",
-            header: "Location",
-            cell: (row) => (
-              <span>
-                {row.country}
-                <span className="flex items-center gap-1.5 text-[12px] text-fg-faint">
-                  <span
-                    className="size-1.5 shrink-0 rounded-full"
-                    style={{ background: regionColor(regionRank.get(row.region) ?? 0) }}
-                    aria-hidden
-                  />
-                  {row.region}
-                </span>
-              </span>
-            ),
-          },
-          {
-            key: "agreements",
-            header: "MoUs",
-            cell: (row) => <MouCount row={row} />,
-          },
-          {
-            key: "status",
-            header: "Partnership",
-            cell: (row) => <PartnershipBadge status={row.partnershipStatus} />,
-          },
+          { key: "country", header: "Country", cell: (row) => row.country },
           {
             key: "expiry",
-            header: "Next expiry",
+            header: "Expiry",
             className: "whitespace-nowrap",
-            cell: (row) =>
-              row.nextExpiry ? formatDate(row.nextExpiry) : <span className="text-fg-faint">—</span>,
+            cell: (row) => <Expiry row={row} />,
           },
           {
-            key: "source",
-            header: "Source",
-            cell: (row) => (
-              <span className="flex flex-col items-start gap-1">
-                <SourceBadge source={row.source} />
-                <VerificationBadge status={row.verification} />
-              </span>
-            ),
+            key: "officer",
+            header: "DoIC nodal officer",
+            cell: (row) => <Officers officers={row.officers} show="name" />,
+          },
+          {
+            key: "phone",
+            header: "Contact number",
+            className: "whitespace-nowrap",
+            cell: (row) => <Officers officers={row.officers} show="phone" />,
           },
         ]}
         renderCard={(row) => (
           <ResourceCard
             title={row.name}
-            subtitle={`${row.country} · ${row.region}`}
-            badges={
-              <>
-                <PartnershipBadge status={row.partnershipStatus} />
-                <SourceBadge source={row.source} />
-              </>
-            }
+            subtitle={row.country}
+            badges={<Expiry row={row} />}
             meta={[
-              {
-                label: "MoUs",
-                value: row.agreementCount
-                  ? `${row.agreementCount}${row.activeAgreementCount ? ` · ${row.activeAgreementCount} active` : ""}`
-                  : "None recorded",
-              },
-              { label: "Next expiry", value: formatDate(row.nextExpiry, "—") },
+              { label: "DoIC nodal officer", value: <Officers officers={row.officers} show="name" /> },
+              { label: "Contact number", value: <Officers officers={row.officers} show="phone" /> },
             ]}
           />
         )}
       />
+
+      {lastPage > 1 ? (
+        <nav aria-label="University pages" className="flex items-center justify-between text-[13px]">
+          {page > 1 ? (
+            <Link href={pageHref(page - 1)} className="inline-flex items-center gap-1 text-fg-subtle hover:text-foreground">
+              <ChevronLeft className="size-4" aria-hidden /> Previous
+            </Link>
+          ) : (
+            <span />
+          )}
+          <span className="text-fg-faint">
+            Page {page} of {lastPage}
+          </span>
+          {page < lastPage ? (
+            <Link href={pageHref(page + 1)} className="inline-flex items-center gap-1 text-fg-subtle hover:text-foreground">
+              Next <ChevronRight className="size-4" aria-hidden />
+            </Link>
+          ) : (
+            <span />
+          )}
+        </nav>
+      ) : null}
     </div>
+  );
+}
+
+const expiryLegend: { label: string; tone: Tone; description: string }[] = [
+  { label: "Active", tone: "positive", description: "in force" },
+  { label: "Expiring soon", tone: "warning", description: `ends within ${EXPIRY_WARNING_DAYS} days` },
+  { label: "Expired", tone: "danger", description: "end date has passed" },
+];
+
+/**
+ * The expiry that matters most for a university: the earliest end date among
+ * its agreements still in force, otherwise the most recent one that ended.
+ * Coloured with the agreement's derived status.
+ */
+function Expiry({ row }: { row: UniversityRow }) {
+  const dated = row.agreements.filter(
+    (agreement) =>
+      agreement.endDate &&
+      (agreement.status === "active" || agreement.status === "expiring-soon" || agreement.status === "expired"),
+  );
+  const live = dated
+    .filter((agreement) => agreement.status !== "expired")
+    .sort((a, b) => a.endDate!.localeCompare(b.endDate!));
+  const ended = dated
+    .filter((agreement) => agreement.status === "expired")
+    .sort((a, b) => b.endDate!.localeCompare(a.endDate!));
+  const shown = live[0] ?? ended[0];
+
+  if (!shown) {
+    const openEnded = row.agreements.some((agreement) => agreement.status === "active");
+    return <span className="text-fg-faint">{openEnded ? "No end date recorded" : "Not recorded"}</span>;
+  }
+  const meta = agreementStatusMeta[shown.status];
+  const days = shown.daysToExpiry ?? 0;
+  return (
+    <span className="flex flex-col items-start gap-0.5">
+      <StatusBadge label={formatDate(shown.endDate)} tone={meta.tone} title={meta.label} />
+      <span className="text-[11px] text-fg-faint">
+        {meta.label} · {days < 0 ? "ended" : "ends"} {formatRelativeDays(days)}
+        {dated.length > 1 ? ` · +${dated.length - 1} more` : ""}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * Officer names or numbers, one line per officer so the two columns line up.
+ * A university with several current officers lists all of them.
+ */
+function Officers({ officers, show }: { officers: NodalOfficer[] | null; show: "name" | "phone" }) {
+  if (officers === null) return <span className="text-fg-faint">Restricted</span>;
+  if (officers.length === 0) return <span className="text-fg-faint">Not recorded</span>;
+  return (
+    <span className="flex flex-col gap-0.5">
+      {officers.map((officer, index) => (
+        <span key={index} className="whitespace-normal">
+          {show === "name"
+            ? (officer.name ?? <span className="text-fg-faint">Name not recorded</span>)
+            : officer.phones.length > 0
+              ? officer.phones.join(", ")
+              : <span className="text-fg-faint">Not recorded</span>}
+        </span>
+      ))}
+    </span>
   );
 }

@@ -1,8 +1,10 @@
 import { matchesQuery, openDataContext, uniqueSorted } from "@/lib/internal/data/context";
+import { personKey } from "@/lib/internal/workbook/source";
 import type {
   AgreementStatus,
   AgreementType,
   AgreementView,
+  InstitutionContact,
   InstitutionView,
   PartnershipStatus,
   RecordSource,
@@ -36,18 +38,39 @@ export type InstitutionFilters = {
   coverage?: AgreementCoverage;
 };
 
-export type UniversityRow = InstitutionView & { agreements: AgreementView[] };
+/** Current MUJ (DoIC) nodal officer for a university, merged across its agreements. */
+export type NodalOfficer = { name: string | null; phones: string[] };
+
+/** `null`: contacts are not available to this user or deployment. */
+export type UniversityRow = InstitutionView & { agreements: AgreementView[]; officers: NodalOfficer[] | null };
+
+export const DOIC_OFFICER_ROLE = "MUJ Nodal Officer";
+
+/** Every distinct current officer, in record order; the same person is listed once. */
+export function nodalOfficers(contacts: readonly InstitutionContact[], institutionId: string): NodalOfficer[] {
+  const officers = new Map<string, NodalOfficer>();
+  for (const contact of contacts) {
+    if (contact.institutionId !== institutionId || contact.roleLabel !== DOIC_OFFICER_ROLE) continue;
+    const key = contact.name ? personKey(contact.name) : `phone:${contact.phone ?? contact.email ?? contact.id}`;
+    const officer = officers.get(key) ?? { name: contact.name, phones: [] };
+    if (contact.phone && !officer.phones.includes(contact.phone)) officer.phones.push(contact.phone);
+    officers.set(key, officer);
+  }
+  return [...officers.values()];
+}
 
 export async function listInstitutions(filters: InstitutionFilters = {}): Promise<UniversityRow[]> {
-  const { today, data, views } = await openDataContext();
+  const { today, data, views, contactAccess } = await openDataContext();
   return data.institutions
     .map((institution) => ({
       ...views.toInstitutionView(institution, today),
       agreements: views.agreementsForInstitution(institution.id, today),
+      officers: contactAccess.state === "granted" ? nodalOfficers(contactAccess.contacts, institution.id) : null,
     }))
     .filter(
       (row) =>
         (matchesQuery(filters.q, row.name, row.normalizedName, row.country, row.city) ||
+          (row.officers ?? []).some((officer) => matchesQuery(filters.q, officer.name, ...officer.phones)) ||
           row.agreements.some((agreement) =>
             matchesQuery(
               filters.q,

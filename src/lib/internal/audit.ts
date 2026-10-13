@@ -8,6 +8,8 @@ export const auditTableLabels: Record<string, string> = {
   institutions: "Universities",
   institution_contacts: "University contacts",
   agreements: "MoUs and agreements",
+  agreement_details: "MoU register details",
+  source_workbook_rows: "MoU register source rows",
   agreement_partner_institutions: "Agreement partners",
   agreement_collaboration_areas: "Agreement areas",
   collaboration_areas: "Collaboration areas",

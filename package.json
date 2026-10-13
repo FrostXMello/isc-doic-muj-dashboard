@@ -10,6 +10,7 @@
     "test": "tsx --test tests/*.test.ts",
     "test:db": "./scripts/test-db.sh",
     "db:seed:generate": "tsx scripts/generate-seed-sql.ts",
+    "db:mou:plan": "tsx scripts/import-mou-workbook.ts",
     "data:check": "tsx scripts/check-data-quality.ts"
   },
   "dependencies": {

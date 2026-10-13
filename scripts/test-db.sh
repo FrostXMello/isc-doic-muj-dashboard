@@ -82,4 +82,53 @@ else
   echo "FAIL grant-super-admin.sql"; failed=1
 fi
 
+# MoU register import (only when the gitignored import SQL exists): loads the
+# official seeds and contacts, imports, re-imports, rolls back, and checks
+# that the rollback restores the pre-import data exactly.
+import_sql="$ROOT/supabase/private/mou-workbook-import.sql"
+rollback_sql="$ROOT/supabase/private/mou-workbook-rollback.sql"
+if [ -f "$import_sql" ] && [ -f "$rollback_sql" ]; then
+  psql_db -d postgres -c "create database doic_import template doic_test"
+  for seed in "$ROOT/supabase/seeds/01_official.sql" "$ROOT/supabase/seeds/02_directory.sql" "$ROOT/supabase/private/muj-nodal-contacts.sql"; do
+    if [ -f "$seed" ]; then psql_db -d doic_import -1 -f "$seed" >/dev/null; fi
+  done
+  # updated_at/updated_by are excluded: the audit trigger stamps the rollback.
+  snapshot_rows="
+    select 'c:' || (to_jsonb(c) - 'updated_at' - 'updated_by')::text as x from public.countries c
+    union all select 'i:' || (to_jsonb(i) - 'updated_at' - 'updated_by')::text from public.institutions i
+    union all select 'a:' || (to_jsonb(a) - 'updated_at' - 'updated_by')::text from public.agreements a
+    union all select 'n:' || (to_jsonb(n) - 'updated_at' - 'updated_by')::text from public.institution_contacts n"
+  psql_db -d doic_import -c "create table private.pre_import_snapshot as $snapshot_rows"
+  counts() {
+    psql_db -d doic_import -t -A -c "
+      select (select count(*) from public.institutions) || ' institutions, '
+        || (select count(*) from public.agreements) || ' agreements, '
+        || (select count(*) from public.agreement_details) || ' details, '
+        || (select count(*) from public.institution_contacts) || ' contacts, '
+        || (select count(*) from public.source_workbook_rows) || ' source rows'"
+  }
+  echo "Before import: $(counts)"
+  psql_db -d doic_import -f "$import_sql" >/dev/null
+  first="$(counts)"
+  echo "After import:  $first"
+  psql_db -d doic_import -f "$import_sql" >/dev/null
+  if [ "$(counts)" = "$first" ]; then echo "ok   re-running the import changes nothing"; else
+    echo "FAIL re-import changed counts: $(counts)"; failed=1; fi
+  unlinked="$(psql_db -d doic_import -t -A -c "
+    select count(*) from public.source_workbook_rows
+    where match_status in ('matched', 'created') and institution_id is null")"
+  if [ "$unlinked" = "0" ]; then echo "ok   every matched source row is linked to its university"; else
+    echo "FAIL $unlinked matched source rows lost their university"; failed=1; fi
+  psql_db -d doic_import -f "$rollback_sql" >/dev/null
+  differences="$(psql_db -d doic_import -t -A -c "
+    (select '- ' || x from private.pre_import_snapshot except select '- ' || x from ($snapshot_rows) now)
+    union all
+    (select '+ ' || x from ($snapshot_rows) now except select '+ ' || x from private.pre_import_snapshot)")"
+  if [ -z "$differences" ]; then echo "ok   rollback restores the pre-import data exactly"; else
+    echo "FAIL rollback left differences:"; echo "$differences" | cut -c1-300 | sed -n '1,10p'; failed=1; fi
+  echo "After rollback: $(counts)"
+else
+  echo "skip MoU register import test (run npm run db:mou:plan first)"
+fi
+
 exit "$failed"
