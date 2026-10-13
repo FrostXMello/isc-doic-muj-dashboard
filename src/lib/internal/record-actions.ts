@@ -1,15 +1,10 @@
 "use server";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { getAuthContext } from "@/lib/auth/session";
-import { resolveInternalDataSource } from "@/lib/internal/data/source";
 import { agreementHref } from "@/lib/internal/links";
-import { type Permission, portalRoleOf, roleAllows } from "@/lib/internal/permissions";
 import {
   fieldError,
-  formValues,
   newAgreementCode,
   newInstitutionSlug,
   parseAgreementForm,
@@ -17,44 +12,23 @@ import {
   type RecordFormState,
   SLUG_PATTERN,
 } from "@/lib/internal/record-forms";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  isState,
+  notPermitted,
+  type PgError,
+  refreshPortal,
+  tryAgain,
+  withValues,
+  writableClient,
+} from "@/lib/internal/write-context";
 
 /**
  * Create, update, and delete universities and their agreements (MoUs).
  *
  * Every write runs through the signed-in user's own Supabase session, so row
- * level security is the real boundary (isc_team and doic_admin write;
- * doic_admin deletes). The role checks here only give clear messages.
+ * level security is the real boundary (editors write; administrators
+ * delete). The role checks only give clear messages.
  */
-
-const notPermitted: RecordFormState = { error: "Your role can't make this change." };
-const unavailable: RecordFormState = {
-  error: "Editing needs the Supabase data source, which isn't configured here.",
-};
-const tryAgain: RecordFormState = { error: "Couldn't save the change. Please try again." };
-
-type PgError = { code?: string; message?: string } | null;
-
-async function writableClient(permission: Permission): Promise<SupabaseClient | RecordFormState> {
-  if (resolveInternalDataSource() !== "supabase") return unavailable;
-  const auth = await getAuthContext();
-  const role = auth.state === "signed-in" ? portalRoleOf(auth.roles) : null;
-  if (!role || !roleAllows(role, permission)) return notPermitted;
-  const supabase = await createSupabaseServerClient();
-  return supabase ?? unavailable;
-}
-
-function isState(value: unknown): value is RecordFormState {
-  return typeof value === "object" && value !== null && !("from" in value);
-}
-
-function withValues(state: RecordFormState, formData: FormData): RecordFormState {
-  return { ...state, values: formValues(formData) };
-}
-
-function refreshPortal() {
-  revalidatePath("/internal", "layout");
-}
 
 // ---------------------------------------------------------------------------
 // Universities
@@ -69,8 +43,9 @@ export async function saveInstitution(_state: RecordFormState, formData: FormDat
   if (!parsed.ok) return parsed.state;
   const input = parsed.value;
 
-  const supabase = await writableClient(editing ? "institutions:update" : "institutions:create");
-  if (isState(supabase)) return withValues(supabase, formData);
+  const writable = await writableClient(editing ? "institutions:update" : "institutions:create");
+  if (isState(writable)) return withValues(writable, formData);
+  const { supabase } = writable;
 
   const { data: country, error: countryError } = await supabase
     .from("countries")
@@ -129,8 +104,9 @@ export async function deleteInstitution(_state: RecordFormState, formData: FormD
   if (typeof slug !== "string" || !SLUG_PATTERN.test(slug)) return { error: "Unknown university." };
   if (formData.get("confirm") !== "on") return { error: "Tick the confirmation box to delete this university." };
 
-  const supabase = await writableClient("institutions:delete");
-  if (isState(supabase)) return supabase;
+  const writable = await writableClient("institutions:delete");
+  if (isState(writable)) return writable;
+  const { supabase } = writable;
 
   const { data, error } = await supabase.from("institutions").delete().eq("slug", slug).select("slug");
   if (error) {
@@ -168,8 +144,9 @@ export async function saveAgreement(_state: RecordFormState, formData: FormData)
   if (!parsed.ok) return parsed.state;
   const input = parsed.value;
 
-  const supabase = await writableClient(editing ? "agreements:update" : "agreements:create");
-  if (isState(supabase)) return withValues(supabase, formData);
+  const writable = await writableClient(editing ? "agreements:update" : "agreements:create");
+  if (isState(writable)) return withValues(writable, formData);
+  const { supabase } = writable;
 
   let ids: Map<string, string>;
   try {
@@ -281,8 +258,9 @@ export async function deleteAgreement(_state: RecordFormState, formData: FormDat
   if (typeof lead !== "string" || !SLUG_PATTERN.test(lead)) return { error: "Unknown university." };
   if (formData.get("confirm") !== "on") return { error: "Tick the confirmation box to delete this agreement." };
 
-  const supabase = await writableClient("agreements:delete");
-  if (isState(supabase)) return supabase;
+  const writable = await writableClient("agreements:delete");
+  if (isState(writable)) return writable;
+  const { supabase } = writable;
 
   const { data, error } = await supabase.from("agreements").delete().eq("code", code).select("code");
   if (error) {

@@ -11,14 +11,14 @@ import {
 } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
-import { RecordAction } from "@/components/internal/ui/record-action";
+import { ManageLink } from "@/components/internal/ui/manage-action";
 import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getOffering, getProgram } from "@/lib/internal/data/programs";
 import { ProgramOverview } from "./program-overview";
 import { formatDate, formatDateRange } from "@/lib/internal/dates";
-import type { IdParamsProp } from "@/lib/internal/query";
+import type { IdParamsProp, SearchParamsProp } from "@/lib/internal/query";
+import { RecordNotice } from "@/components/internal/ui/record-notice";
 import { documentTypeLabel } from "@/lib/internal/status";
 
 export async function generateMetadata({ params }: IdParamsProp): Promise<Metadata> {
@@ -38,10 +38,10 @@ const availabilityExplanation = {
   "not-recorded": "No availability state has been recorded. This does not mean the offering is open.",
 } as const;
 
-export default async function ProgramOfferingPage({ params }: IdParamsProp) {
+export default async function ProgramOfferingPage({ params, searchParams }: IdParamsProp & SearchParamsProp) {
   const { id } = await params;
   const programRecord = await getProgram(id);
-  if (programRecord) return <ProgramOverview record={programRecord} />;
+  if (programRecord) return <ProgramOverview record={programRecord} notice={<RecordNotice query={await searchParams} />} />;
 
   const record = await getOffering(id);
   if (!record) notFound();
@@ -69,14 +69,10 @@ export default async function ProgramOfferingPage({ params }: IdParamsProp) {
           </>
         }
         actions={
-          <RecordAction
-            permission="programs:update"
-            label="Edit offering"
-            icon="edit"
-            reason={unavailableReasons.editing}
-          />
+          <ManageLink permission="programs:update" href={`/internal/programs/${offering.id}/edit`} label="Edit offering" icon="edit" />
         }
       />
+      <RecordNotice query={await searchParams} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

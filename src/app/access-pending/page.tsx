@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AuthShell, primaryActionClass, secondaryActionClass } from "@/components/auth/auth-shell";
+import { AccessContact } from "@/components/auth/access-contact";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { defaultDestination } from "@/lib/auth/roles";
 import { requireUser } from "@/lib/auth/session";
@@ -21,10 +22,7 @@ export default async function AccessPendingPage() {
       lede={
         <>
           <p>Your account is authenticated, but portal access has not yet been assigned.</p>
-          <p className="mt-3">
-            Please contact the Directorate of International Collaborations / International Student
-            Cell for access.
-          </p>
+          <AccessContact lead="For access, please" />
         </>
       }
     >

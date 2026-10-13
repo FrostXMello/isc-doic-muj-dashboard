@@ -5,7 +5,7 @@ import { useActionState, useId } from "react";
 import { FormStatus, SubmitButton } from "@/components/internal/forms/form-fields";
 import type { RecordFormState } from "@/lib/internal/record-forms";
 
-/** Confirmed delete for DoIC admins. The server action and RLS re-check the role. */
+/** Confirmed delete for administrators. The server action and RLS re-check the role. */
 export function DeleteRecordForm({
   action,
   fields,

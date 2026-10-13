@@ -6,6 +6,7 @@ import {
   OpportunityStatusBadge,
 } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
+import { ManageLink } from "@/components/internal/ui/manage-action";
 import { NotRecorded } from "@/components/internal/ui/page-header";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import type { getProgram } from "@/lib/internal/data/programs";
@@ -14,7 +15,7 @@ import { audienceMeta, documentTypeLabel } from "@/lib/internal/status";
 
 type ProgramRecord = NonNullable<Awaited<ReturnType<typeof getProgram>>>;
 
-export function ProgramOverview({ record }: { record: ProgramRecord }) {
+export function ProgramOverview({ record, notice }: { record: ProgramRecord; notice?: React.ReactNode }) {
   const { program, audience, offerings, opportunities, documents } = record;
 
   return (
@@ -30,7 +31,14 @@ export function ProgramOverview({ record }: { record: ProgramRecord }) {
             <SourceBadge source={program.source} />
           </>
         }
+        actions={
+          <>
+            <ManageLink permission="programs:update" href={`/internal/programs/${program.id}/edit`} label="Edit programme" icon="edit" />
+            <ManageLink permission="programs:create" href={`/internal/programs/new?program=${program.id}`} label="New offering" icon="add" variant="primary" />
+          </>
+        }
       />
+      {notice}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

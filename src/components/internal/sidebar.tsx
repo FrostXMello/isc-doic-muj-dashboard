@@ -10,6 +10,7 @@ import {
   BookOpen,
   FolderOpen,
   Settings,
+  ShieldCheck,
   PanelLeftClose,
   PanelLeft,
   ArrowLeft,
@@ -24,14 +25,17 @@ const iconMap: Record<string, LucideIcon> = {
   BookOpen,
   FolderOpen,
   Settings,
+  ShieldCheck,
 };
 
 export function Sidebar({
   collapsed,
   onToggle,
+  showAdmin,
 }: {
   collapsed: boolean;
   onToggle: () => void;
+  showAdmin: boolean;
 }) {
   const pathname = usePathname();
 
@@ -66,7 +70,7 @@ export function Sidebar({
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-2.5 py-4" aria-label="Portal navigation">
         <ul className="flex flex-col gap-0.5">
-          {internalNav.map((item) => {
+          {internalNav.filter((item) => item.role !== "admin" || showAdmin).map((item) => {
             const Icon = iconMap[item.icon];
             const active = isNavItemActive(pathname, item.href);
 

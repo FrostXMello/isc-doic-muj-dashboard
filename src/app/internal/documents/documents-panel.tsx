@@ -1,6 +1,7 @@
 import {
   BookOpen,
   ClipboardList,
+  Download,
   FileBarChart,
   FileSignature,
   FileText,
@@ -13,10 +14,7 @@ import Link from "next/link";
 import { DocumentStatusBadge } from "@/components/internal/badges";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
-import {
-  PlaceholderAction,
-  unavailableReasons,
-} from "@/components/internal/ui/placeholder-action";
+import { buttonClass } from "@/components/internal/ui/button-styles";
 import { ResourceCard, ResourceTable } from "@/components/internal/ui/resource-table";
 import { SourceLink } from "@/components/internal/ui/provenance";
 import { DataNotice, SourceBadge } from "@/components/internal/ui/source-badge";
@@ -73,9 +71,15 @@ function FileCell({ doc }: { doc: DocumentView }) {
       </span>
     );
   }
-  return (
-    <PlaceholderAction label="View" icon="view" size="sm" reason={unavailableReasons.storage} />
-  );
+  if (doc.storageKey) {
+    return (
+      <a href={`/internal/documents/${doc.id}/file`} target="_blank" rel="noopener" className={buttonClass("secondary", "sm")}>
+        <Download className="size-3.5" aria-hidden />
+        Open file
+      </a>
+    );
+  }
+  return <span className="text-[12px] text-fg-faint">No file</span>;
 }
 
 function LinkSummary({ doc }: { doc: DocumentView }) {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { Database, Lock, UserRound } from "lucide-react";
+import { Database, Lock, ShieldCheck, UserRound } from "lucide-react";
+import Link from "next/link";
 import { SignOutButton } from "@/components/auth/sign-out-button";
-import { RoleManagement } from "@/components/internal/role-management";
 import { buttonClass } from "@/components/internal/ui/button-styles";
 import { DetailSection, KeyValueList } from "@/components/internal/ui/detail";
 import { PageHeader } from "@/components/internal/ui/page-header";
@@ -26,7 +26,7 @@ export default async function SettingsPage() {
       <PageHeader
         eyebrow="Account & access"
         title="Settings"
-        description="Your account, where the portal's data comes from, and which switches are on. DoIC admins also manage portal access here."
+        description="Your account, where the portal's data comes from, and which switches are on. Administrators manage accounts and settings in Administration."
       />
 
       {account ? (
@@ -47,7 +47,20 @@ export default async function SettingsPage() {
         </DetailSection>
       ) : null}
 
-      <RoleManagement />
+      {account?.administration ? (
+        <DetailSection
+          title="Administration"
+          icon={ShieldCheck}
+          description="Users and roles, portal settings, exports, and the audit history moved to Administration."
+          action={
+            <Link href="/internal/admin" className={buttonClass("secondary", "sm")}>
+              Open Administration
+            </Link>
+          }
+        >
+          {null}
+        </DetailSection>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <DetailSection title="Data source" icon={Database}>

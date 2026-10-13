@@ -62,7 +62,7 @@ export function PortalShell({
     <div className="flex min-h-dvh bg-background">
       {/* Desktop sidebar */}
       <div className="sticky top-0 hidden h-dvh shrink-0 lg:block">
-        <Sidebar collapsed={collapsed} onToggle={toggleCollapsed} />
+        <Sidebar collapsed={collapsed} onToggle={toggleCollapsed} showAdmin={account?.administration ?? false} />
       </div>
 
       {/* Mobile sidebar overlay */}
@@ -76,7 +76,7 @@ export function PortalShell({
           />
           {/* Drawer */}
           <div className="relative z-10 h-full w-[280px] animate-[slideIn_0.25s_ease-out]">
-            <Sidebar collapsed={false} onToggle={closeMobile} />
+            <Sidebar collapsed={false} onToggle={closeMobile} showAdmin={account?.administration ?? false} />
             <button
               type="button"
               onClick={closeMobile}

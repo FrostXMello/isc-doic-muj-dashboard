@@ -46,10 +46,14 @@ describe("internal route mappings", () => {
     }
   });
 
-  it("keeps five sections, with Opportunities under Programs and Reports under Documents", () => {
+  it("keeps six sections, with Opportunities under Programs and Reports under Documents", () => {
     assert.deepEqual(
       internalNav.map((item) => item.label),
-      ["Dashboard", "Universities & MoUs", "Programs & Opportunities", "Documents & Reports", "Settings"],
+      ["Dashboard", "Universities & MoUs", "Programs & Opportunities", "Documents & Reports", "Administration", "Settings"],
+    );
+    assert.deepEqual(
+      internalNav.filter((item) => item.role === "admin").map((item) => item.href),
+      ["/internal/admin"],
     );
     assert.deepEqual(sectionTabs("/internal/programs").map((t) => t.label), ["Programs", "Opportunities"]);
     assert.deepEqual(sectionTabs("/internal/documents").map((t) => t.label), ["Documents", "Reports"]);
@@ -96,6 +100,9 @@ describe("internal route mappings", () => {
       "/internal/activities": "Dashboard",
       "/internal/activities/a1": "Dashboard",
       "/internal/settings": "Settings",
+      "/internal/admin": "Administration",
+      "/internal/admin/users": "Administration",
+      "/internal/admin/audit": "Administration",
       "/internal/activitiesx": undefined,
       "/internal/universitiesx": undefined,
       "/internal/unknown": undefined,

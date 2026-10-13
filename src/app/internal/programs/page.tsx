@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/internal/ui/page-header";
-import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
-import { RecordAction } from "@/components/internal/ui/record-action";
+import { ManageLink } from "@/components/internal/ui/manage-action";
+import { RecordNotice } from "@/components/internal/ui/record-notice";
 import { SectionTabs } from "@/components/internal/ui/section-tabs";
 import { resolveTab } from "@/lib/internal-nav";
 import { readEnumParam, readParam, type SearchParamsProp } from "@/lib/internal/query";
@@ -27,25 +27,17 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
         description="Programmes for students and faculty, and the opportunities (application calls) published under them."
         actions={
           tab === "opportunities" ? (
-            <RecordAction
-              permission="opportunities:create"
-              label="New call"
-              icon="add"
-              variant="primary"
-              reason={unavailableReasons.editing}
-            />
+            <ManageLink permission="opportunities:create" href="/internal/opportunities/new" label="New call" icon="add" variant="primary" />
           ) : (
-            <RecordAction
-              permission="programs:create"
-              label="New offering"
-              icon="add"
-              variant="primary"
-              reason={unavailableReasons.editing}
-            />
+            <>
+              <ManageLink permission="programs:create" href="/internal/programs/new?type=programme" label="New programme" icon="add" />
+              <ManageLink permission="programs:create" href="/internal/programs/new" label="New offering" icon="add" variant="primary" />
+            </>
           )
         }
       />
 
+      <RecordNotice query={params} />
       <SectionTabs
         section={SECTION}
         current={tab}

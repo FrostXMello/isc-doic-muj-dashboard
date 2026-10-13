@@ -362,11 +362,11 @@ type ContactRow = {
   agreement: Ref<"code">;
 };
 
-const INTERNAL_ROLES = new Set(["isc_team", "doic_admin", "leadership"]);
+const INTERNAL_ROLES = new Set(["super_admin", "doic_admin", "isc_admin", "isc_team", "leadership"]);
 
 export type SupabaseLoad = {
   data: Dataset;
-  /** The signed-in user holds an internal role (isc_team, doic_admin, leadership). */
+  /** The signed-in user holds an internal role. */
   internalRole: boolean;
   contacts: InstitutionContact[];
 };

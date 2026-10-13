@@ -7,17 +7,16 @@ import { EmptyState } from "@/components/internal/ui/empty-state";
 import { PlaceholderAction, unavailableReasons } from "@/components/internal/ui/placeholder-action";
 import { getAuthContext } from "@/lib/auth/session";
 import { resolveInternalDataSource } from "@/lib/internal/data/source";
-import { type Permission, portalRoleOf, roleAllows } from "@/lib/internal/permissions";
+import { can, type Permission } from "@/lib/internal/permissions";
 
 const icons = { add: Plus, edit: Pencil } as const;
 
 export const actionButtonClass = (variant: "primary" | "secondary", size: "sm" | "md" = "md") =>
   buttonClass(variant, size);
 
-async function roleAllowsCurrentUser(permission: Permission) {
+export async function roleAllowsCurrentUser(permission: Permission) {
   const auth = await getAuthContext();
-  const role = auth.state === "signed-in" ? portalRoleOf(auth.roles) : null;
-  return Boolean(role && roleAllows(role, permission));
+  return auth.state === "signed-in" && can(auth.roles, permission);
 }
 
 /** Whether the signed-in user may perform `permission` and the portal can write. */

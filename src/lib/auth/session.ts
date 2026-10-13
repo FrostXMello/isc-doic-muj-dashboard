@@ -10,6 +10,7 @@ import {
   fetchUserRoles,
   portalHome,
 } from "@/lib/auth/roles";
+import { canOpenAdministration } from "@/lib/internal/permissions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type AuthContext =
@@ -23,6 +24,8 @@ export type AccountSummary = {
   name: string | null;
   email: string | null;
   accessLevel: string;
+  /** Whether to list Administration in the navigation (the routes check again). */
+  administration: boolean;
 };
 
 /**
@@ -59,6 +62,7 @@ export const getAccountSummary = cache(async (): Promise<AccountSummary | null> 
     name: data?.full_name?.trim() || null,
     email: auth.email,
     accessLevel: accessLevelLabel(auth.roles),
+    administration: canOpenAdministration(auth.roles),
   };
 });
 

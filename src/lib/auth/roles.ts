@@ -13,19 +13,42 @@ import type { AppRole } from "@/lib/internal/permissions";
 
 export type { AppRole };
 
-export const appRoles = ["doic_admin", "isc_team", "leadership", "student"] as const satisfies
-  readonly AppRole[];
+export const appRoles = [
+  "super_admin",
+  "doic_admin",
+  "isc_admin",
+  "isc_team",
+  "leadership",
+  "student",
+] as const satisfies readonly AppRole[];
 
 /** Highest-priority first. */
 const rolePriority: readonly AppRole[] = appRoles;
 
-export const internalRoles: readonly AppRole[] = ["doic_admin", "isc_team", "leadership"];
+export const internalRoles: readonly AppRole[] = [
+  "super_admin",
+  "doic_admin",
+  "isc_admin",
+  "isc_team",
+  "leadership",
+];
 
 export const roleLabels: Record<AppRole, string> = {
+  super_admin: "Super admin",
   doic_admin: "DoIC admin",
+  isc_admin: "ISC admin",
   isc_team: "ISC team",
   leadership: "Leadership",
   student: "Student",
+};
+
+export const roleDescriptions: Record<AppRole, string> = {
+  super_admin: "Assigns and revokes administrator roles; full administration.",
+  doic_admin: "Manages records, deletes, settings, and ordinary accounts (ISC team, Leadership, Student).",
+  isc_admin: "Manages records, deletes, settings, and ISC team and Student accounts.",
+  isc_team: "Reads, creates, edits, and archives internal records.",
+  leadership: "Reads internal records, reports, and the audit history.",
+  student: "Uses the Student Portal only.",
 };
 
 export function isAppRole(value: unknown): value is AppRole {

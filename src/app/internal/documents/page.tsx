@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/internal/ui/page-header";
-import { PlaceholderAction, unavailableReasons } from "@/components/internal/ui/placeholder-action";
-import { RecordAction } from "@/components/internal/ui/record-action";
+import { Download } from "lucide-react";
+import { buttonClass } from "@/components/internal/ui/button-styles";
+import { exportHref } from "@/lib/internal/csv";
+import { RecordNotice } from "@/components/internal/ui/record-notice";
+import { ManageLink } from "@/components/internal/ui/manage-action";
 import { SectionTabs } from "@/components/internal/ui/section-tabs";
 import { resolveTab } from "@/lib/internal-nav";
 import { readParam, type SearchParamsProp } from "@/lib/internal/query";
@@ -25,19 +28,20 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
         description="Official DoIC documents, linked at their official URLs, and report documents."
         actions={
           tab === "reports" ? (
-            <PlaceholderAction label="Export report" icon="download" reason={unavailableReasons.exports} />
+            <>
+              <a href={exportHref("documents")} download className={buttonClass("secondary")}>
+                <Download className="size-3.5" aria-hidden />
+                Export CSV
+              </a>
+              <ManageLink permission="documents:create" href="/internal/documents/new?type=report" label="New report" icon="add" variant="primary" />
+            </>
           ) : (
-            <RecordAction
-              permission="documents:upload"
-              label="Upload document"
-              icon="upload"
-              variant="primary"
-              reason={unavailableReasons.storage}
-            />
+            <ManageLink permission="documents:create" href="/internal/documents/new" label="New document" icon="add" variant="primary" />
           )
         }
       />
 
+      <RecordNotice query={params} />
       <SectionTabs section={SECTION} current={tab} />
 
       <div key={tab} data-tab-panel={tab}>

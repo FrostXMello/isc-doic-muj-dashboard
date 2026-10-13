@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AuthShell, primaryActionClass, secondaryActionClass } from "@/components/auth/auth-shell";
+import { AccessContact } from "@/components/auth/access-contact";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { defaultDestination } from "@/lib/auth/roles";
 import { requireUser } from "@/lib/auth/session";
@@ -19,7 +20,12 @@ export default async function UnauthorizedPage() {
   return (
     <AuthShell
       title="Access not permitted"
-      lede="Your account doesn't have access to that area of the DoIC portal. If you think this is a mistake, contact the Directorate of International Collaborations / International Student Cell."
+      lede={
+        <>
+          <p>Your account doesn&apos;t have access to that area of the DoIC portal.</p>
+          <AccessContact lead="If you think this is a mistake," />
+        </>
+      }
     >
       <div className="space-y-3">
         <Link href={home === "/access-pending" ? "/" : home} className={primaryActionClass}>

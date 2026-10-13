@@ -2,7 +2,7 @@ import "server-only";
 import type { ComponentProps } from "react";
 import { PlaceholderAction } from "@/components/internal/ui/placeholder-action";
 import { getAuthContext } from "@/lib/auth/session";
-import { type Permission, portalRoleOf, roleAllows } from "@/lib/internal/permissions";
+import { can, type Permission } from "@/lib/internal/permissions";
 
 /**
  * A write action (create, edit, upload) shown only to roles allowed to perform
@@ -13,7 +13,6 @@ export async function RecordAction({
   ...props
 }: ComponentProps<typeof PlaceholderAction> & { permission: Permission }) {
   const auth = await getAuthContext();
-  const role = auth.state === "signed-in" ? portalRoleOf(auth.roles) : null;
-  if (!role || !roleAllows(role, permission)) return null;
+  if (auth.state !== "signed-in" || !can(auth.roles, permission)) return null;
   return <PlaceholderAction {...props} />;
 }

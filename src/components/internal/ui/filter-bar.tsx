@@ -28,12 +28,15 @@ const SEARCH_DEBOUNCE_MS = 300;
  */
 export function FilterBar({
   searchPlaceholder = "Search",
+  search = true,
   selects,
   resultCount,
   totalCount,
   noun,
 }: {
   searchPlaceholder?: string;
+  /** Set false for lists that can only be filtered, not searched. */
+  search?: boolean;
   selects: readonly FilterSelect[];
   resultCount: number;
   totalCount: number;
@@ -65,6 +68,8 @@ export function FilterBar({
   function replaceParams(patch: Record<string, string | undefined>) {
     clearTimeout(searchTimer.current);
     const next = new URLSearchParams(requestedSearch.current);
+    // A new filter starts again from the first page of results.
+    next.delete("page");
     for (const [key, value] of Object.entries(patch)) {
       if (value) next.set(key, value);
       else next.delete(key);
@@ -114,6 +119,7 @@ export function FilterBar({
   return (
     <div className="dash-rise space-y-4" style={{ animationDelay: "120ms" }}>
       <div className="flex flex-col gap-2.5 lg:flex-row lg:flex-wrap lg:items-center">
+        {search ? (
         <div className="group relative min-w-0 lg:w-80 lg:flex-none">
           <label htmlFor={searchId} className="sr-only">
             {searchPlaceholder}
@@ -141,6 +147,7 @@ export function FilterBar({
             </button>
           )}
         </div>
+        ) : null}
 
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap">
           {selects.map((select) => (

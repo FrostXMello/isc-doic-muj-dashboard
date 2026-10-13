@@ -6,8 +6,8 @@ import { ActivityStatusBadge } from "@/components/internal/badges";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
 import { PageHeader } from "@/components/internal/ui/page-header";
-import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
-import { RecordAction } from "@/components/internal/ui/record-action";
+import { ManageLink } from "@/components/internal/ui/manage-action";
+import { RecordNotice } from "@/components/internal/ui/record-notice";
 import { DataNotice } from "@/components/internal/ui/source-badge";
 import {
   activityStatuses,
@@ -168,15 +168,10 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
         title="Activities"
         description="International visits, delegations, events, and meetings. Planned items whose date has passed are flagged for an update."
         actions={
-          <RecordAction
-            permission="activities:create"
-            label="Log activity"
-            icon="add"
-            variant="primary"
-            reason={unavailableReasons.editing}
-          />
+          <ManageLink permission="activities:create" href="/internal/activities/new" label="Log activity" icon="add" variant="primary" />
         }
       />
+      <RecordNotice query={params} />
 
       <DataNotice>
         Activities are recorded only where an official MUJ page documents them (news, event, and

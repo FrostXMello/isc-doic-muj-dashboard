@@ -6,8 +6,9 @@
  * under Dashboard) or be one list page with internal tabs (`tabs`), selected
  * by the `tab` query parameter. A tab's `recordBase` is where its detail
  * pages live, so /internal/opportunities/x still belongs to Programs ›
- * Opportunities. The `role` field is a placeholder for future RBAC gating —
- * it is not enforced in this stage.
+ * Opportunities. `role: "admin"` items are listed only for roles that may
+ * open Administration (see canOpenAdministration); every route still checks
+ * access on the server, so hiding an item is never the boundary.
  *
  * Pure module (no React), so route mappings can be unit-tested.
  */
@@ -20,8 +21,8 @@ export type InternalNavItem = {
   href: string;
   label: string;
   icon: string;
-  /** Future: minimum role required to see this item. */
-  role: "viewer" | "editor" | "admin";
+  /** "admin": listed only for roles that may open Administration. */
+  role: "viewer" | "admin";
   description: string;
   /** Separate pages that belong to the section. */
   pages?: readonly InternalNavPage[];
@@ -49,7 +50,7 @@ export const internalNav: readonly InternalNavItem[] = [
     href: "/internal/programs",
     label: "Programs & Opportunities",
     icon: "BookOpen",
-    role: "editor",
+    role: "viewer",
     description: "Programmes for students and faculty, their offerings, and the opportunities (application calls) under each.",
     tabs: [
       { value: "programs", label: "Programs", recordBase: "/internal/programs" },
@@ -60,7 +61,7 @@ export const internalNav: readonly InternalNavItem[] = [
     href: "/internal/documents",
     label: "Documents & Reports",
     icon: "FolderOpen",
-    role: "editor",
+    role: "viewer",
     description: "Official documents, with operational reports as a subsection.",
     tabs: [
       { value: "documents", label: "Documents", recordBase: "/internal/documents" },
@@ -68,11 +69,25 @@ export const internalNav: readonly InternalNavItem[] = [
     ],
   },
   {
+    href: "/internal/admin",
+    label: "Administration",
+    icon: "ShieldCheck",
+    role: "admin",
+    description: "Content and records, users and roles, documents and reports, portal settings, and audit history.",
+    pages: [
+      { href: "/internal/admin/content", label: "Content and records" },
+      { href: "/internal/admin/users", label: "Users and roles" },
+      { href: "/internal/admin/documents", label: "Documents and reports" },
+      { href: "/internal/admin/settings", label: "Portal settings" },
+      { href: "/internal/admin/audit", label: "Audit history" },
+    ],
+  },
+  {
     href: "/internal/settings",
     label: "Settings",
     icon: "Settings",
-    role: "admin",
-    description: "Portal configuration, users, and system preferences.",
+    role: "viewer",
+    description: "Your account and where the portal's data comes from.",
   },
 ] as const;
 

@@ -1,60 +1,119 @@
 /**
- * Permission vocabulary for role-based access control.
+ * Explicit permission matrix for every role and protected action.
  *
  * Who may enter which portal is decided in src/lib/auth (proxy + layouts).
- * Within the Internal Portal these helpers only decide what the UI offers,
- * never what is allowed: when INTERNAL_DATA_SOURCE=supabase the database
- * enforces the same rules through row level security (supabase/migrations).
+ * Within the Internal Portal these helpers decide what the UI offers and give
+ * server actions clear early refusals. They never replace the database: row
+ * level security, the user_roles guard trigger, and the private.* helpers in
+ * supabase/migrations/20261005090100_admin_control.sql enforce the same
+ * matrix, and tests/permissions.test.ts keeps the two in step.
  */
 
 /** Mirrors the `public.app_role` enum. */
-export type AppRole = "student" | "isc_team" | "doic_admin" | "leadership";
+export type AppRole = "super_admin" | "doic_admin" | "isc_admin" | "isc_team" | "leadership" | "student";
 
-export type PortalRole = "viewer" | "editor" | "admin";
-
-/** Portal capability for each staff role. Students have no portal role. */
-export const portalRoleFor: Record<AppRole, PortalRole | null> = {
-  student: null,
-  leadership: "viewer",
-  isc_team: "editor",
-  doic_admin: "admin",
-};
-
-export type PortalResource =
+export type ContentResource =
   | "institutions"
   | "agreements"
   | "programs"
   | "opportunities"
   | "documents"
-  | "activities"
-  | "reports";
+  | "activities";
 
-export type PortalAction = "read" | "create" | "update" | "delete" | "upload";
+export type PortalResource = ContentResource | "reports" | "users" | "settings" | "audit";
+
+export type PortalAction = "read" | "create" | "update" | "archive" | "delete" | "upload" | "export" | "manage";
 
 export type Permission = `${PortalResource}:${PortalAction}`;
 
-const roleRank: Record<PortalRole, number> = { viewer: 0, editor: 1, admin: 2 };
+export const contentResources: readonly ContentResource[] = [
+  "institutions",
+  "agreements",
+  "programs",
+  "opportunities",
+  "documents",
+  "activities",
+];
 
-const minimumRole: Record<PortalAction, PortalRole> = {
-  read: "viewer",
-  create: "editor",
-  update: "editor",
-  upload: "editor",
-  delete: "admin",
+export const adminRoles: readonly AppRole[] = ["super_admin", "doic_admin", "isc_admin"];
+
+const content = (actions: readonly PortalAction[]): Permission[] =>
+  contentResources.flatMap((resource) => actions.map((action) => `${resource}:${action}` as Permission));
+
+const reader: Permission[] = [...content(["read"]), "reports:read", "reports:export"];
+const editor: Permission[] = [...reader, ...content(["create", "update", "archive"]), "documents:upload"];
+const administrator: Permission[] = [
+  ...editor,
+  ...content(["delete"]),
+  "users:read",
+  "users:manage",
+  "settings:read",
+  "settings:update",
+  "audit:read",
+];
+
+/** Every permission each role holds. Students hold none inside the Internal Portal. */
+export const rolePermissions: Record<AppRole, ReadonlySet<Permission>> = {
+  super_admin: new Set(administrator),
+  doic_admin: new Set(administrator),
+  isc_admin: new Set(administrator),
+  isc_team: new Set(editor),
+  leadership: new Set([...reader, "audit:read"]),
+  student: new Set(),
 };
 
-/** The highest portal role among the user's grants; null for students and no-role accounts. */
-export function portalRoleOf(roles: readonly AppRole[]): PortalRole | null {
-  let best: PortalRole | null = null;
-  for (const role of roles) {
-    const portalRole = portalRoleFor[role];
-    if (portalRole && (!best || roleRank[portalRole] > roleRank[best])) best = portalRole;
-  }
-  return best;
+/** Whether any of the user's roles grants `permission`. */
+export function can(roles: readonly AppRole[], permission: Permission) {
+  return roles.some((role) => rolePermissions[role].has(permission));
 }
 
-/** Whether the UI offers an action to this role. RLS enforces the same policy. */
-export function roleAllows(role: PortalRole, permission: Permission) {
-  const action = permission.split(":")[1] as PortalAction;
-  return roleRank[role] >= roleRank[minimumRole[action]];
+export function isAdmin(roles: readonly AppRole[]) {
+  return roles.some((role) => adminRoles.includes(role));
+}
+
+/** Administration is open to administrators and, read-only, to Leadership. */
+export function canOpenAdministration(roles: readonly AppRole[]) {
+  return isAdmin(roles) || can(roles, "audit:read");
+}
+
+/**
+ * Roles each administrator may grant or revoke on another account.
+ * Mirrors private.can_assign_role.
+ */
+const assignable: Record<AppRole, readonly AppRole[]> = {
+  super_admin: ["super_admin", "doic_admin", "isc_admin", "isc_team", "leadership", "student"],
+  doic_admin: ["isc_team", "leadership", "student"],
+  isc_admin: ["isc_team", "student"],
+  isc_team: [],
+  leadership: [],
+  student: [],
+};
+
+export type Account = { id: string; roles: readonly AppRole[] };
+
+/**
+ * Whether `actor` may manage `target`'s account (deactivate, reset, delete).
+ * Never oneself; accounts holding an admin role only by a super_admin.
+ * Mirrors private.can_manage_account.
+ */
+export function canManageAccount(actor: Account, target: Account) {
+  if (actor.id === target.id) return false;
+  if (actor.roles.includes("super_admin")) return true;
+  return isAdmin(actor.roles) && !isAdmin(target.roles);
+}
+
+/** Roles `actor` may grant to or revoke from `target`. */
+export function assignableRoles(actor: Account, target: Account): AppRole[] {
+  if (!canManageAccount(actor, target)) return [];
+  const allowed = new Set(actor.roles.flatMap((role) => assignable[role]));
+  return [...allowed];
+}
+
+export function canAssignRole(actor: Account, target: Account, role: AppRole) {
+  return assignableRoles(actor, target).includes(role);
+}
+
+/** Roles `actor` may give a brand-new account. */
+export function rolesForNewAccount(actorRoles: readonly AppRole[]): AppRole[] {
+  return [...new Set(actorRoles.flatMap((role) => assignable[role]))];
 }

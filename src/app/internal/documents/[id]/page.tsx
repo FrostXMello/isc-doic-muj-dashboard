@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { FileQuestion, FileText, Link2, Globe } from "lucide-react";
+import { Download, FileQuestion, FileText, Link2, Globe } from "lucide-react";
+import { buttonClass } from "@/components/internal/ui/button-styles";
 import { notFound } from "next/navigation";
 import { DocumentStatusBadge } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
-import { RecordAction } from "@/components/internal/ui/record-action";
+import { ManageLink } from "@/components/internal/ui/manage-action";
 import { provenanceItems, SourceLink, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getDocument } from "@/lib/internal/data/documents";
 import { formatDate } from "@/lib/internal/dates";
-import type { IdParamsProp } from "@/lib/internal/query";
+import type { IdParamsProp, SearchParamsProp } from "@/lib/internal/query";
+import { RecordNotice } from "@/components/internal/ui/record-notice";
 import { documentTypeLabel } from "@/lib/internal/status";
 import type { DocumentLinkView } from "@/lib/internal/types";
 
@@ -28,7 +29,7 @@ const linkKindLabel: Record<DocumentLinkView["kind"], string> = {
   availability: "Programme offering",
 };
 
-export default async function DocumentDetailPage({ params }: IdParamsProp) {
+export default async function DocumentDetailPage({ params, searchParams }: IdParamsProp & SearchParamsProp) {
   const { id } = await params;
   const doc = await getDocument(id);
   if (!doc) notFound();
@@ -49,16 +50,17 @@ export default async function DocumentDetailPage({ params }: IdParamsProp) {
         }
         actions={
           <>
-            <RecordAction
-              permission="documents:upload"
-              label="Upload internal copy"
-              icon="upload"
-              variant="primary"
-              reason={unavailableReasons.storage}
-            />
+            {doc.storageKey ? (
+              <a href={`/internal/documents/${doc.id}/file`} target="_blank" rel="noopener" className={buttonClass("primary")}>
+                <Download className="size-3.5" aria-hidden />
+                Open file
+              </a>
+            ) : null}
+            <ManageLink permission="documents:update" href={`/internal/documents/${doc.id}/edit`} label={doc.storageKey ? "Edit" : "Edit or upload file"} icon="edit" />
           </>
         }
       />
+      <RecordNotice query={await searchParams} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

@@ -59,25 +59,25 @@ export const verificationOptions: readonly VerificationStatus[] = [
 
 export const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
-const URL_PATTERN = /^https?:\/\/\S+$/i;
+export const URL_PATTERN = /^https?:\/\/\S+$/i;
 export const MAX_PARTNERS = 20;
 
-type Parsed<T> = { ok: true; value: T } | { ok: false; state: RecordFormState };
+export type Parsed<T> = { ok: true; value: T } | { ok: false; state: RecordFormState };
 
-function text(formData: FormData, key: string) {
+export function text(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
 }
 
-function optional(value: string) {
+export function optional(value: string) {
   return value === "" ? null : value;
 }
 
-function isOneOf<T extends string>(value: string, allowed: readonly T[]): value is T {
+export function isOneOf<T extends string>(value: string, allowed: readonly T[]): value is T {
   return (allowed as readonly string[]).includes(value);
 }
 
-function isValidDate(value: string) {
+export function isValidDate(value: string) {
   if (!ISO_DATE.test(value)) return false;
   const parsed = new Date(`${value}T00:00:00Z`);
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
@@ -98,7 +98,7 @@ export function fieldError(formData: FormData, fieldErrors: Record<string, strin
   return { error: "Check the highlighted fields.", fieldErrors, values: formValues(formData) };
 }
 
-function fail(formData: FormData, fieldErrors: Record<string, string>): { ok: false; state: RecordFormState } {
+export function fail(formData: FormData, fieldErrors: Record<string, string>): { ok: false; state: RecordFormState } {
   return { ok: false, state: fieldError(formData, fieldErrors) };
 }
 
@@ -253,7 +253,7 @@ export function newAgreementCode(random: () => number = Math.random) {
   return `mou-${randomSuffix(random)}${randomSuffix(random)}`;
 }
 
-function randomSuffix(random: () => number) {
+export function randomSuffix(random: () => number) {
   return Math.floor(random() * 36 ** 4)
     .toString(36)
     .padStart(4, "0");

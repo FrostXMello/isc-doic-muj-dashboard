@@ -5,13 +5,13 @@ import { notFound } from "next/navigation";
 import { ActivityStatusBadge, DocumentStatusBadge } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
-import { RecordAction } from "@/components/internal/ui/record-action";
+import { ManageLink } from "@/components/internal/ui/manage-action";
 import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getActivity } from "@/lib/internal/data/activities";
 import { formatDateRange, formatRelativeDays } from "@/lib/internal/dates";
-import type { IdParamsProp } from "@/lib/internal/query";
+import type { IdParamsProp, SearchParamsProp } from "@/lib/internal/query";
+import { RecordNotice } from "@/components/internal/ui/record-notice";
 import { activityTypeLabel, documentTypeLabel } from "@/lib/internal/status";
 import type { ActivityView } from "@/lib/internal/types";
 
@@ -36,7 +36,7 @@ function statusExplanation(activity: ActivityView) {
   }
 }
 
-export default async function ActivityDetailPage({ params }: IdParamsProp) {
+export default async function ActivityDetailPage({ params, searchParams }: IdParamsProp & SearchParamsProp) {
   const { id } = await params;
   const record = await getActivity(id);
   if (!record) notFound();
@@ -60,14 +60,10 @@ export default async function ActivityDetailPage({ params }: IdParamsProp) {
           </>
         }
         actions={
-          <RecordAction
-            permission="activities:update"
-            label="Update outcome"
-            icon="edit"
-            reason={unavailableReasons.editing}
-          />
+          <ManageLink permission="activities:update" href={`/internal/activities/${id}/edit`} label="Update outcome" icon="edit" />
         }
       />
+      <RecordNotice query={await searchParams} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

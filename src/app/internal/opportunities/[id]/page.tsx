@@ -4,13 +4,13 @@ import { notFound } from "next/navigation";
 import { AvailabilityBadge, AudienceBadge, OpportunityStatusBadge } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import { unavailableReasons } from "@/components/internal/ui/placeholder-action";
-import { RecordAction } from "@/components/internal/ui/record-action";
+import { ManageLink } from "@/components/internal/ui/manage-action";
 import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getOpportunity } from "@/lib/internal/data/opportunities";
 import { DEADLINE_WARNING_DAYS, formatDate, formatRelativeDays } from "@/lib/internal/dates";
-import type { IdParamsProp } from "@/lib/internal/query";
+import type { IdParamsProp, SearchParamsProp } from "@/lib/internal/query";
+import { RecordNotice } from "@/components/internal/ui/record-notice";
 import type { OpportunityView } from "@/lib/internal/types";
 
 export async function generateMetadata({ params }: IdParamsProp): Promise<Metadata> {
@@ -38,7 +38,7 @@ function statusExplanation(opportunity: OpportunityView) {
   }
 }
 
-export default async function OpportunityDetailPage({ params }: IdParamsProp) {
+export default async function OpportunityDetailPage({ params, searchParams }: IdParamsProp & SearchParamsProp) {
   const { id } = await params;
   const record = await getOpportunity(id);
   if (!record) notFound();
@@ -63,14 +63,10 @@ export default async function OpportunityDetailPage({ params }: IdParamsProp) {
           </>
         }
         actions={
-          <RecordAction
-            permission="opportunities:update"
-            label="Edit call"
-            icon="edit"
-            reason={unavailableReasons.editing}
-          />
+          <ManageLink permission="opportunities:update" href={`/internal/opportunities/${id}/edit`} label="Edit call" icon="edit" />
         }
       />
+      <RecordNotice query={await searchParams} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

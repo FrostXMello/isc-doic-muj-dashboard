@@ -158,9 +158,9 @@ select throws_ok($$ insert into public.agreements (code, reference, institution_
 select throws_ok($$ insert into public.user_roles (user_id, role)
   values ('00000000-0000-4000-a000-000000000001', 'doic_admin') $$,
   '42501', null, 'student cannot grant themselves a role');
-update public.user_roles set role = 'doic_admin' where user_id = '00000000-0000-4000-a000-000000000001';
-select is(private.current_app_roles(), array['student']::public.app_role[],
-  'student cannot upgrade their own role');
+select throws_ok($$ update public.user_roles set role = 'doic_admin'
+  where user_id = '00000000-0000-4000-a000-000000000001' $$,
+  '42501', null, 'student cannot upgrade their own role');
 select lives_ok($$ insert into public.student_profiles (user_id, registration_number)
   values ('00000000-0000-4000-a000-000000000001', 'TEST-REG-A') $$,
   'student creates their own student profile');
@@ -389,9 +389,9 @@ select ok(not exists (select 1 from public.agreements where code = 'isc-agr'), '
 delete from public.user_roles
   where user_id = '00000000-0000-4000-a000-000000000004' and role = 'doic_admin';
 select ok(private.is_doic_admin(), 'doic_admin cannot revoke their own admin role');
-update public.user_roles set role = 'student'
-  where user_id = '00000000-0000-4000-a000-000000000004' and role = 'doic_admin';
-select ok(private.is_doic_admin(), 'doic_admin cannot rewrite their own admin role');
+select throws_ok($$ update public.user_roles set role = 'student'
+  where user_id = '00000000-0000-4000-a000-000000000004' and role = 'doic_admin' $$,
+  '42501', null, 'doic_admin cannot rewrite their own admin role');
 delete from public.user_roles
   where user_id = '00000000-0000-4000-a000-000000000002' and role = 'isc_team';
 select ok(not exists (select 1 from public.user_roles

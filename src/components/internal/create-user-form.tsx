@@ -2,7 +2,7 @@
 
 import { createUserAccount } from "@/lib/auth/admin-actions";
 import { MIN_ADMIN_PASSWORD_LENGTH, type RoleChangeState } from "@/lib/auth/form-state";
-import { appRoles, roleLabels } from "@/lib/auth/roles";
+import { type AppRole, roleLabels } from "@/lib/auth/roles";
 import { buttonClass, checkboxClass, inputBaseClass } from "@/components/internal/ui/button-styles";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, LoaderCircle, TriangleAlert, UserPlus } from "lucide-react";
@@ -12,7 +12,8 @@ export const adminInputClass = cn(inputBaseClass, "mt-1.5 h-10");
 export const adminLabelClass = "block text-[12px] font-medium tracking-[0.01em] text-fg-soft";
 export const adminButtonClass = buttonClass("secondary");
 
-export function CreateUserForm() {
+/** `allowedRoles` comes from the server; the action re-checks it. */
+export function CreateUserForm({ allowedRoles }: { allowedRoles: readonly AppRole[] }) {
   const [state, action, pending] = useActionState<RoleChangeState, FormData>(createUserAccount, {});
   const id = useId();
 
@@ -68,7 +69,7 @@ export function CreateUserForm() {
       <fieldset>
         <legend className={adminLabelClass}>Access</legend>
         <div className="mt-2 flex flex-wrap gap-2">
-          {appRoles.map((role) => (
+          {allowedRoles.map((role) => (
             <label
               key={role}
               className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border border-line-strong px-3 text-[13px] text-foreground transition-colors hover:border-muj/50 has-[:checked]:border-muj/70 has-[:checked]:bg-muj/[0.08] has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring"
