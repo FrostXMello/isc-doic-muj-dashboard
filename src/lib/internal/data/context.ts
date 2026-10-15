@@ -7,6 +7,7 @@ import {
   sampleDataEnabled,
   staticDataset,
 } from "@/lib/internal/data/dataset";
+import type { LocalRegister } from "@/lib/internal/data/local-register";
 import { type InternalDataSource, resolveInternalDataSource } from "@/lib/internal/data/source";
 import { createViews, type Views } from "@/lib/internal/data/views";
 import type { InstitutionContact } from "@/lib/internal/types";
@@ -30,7 +31,7 @@ export type DataContext = {
   contactAccess: ContactAccess;
 };
 
-let staticViews: { samples: boolean; data: Dataset; views: Views } | undefined;
+let staticViews: { samples: boolean; local?: LocalRegister; data: Dataset; views: Views } | undefined;
 
 /**
  * Entry point for every repository call.
@@ -64,7 +65,24 @@ export const openDataContext = cache(async (): Promise<DataContext> => {
     };
   }
 
-  if (!staticViews || staticViews.samples !== sampleData) {
+  const { localRegisterEnabled, loadLocalRegister } = await import("@/lib/internal/data/local-register");
+  if (localRegisterEnabled()) {
+    const local = loadLocalRegister(staticDataset(sampleData), today);
+    if (staticViews?.local !== local) {
+      const data = canonicalDataset(local.data);
+      staticViews = { samples: sampleData, local, data, views: createViews(data) };
+    }
+    return {
+      today,
+      source,
+      sampleData,
+      data: staticViews.data,
+      views: staticViews.views,
+      contactAccess: { state: "granted", contacts: local.contacts },
+    };
+  }
+
+  if (!staticViews || staticViews.samples !== sampleData || staticViews.local) {
     const data = canonicalDataset(staticDataset(sampleData));
     staticViews = { samples: sampleData, data, views: createViews(data) };
   }

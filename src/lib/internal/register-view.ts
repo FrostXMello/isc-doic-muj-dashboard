@@ -2,7 +2,7 @@ import type { AgreementDetails, RegisterAccess, RegisterRow } from "@/lib/intern
 import { expiryConflict, type ExpirySummary, summarizeExpiry } from "@/lib/internal/expiry";
 import { agreementTypeLabel } from "@/lib/internal/status";
 import type { AgreementView, InstitutionContact, InstitutionView } from "@/lib/internal/types";
-import { displayCell, displayHeaders, personKey, sheetLabels } from "@/lib/internal/workbook/source";
+import { displayCell, displayHeaders, meaningful, personKey, sheetLabels } from "@/lib/internal/workbook/source";
 
 /**
  * Groups a university's agreements, contacts, register details, and source
@@ -57,6 +57,10 @@ export type UniversityEntry = {
   theRankings: string[];
   faculties: string[];
   departments: string[];
+  /** "Opportunities mentioned in MoU", placeholders left out. */
+  scopes: string[];
+  /** "Summer School or similar program", placeholders left out. */
+  programmes: string[];
   expiry: ExpirySummary;
   /** Lower-case text of every value shown for the university, for search. */
   searchText: string;
@@ -191,6 +195,8 @@ export function buildUniversityEntry(
     theRankings: distinct(allDetails.map((details) => details?.theRanking)),
     faculties: distinct(allDetails.map((details) => details?.faculty)),
     departments: distinct(allDetails.map((details) => details?.department)),
+    scopes: distinct(allDetails.map((details) => meaningful(details?.opportunities ?? null))),
+    programmes: distinct(allDetails.map((details) => meaningful(details?.programmeReference ?? null))),
     expiry: summarizeExpiry(
       entries.map(({ agreement, details }) => ({
         id: agreement.id,

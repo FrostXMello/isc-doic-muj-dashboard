@@ -17,7 +17,7 @@ export default async function NewActivityPage({ searchParams }: SearchParamsProp
     <div className="space-y-6">
       <DetailHeader
         backHref="/internal/activities"
-        backLabel="Activities"
+        backLabel="Flagship Events"
         title="Log activity"
         subtitle="A visit, delegation, event, or meeting."
       />

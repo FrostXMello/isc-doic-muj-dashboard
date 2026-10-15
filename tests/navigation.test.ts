@@ -46,10 +46,10 @@ describe("internal route mappings", () => {
     }
   });
 
-  it("keeps six sections, with Opportunities under Programs and Reports under Documents", () => {
+  it("keeps seven sections, with Opportunities under Programs and Reports under Documents", () => {
     assert.deepEqual(
       internalNav.map((item) => item.label),
-      ["Dashboard", "Universities & MoUs", "Programs & Opportunities", "Documents & Reports", "Administration", "Settings"],
+      ["Dashboard", "MoUs", "Collaborative Programs", "Flagship Events", "Documents & Reports", "Administration", "Settings"],
     );
     assert.deepEqual(
       internalNav.filter((item) => item.role === "admin").map((item) => item.href),
@@ -89,16 +89,16 @@ describe("internal route mappings", () => {
   it("highlights exactly one section per page, and Dashboard only on /internal", () => {
     const cases: Record<string, string | undefined> = {
       "/internal": "Dashboard",
-      "/internal/universities": "Universities & MoUs",
-      "/internal/universities/ofc-x/agreements/mou-1/edit": "Universities & MoUs",
-      "/internal/programs": "Programs & Opportunities",
-      "/internal/programs/abc": "Programs & Opportunities",
-      "/internal/opportunities": "Programs & Opportunities",
-      "/internal/opportunities/o1": "Programs & Opportunities",
+      "/internal/universities": "MoUs",
+      "/internal/universities/ofc-x/agreements/mou-1/edit": "MoUs",
+      "/internal/programs": "Collaborative Programs",
+      "/internal/programs/abc": "Collaborative Programs",
+      "/internal/opportunities": "Collaborative Programs",
+      "/internal/opportunities/o1": "Collaborative Programs",
       "/internal/documents/d1": "Documents & Reports",
       "/internal/reports": "Documents & Reports",
-      "/internal/activities": "Dashboard",
-      "/internal/activities/a1": "Dashboard",
+      "/internal/activities": "Flagship Events",
+      "/internal/activities/a1": "Flagship Events",
       "/internal/settings": "Settings",
       "/internal/admin": "Administration",
       "/internal/admin/users": "Administration",
@@ -120,15 +120,15 @@ describe("internal breadcrumbs", () => {
 
   it("maps sections, records and record actions to their own pages", () => {
     assert.deepEqual(labels("/internal"), ["Portal=/internal"]);
-    assert.deepEqual(labels("/internal/universities"), ["Portal=/internal", "Universities & MoUs=/internal/universities"]);
+    assert.deepEqual(labels("/internal/universities"), ["Portal=/internal", "MoUs=/internal/universities"]);
     assert.deepEqual(labels("/internal/programs/p1"), [
       "Portal=/internal",
-      "Programs & Opportunities=/internal/programs",
+      "Collaborative Programs=/internal/programs",
       "Details=/internal/programs/p1",
     ]);
     assert.deepEqual(labels("/internal/opportunities/o1"), [
       "Portal=/internal",
-      "Programs & Opportunities=/internal/programs",
+      "Collaborative Programs=/internal/programs",
       "Opportunities=/internal/programs?tab=opportunities",
       "Details=/internal/opportunities/o1",
     ]);
@@ -140,7 +140,7 @@ describe("internal breadcrumbs", () => {
     assert.deepEqual(labels("/internal/documents"), ["Portal=/internal", "Documents & Reports=/internal/documents"]);
     assert.deepEqual(labels("/internal/activities/a1"), [
       "Portal=/internal",
-      "Activities=/internal/activities",
+      "Flagship Events=/internal/activities",
       "Details=/internal/activities/a1",
     ]);
     assert.deepEqual(labels("/internal/universities/new").at(-1), "New=/internal/universities/new");
@@ -202,16 +202,16 @@ describe("tabbed section pages", () => {
 
   it("names the selected tab in breadcrumbs and the mobile title, and keeps the section active", () => {
     const crumbs = (path: string, tab?: string) => internalBreadcrumbs(path, tab).map((c) => c.label);
-    assert.deepEqual(crumbs("/internal/programs"), ["Portal", "Programs & Opportunities"]);
-    assert.deepEqual(crumbs("/internal/programs", "opportunities"), ["Portal", "Programs & Opportunities", "Opportunities"]);
+    assert.deepEqual(crumbs("/internal/programs"), ["Portal", "Collaborative Programs"]);
+    assert.deepEqual(crumbs("/internal/programs", "opportunities"), ["Portal", "Collaborative Programs", "Opportunities"]);
     assert.deepEqual(crumbs("/internal/documents", "reports"), ["Portal", "Documents & Reports", "Reports"]);
     assert.deepEqual(crumbs("/internal/documents", "bogus"), ["Portal", "Documents & Reports"]);
     assert.equal(navTitle("/internal/programs", "opportunities"), "Opportunities");
-    assert.equal(navTitle("/internal/programs"), "Programs & Opportunities");
+    assert.equal(navTitle("/internal/programs"), "Collaborative Programs");
     assert.equal(navTitle("/internal/opportunities/o1"), "Opportunities");
     assert.equal(navTitle("/internal/documents", "reports"), "Reports");
     for (const path of ["/internal/programs", "/internal/opportunities/o1"]) {
-      assert.equal(findNavItem(path)?.label, "Programs & Opportunities", path);
+      assert.equal(findNavItem(path)?.label, "Collaborative Programs", path);
     }
   });
 

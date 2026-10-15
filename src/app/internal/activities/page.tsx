@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getDataMode } from "@/lib/internal/data/context";
-import { ArrowLeft, ChevronRight, SearchX } from "lucide-react";
+import { ChevronRight, SearchX } from "lucide-react";
 import Link from "next/link";
 import { ActivityStatusBadge } from "@/components/internal/badges";
 import { EmptyState } from "@/components/internal/ui/empty-state";
@@ -21,7 +21,7 @@ import { readEnumParam, readParam, type SearchParamsProp } from "@/lib/internal/
 import { activityStatusMeta, activityTypeLabel, optionsFrom } from "@/lib/internal/status";
 import type { ActivityView } from "@/lib/internal/types";
 
-export const metadata: Metadata = { title: "Activities" };
+export const metadata: Metadata = { title: "Flagship Events" };
 
 const statusColor: Record<ActivityView["status"], string> = {
   "needs-update": "var(--warning)",
@@ -156,16 +156,9 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
 
   return (
     <div className="space-y-8">
-      <Link
-        href="/internal"
-        className="inline-flex min-h-9 items-center gap-1.5 text-[13px] text-fg-subtle transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="size-4" aria-hidden />
-        Dashboard
-      </Link>
       <PageHeader
         eyebrow="Agenda"
-        title="Activities"
+        title="Flagship Events"
         description="International visits, delegations, events, and meetings. Planned items whose date has passed are flagged for an update."
         actions={
           <ManageLink permission="activities:create" href="/internal/activities/new" label="Log activity" icon="add" variant="primary" />

@@ -23,7 +23,7 @@ export default async function ProgramsPage({ searchParams }: SearchParamsProp) {
     <div className="space-y-8">
       <PageHeader
         eyebrow={tab === "opportunities" ? "Open calls" : "Mobility & exchange"}
-        title="Programs & Opportunities"
+        title="Collaborative Programs"
         description="Programmes for students and faculty, and the opportunities (application calls) published under them."
         actions={
           tab === "opportunities" ? (

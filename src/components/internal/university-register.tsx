@@ -5,7 +5,13 @@ import { StatusBadge } from "@/components/internal/ui/status-badge";
 import type { AgreementDetails, RegisterAccess, RegisterRow } from "@/lib/internal/data/register";
 import { formatDate, formatRelativeDays } from "@/lib/internal/dates";
 import { EXPIRY_LEGEND, type ExpirySummary } from "@/lib/internal/expiry";
-import { type AgreementEntry, type ContactView, type OfficerView, sheetLabel } from "@/lib/internal/register-view";
+import {
+  type AgreementEntry,
+  type ContactView,
+  type OfficerView,
+  sheetLabel,
+  type UniversityEntry,
+} from "@/lib/internal/register-view";
 import { agreementTypeLabel } from "@/lib/internal/status";
 import {
   displayCell,
@@ -458,6 +464,46 @@ export function UniversityRegisterRows({ rows }: { rows: readonly RegisterRow[] 
         </div>
       ))}
     </div>
+  );
+}
+
+/** What the MoUs cover, for the list's collapsed row; full text is in the details. */
+export function ScopeSummary({ entry }: { entry: UniversityEntry }) {
+  const [scope, ...moreScopes] = entry.scopes;
+  const [programme, ...morePrograms] = entry.programmes;
+  if (!scope && !programme) return <span className="text-[13px] text-fg-faint">Not recorded</span>;
+  return (
+    <span className="flex flex-col gap-1 text-[13px] text-foreground">
+      {scope ? (
+        <span title={scope} className="line-clamp-3 whitespace-pre-line">
+          {scope}
+        </span>
+      ) : null}
+      {moreScopes.length > 0 ? (
+        <span className="text-[11px] text-fg-faint">+{moreScopes.length} more in details</span>
+      ) : null}
+      {programme ? (
+        <span className="line-clamp-2 text-[12px] text-muted-foreground">
+          Programme: <RecordedText value={programme} />
+          {morePrograms.length > 0 ? <span className="text-fg-faint"> +{morePrograms.length}</span> : null}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+/** MUJ department and faculty the MoUs were signed from. */
+export function DepartmentSummary({ entry }: { entry: UniversityEntry }) {
+  if (entry.departments.length === 0 && entry.faculties.length === 0) {
+    return <span className="text-[13px] text-fg-faint">Not recorded</span>;
+  }
+  return (
+    <span className="flex flex-col gap-0.5 text-[13px] text-foreground">
+      {entry.departments.length > 0 ? <span>{entry.departments.join(" · ")}</span> : null}
+      {entry.faculties.length > 0 ? (
+        <span className="text-[12px] text-muted-foreground">{entry.faculties.join(" · ")}</span>
+      ) : null}
+    </span>
   );
 }
 

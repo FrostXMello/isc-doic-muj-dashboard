@@ -161,6 +161,18 @@ describe("university entry", () => {
     assert.equal(entry.universityRows.length, 1, "a row without an agreement stays at university level");
   });
 
+  it("summarises scope and signing department, leaving placeholders out", () => {
+    assert.deepEqual(entry.scopes, ["Student exchange"]);
+    assert.deepEqual(entry.departments, ["Physics"]);
+    assert.deepEqual(entry.faculties, ["FoSTA"]);
+    const withPlaceholder = buildUniversityEntry(university, [agreement("a1", "2027-01-01", "active")], contacts, {
+      ...register,
+      details: new Map([["a1", { ...register.details.get("a1")!, opportunities: "NA", programmeReference: "N/A" }]]),
+    });
+    assert.deepEqual(withPlaceholder.scopes, []);
+    assert.deepEqual(withPlaceholder.programmes, []);
+  });
+
   it("never pulls in another university's contacts", () => {
     assert.ok(!entry.searchText.includes("not ours"));
   });

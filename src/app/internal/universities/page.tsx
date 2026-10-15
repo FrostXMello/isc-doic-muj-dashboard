@@ -5,11 +5,13 @@ import { SuccessNotice } from "@/components/internal/forms/form-fields";
 import {
   AgreementRegisterFacts,
   ContactRows,
+  DepartmentSummary,
   ExpiryIndicator,
   ExpiryLegend,
   Facts,
   OfficerList,
   RegisterNotice,
+  ScopeSummary,
   UniversityRegisterRows,
 } from "@/components/internal/university-register";
 import { EmptyState } from "@/components/internal/ui/empty-state";
@@ -36,9 +38,10 @@ import {
   type SearchParamsRecord,
 } from "@/lib/internal/query";
 import { agreementStatusMeta, agreementTypeLabel, optionsFrom, partnershipStatusMeta, sourceMeta } from "@/lib/internal/status";
+import { meaningful } from "@/lib/internal/workbook/source";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Universities & MoUs" };
+export const metadata: Metadata = { title: "MoUs" };
 
 const PAGE_SIZE = 25;
 
@@ -172,8 +175,8 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
     <div className="space-y-8">
       <PageHeader
         eyebrow="Global network"
-        title="Universities & MoUs"
-        description="Every partner university with its DoIC nodal officers and expiry at a glance. Expand a university for each MoU's reference, dates, rankings, partner officers, documents, workflow, and renewal history."
+        title="MoUs"
+        description="Every partner university with each MoU's scope, signing department, expiry, and DoIC nodal officers at a glance. Expand a university for each MoU's reference, dates, rankings, partner officers, documents, workflow, and renewal history."
         actions={
           <>
             <Link
@@ -289,19 +292,27 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
         />
       ) : (
         <section aria-label="Universities" className="overflow-hidden rounded-3xl border border-line bg-card">
-          <div
-            aria-hidden
-            className="hidden grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1.6fr)] gap-6 border-b border-hairline px-6 py-3 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase md:grid"
-          >
-            <span>University</span>
-            <span>Expiry</span>
-            <span>DoIC nodal officer</span>
+          <div>
+            <div
+              aria-hidden
+              className={cn(
+                "grid gap-3 border-b border-hairline px-4 py-3 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase lg:gap-5 lg:px-6",
+                ROW_COLUMNS,
+              )}
+            >
+              <span>University</span>
+              <span>QS ranking</span>
+              <span>DoIC nodal officer</span>
+              <span>Department</span>
+              <span>Scope</span>
+              <span>Expiry</span>
+            </div>
+            <ul className="divide-y divide-hairline">
+              {pageRows.map((row) => (
+                <UniversityEntryRow key={row.id} row={row} />
+              ))}
+            </ul>
           </div>
-          <ul className="divide-y divide-hairline">
-            {pageRows.map((row) => (
-              <UniversityEntryRow key={row.id} row={row} />
-            ))}
-          </ul>
         </section>
       )}
 
@@ -337,6 +348,9 @@ function agreementSummary(row: UniversityRow) {
   return `${label} · ${types.slice(0, 2).join(", ")}${types.length > 2 ? ` +${types.length - 2}` : ""}`;
 }
 
+const ROW_COLUMNS =
+  "grid-cols-[minmax(0,2fr)_minmax(0,0.6fr)_minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,0.9fr)]";
+
 /** One university: key facts always visible, everything else in an expandable panel. */
 function UniversityEntryRow({ row }: { row: UniversityRow }) {
   const { entry } = row;
@@ -345,9 +359,10 @@ function UniversityEntryRow({ row }: { row: UniversityRow }) {
     entry.universityRows.length > 0 ||
     entry.universityContacts.length > 0 ||
     entry.earlierOfficers.length > 0;
+  const qsRankings = entry.qsRankings.flatMap((rank) => meaningful(rank) ?? []);
   return (
     <li className="group/entry">
-      <div className="grid grid-cols-1 gap-3 px-5 py-4 sm:px-6 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1.6fr)] md:gap-6">
+      <div className={cn("grid gap-3 px-4 py-4 [overflow-wrap:anywhere] lg:gap-5 lg:px-6", ROW_COLUMNS)}>
         <div className="min-w-0">
           <Link
             href={`/internal/universities/${row.id}`}
@@ -361,22 +376,26 @@ function UniversityEntryRow({ row }: { row: UniversityRow }) {
           <p className="mt-0.5 text-[13px] text-muted-foreground">
             {[row.city, row.country, row.region].filter(Boolean).join(" · ")}
           </p>
-          <p className="mt-1 text-[12px] text-fg-faint">
-            {agreementSummary(row)}
-            {entry.faculties.length > 0 ? ` · ${entry.faculties.join(", ")}` : ""}
-          </p>
-        </div>
-        <div className="min-w-0">
-          <span className="mb-1 block text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase md:hidden">
-            Expiry
-          </span>
-          <ExpiryIndicator expiry={entry.expiry} compact />
+          <p className="mt-1 text-[12px] text-fg-faint">{agreementSummary(row)}</p>
         </div>
         <div className="min-w-0 text-[13px]">
-          <span className="mb-1 block text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase md:hidden">
-            DoIC nodal officer
-          </span>
+          {qsRankings.length > 0 ? (
+            <span className="text-foreground">{qsRankings.join(" · ")}</span>
+          ) : (
+            <span className="text-fg-faint">Not recorded</span>
+          )}
+        </div>
+        <div className="min-w-0 text-[13px] [overflow-wrap:anywhere]">
           <OfficerList officers={entry.officers} compact />
+        </div>
+        <div className="min-w-0">
+          <DepartmentSummary entry={entry} />
+        </div>
+        <div className="min-w-0">
+          <ScopeSummary entry={entry} />
+        </div>
+        <div className="min-w-0">
+          <ExpiryIndicator expiry={entry.expiry} compact />
         </div>
       </div>
 

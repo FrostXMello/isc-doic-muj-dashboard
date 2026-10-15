@@ -2,8 +2,8 @@
  * Navigation definitions for the Internal Portal workspace.
  *
  * Each sidebar section maps to a route under /internal and an icon from
- * lucide-react. A section can own further pages (`pages`, e.g. Activities
- * under Dashboard) or be one list page with internal tabs (`tabs`), selected
+ * lucide-react. A section can own further pages (`pages`, e.g. the
+ * Administration subpages) or be one list page with internal tabs (`tabs`), selected
  * by the `tab` query parameter. A tab's `recordBase` is where its detail
  * pages live, so /internal/opportunities/x still belongs to Programs ›
  * Opportunities. `role: "admin"` items are listed only for roles that may
@@ -37,18 +37,17 @@ export const internalNav: readonly InternalNavItem[] = [
     icon: "LayoutDashboard",
     role: "viewer",
     description: "Overview of collaboration metrics, upcoming and recent activities.",
-    pages: [{ href: "/internal/activities", label: "Activities" }],
   },
   {
     href: "/internal/universities",
-    label: "Universities & MoUs",
+    label: "MoUs",
     icon: "GraduationCap",
     role: "viewer",
     description: "Partner universities, each with its MoUs and agreements, with provenance.",
   },
   {
     href: "/internal/programs",
-    label: "Programs & Opportunities",
+    label: "Collaborative Programs",
     icon: "BookOpen",
     role: "viewer",
     description: "Programmes for students and faculty, their offerings, and the opportunities (application calls) under each.",
@@ -56,6 +55,13 @@ export const internalNav: readonly InternalNavItem[] = [
       { value: "programs", label: "Programs", recordBase: "/internal/programs" },
       { value: "opportunities", label: "Opportunities", recordBase: "/internal/opportunities" },
     ],
+  },
+  {
+    href: "/internal/activities",
+    label: "Flagship Events",
+    icon: "CalendarDays",
+    role: "viewer",
+    description: "International visits, delegations, events, and meetings on a timeline.",
   },
   {
     href: "/internal/documents",

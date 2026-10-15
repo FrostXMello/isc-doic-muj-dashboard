@@ -21,7 +21,7 @@ export default async function NationalCollaborationsPage() {
     <div className="space-y-6">
       <DetailHeader
         backHref="/internal/universities"
-        backLabel="Universities & MoUs"
+        backLabel="MoUs"
         eyebrow="DoIC MoU register"
         title="National collaborations"
         subtitle="Agreements with Indian institutions from the register's National MoUs sheet, as recorded."

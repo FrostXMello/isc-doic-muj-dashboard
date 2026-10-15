@@ -7,7 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 /**
  * DoIC MoU register data (supabase/migrations/20261013090000_mou_workbook.sql).
  * Read as the signed-in user, so RLS limits it to internal roles. The static
- * source carries none of it.
+ * source carries none of it, except as a local preview (./local-register.ts).
  */
 
 export type AgreementDetails = {
@@ -135,9 +135,14 @@ type RegisterClient =
   | { client: NonNullable<Awaited<ReturnType<typeof createSupabaseServerClient>>> }
   | { restricted: "static-source" | "no-internal-role" };
 
-async function registerClient(): Promise<RegisterClient> {
-  const { source, contactAccess } = await openDataContext();
-  if (source !== "supabase") return { restricted: "static-source" };
+async function registerClient(): Promise<RegisterClient | { local: RegisterAccess }> {
+  const { source, contactAccess, today, sampleData } = await openDataContext();
+  if (source !== "supabase") {
+    const { localRegisterEnabled, loadLocalRegister } = await import("@/lib/internal/data/local-register");
+    if (!localRegisterEnabled()) return { restricted: "static-source" };
+    const { staticDataset } = await import("@/lib/internal/data/dataset");
+    return { local: loadLocalRegister(staticDataset(sampleData), today).register };
+  }
   if (contactAccess.state === "restricted") return { restricted: "no-internal-role" };
   const client = await createSupabaseServerClient();
   if (!client) throw new Error("Supabase is not configured.");
@@ -156,6 +161,7 @@ function missingRelation(error: { code?: string }) {
  */
 export const loadRegister = cache(async (): Promise<RegisterAccess> => {
   const access = await registerClient();
+  if ("local" in access) return access.local;
   if (!("client" in access)) return { state: "restricted", reason: access.restricted };
   const { client } = access;
 
