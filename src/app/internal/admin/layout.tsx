@@ -10,7 +10,7 @@ export default async function AdministrationLayout({ children }: { children: Rea
       <PageHeader
         eyebrow={isAdmin(auth.roles) ? "Administration" : "Administration · read-only"}
         title="Administration"
-        description="Manage records, accounts, and portal settings within your role's authority. Every change is checked by the database and recorded in the audit history."
+        description="Manage who can access the portal, and review the history of changes."
       />
       <AdminNav links={visibleAdminSections(auth.roles)} />
       <div>{children}</div>

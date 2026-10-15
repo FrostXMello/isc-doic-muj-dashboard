@@ -5,10 +5,7 @@ import { can, canOpenAdministration, type Permission } from "@/lib/internal/perm
 
 export const adminSections = [
   { href: "/internal/admin", label: "Overview", permission: null },
-  { href: "/internal/admin/content", label: "Content and records", permission: "institutions:read" },
   { href: "/internal/admin/users", label: "Users and roles", permission: "users:read" },
-  { href: "/internal/admin/documents", label: "Documents and reports", permission: "reports:read" },
-  { href: "/internal/admin/settings", label: "Portal settings", permission: "settings:read" },
   { href: "/internal/admin/audit", label: "Audit history", permission: "audit:read" },
 ] as const satisfies readonly { href: string; label: string; permission: Permission | null }[];
 

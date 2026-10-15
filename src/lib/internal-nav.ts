@@ -79,12 +79,9 @@ export const internalNav: readonly InternalNavItem[] = [
     label: "Administration",
     icon: "ShieldCheck",
     role: "admin",
-    description: "Content and records, users and roles, documents and reports, portal settings, and audit history.",
+    description: "Users and roles, and the audit history.",
     pages: [
-      { href: "/internal/admin/content", label: "Content and records" },
       { href: "/internal/admin/users", label: "Users and roles" },
-      { href: "/internal/admin/documents", label: "Documents and reports" },
-      { href: "/internal/admin/settings", label: "Portal settings" },
       { href: "/internal/admin/audit", label: "Audit history" },
     ],
   },
