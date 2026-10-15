@@ -50,11 +50,7 @@ export const internalNav: readonly InternalNavItem[] = [
     label: "Collaborative Programs",
     icon: "BookOpen",
     role: "viewer",
-    description: "Programmes for students and faculty, their offerings, and the opportunities (application calls) under each.",
-    tabs: [
-      { value: "programs", label: "Programs", recordBase: "/internal/programs" },
-      { value: "opportunities", label: "Opportunities", recordBase: "/internal/opportunities" },
-    ],
+    description: "Programmes for students and faculty, and where each is offered.",
   },
   {
     href: "/internal/activities",

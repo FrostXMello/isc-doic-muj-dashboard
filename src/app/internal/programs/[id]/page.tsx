@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { agreementHref } from "@/lib/internal/links";
-import { BookOpen, ClipboardList, Compass, FileText, FolderOpen, GraduationCap, Link2 } from "lucide-react";
+import { BookOpen, ClipboardList, FileText, FolderOpen, GraduationCap, Link2 } from "lucide-react";
 import { notFound } from "next/navigation";
 import {
   AgreementStatusBadge,
   AudienceBadge,
   AvailabilityBadge,
   DocumentStatusBadge,
-  OpportunityStatusBadge,
 } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { NotRecorded } from "@/components/internal/ui/page-header";
@@ -16,7 +15,7 @@ import { provenanceItems, VerificationBadge } from "@/components/internal/ui/pro
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getOffering, getProgram } from "@/lib/internal/data/programs";
 import { ProgramOverview } from "./program-overview";
-import { formatDate, formatDateRange } from "@/lib/internal/dates";
+import { formatDateRange } from "@/lib/internal/dates";
 import type { IdParamsProp, SearchParamsProp } from "@/lib/internal/query";
 import { RecordNotice } from "@/components/internal/ui/record-notice";
 import { documentTypeLabel } from "@/lib/internal/status";
@@ -46,7 +45,7 @@ export default async function ProgramOfferingPage({ params, searchParams }: IdPa
   const record = await getOffering(id);
   if (!record) notFound();
 
-  const { offering, opportunities, siblings, documents } = record;
+  const { offering, siblings, documents } = record;
   const { program, institution, agreement } = offering;
   const availabilityKey = offering.availability ?? "not-recorded";
 
@@ -125,19 +124,6 @@ export default async function ProgramOfferingPage({ params, searchParams }: IdPa
 
           <DetailSection title="Provenance" icon={Link2}>
             <KeyValueList items={provenanceItems(offering)} />
-          </DetailSection>
-
-          <DetailSection title="Application calls" icon={Compass}>
-            <LinkedList
-              emptyTitle="No application calls for this offering"
-              items={opportunities.map((opportunity) => ({
-                key: opportunity.id,
-                href: `/internal/opportunities/${opportunity.id}`,
-                title: opportunity.title,
-                meta: opportunity.deadline ? `Deadline ${formatDate(opportunity.deadline)}` : "No deadline recorded",
-                badge: <OpportunityStatusBadge status={opportunity.status} />,
-              }))}
-            />
           </DetailSection>
         </div>
 

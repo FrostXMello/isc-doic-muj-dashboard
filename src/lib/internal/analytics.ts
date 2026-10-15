@@ -90,12 +90,6 @@ export function computeDashboard(input: DashboardInput) {
       href: "/internal/universities?coverage=without",
     },
     {
-      key: "no-deadline",
-      label: "Opportunities without a deadline",
-      count: opportunities.filter((row) => row.deadline === null).length,
-      href: "/internal/programs?tab=opportunities",
-    },
-    {
       key: "unlinked",
       label: "Documents not linked to a record",
       count: documents.filter((row) => row.links.length === 0).length,

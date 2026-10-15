@@ -46,7 +46,7 @@ describe("internal route mappings", () => {
     }
   });
 
-  it("keeps seven sections, with Opportunities under Programs and Reports under Documents", () => {
+  it("keeps seven sections, with Reports under Documents", () => {
     assert.deepEqual(
       internalNav.map((item) => item.label),
       ["Dashboard", "MoUs", "Collaborative Programs", "Flagship Events", "Documents & Reports", "Administration", "Settings"],
@@ -55,7 +55,7 @@ describe("internal route mappings", () => {
       internalNav.filter((item) => item.role === "admin").map((item) => item.href),
       ["/internal/admin"],
     );
-    assert.deepEqual(sectionTabs("/internal/programs").map((t) => t.label), ["Programs", "Opportunities"]);
+    assert.deepEqual(sectionTabs("/internal/programs"), []);
     assert.deepEqual(sectionTabs("/internal/documents").map((t) => t.label), ["Documents", "Reports"]);
     assert.deepEqual(sectionTabs("/internal"), []);
     assert.deepEqual(sectionTabs("/internal/universities"), []);
@@ -93,8 +93,6 @@ describe("internal route mappings", () => {
       "/internal/universities/ofc-x/agreements/mou-1/edit": "MoUs",
       "/internal/programs": "Collaborative Programs",
       "/internal/programs/abc": "Collaborative Programs",
-      "/internal/opportunities": "Collaborative Programs",
-      "/internal/opportunities/o1": "Collaborative Programs",
       "/internal/documents/d1": "Documents & Reports",
       "/internal/reports": "Documents & Reports",
       "/internal/activities": "Flagship Events",
@@ -125,12 +123,6 @@ describe("internal breadcrumbs", () => {
       "Portal=/internal",
       "Collaborative Programs=/internal/programs",
       "Details=/internal/programs/p1",
-    ]);
-    assert.deepEqual(labels("/internal/opportunities/o1"), [
-      "Portal=/internal",
-      "Collaborative Programs=/internal/programs",
-      "Opportunities=/internal/programs?tab=opportunities",
-      "Details=/internal/opportunities/o1",
     ]);
     assert.deepEqual(labels("/internal/reports"), [
       "Portal=/internal",
@@ -171,7 +163,7 @@ describe("internal breadcrumbs", () => {
 });
 
 describe("tabbed section pages", () => {
-  const sections = ["/internal/programs", "/internal/documents"];
+  const sections = ["/internal/documents"];
 
   it("every tab of a section links to that section's single list page", () => {
     for (const section of sections) {
@@ -183,36 +175,30 @@ describe("tabbed section pages", () => {
         assert.equal(resolveTab(section, url.searchParams.get("tab"))?.value, tab.value);
       }
     }
-    assert.equal(tabHref("/internal/programs", "programs"), "/internal/programs");
-    assert.equal(tabHref("/internal/programs", "opportunities"), "/internal/programs?tab=opportunities");
+    assert.equal(tabHref("/internal/documents", "documents"), "/internal/documents");
     assert.equal(tabHref("/internal/documents", "reports"), "/internal/documents?tab=reports");
   });
 
   it("falls back to the first tab for a missing or unknown tab", () => {
-    assert.equal(resolveTab("/internal/programs", null)?.value, "programs");
-    assert.equal(resolveTab("/internal/programs", "reports")?.value, "programs");
+    assert.equal(resolveTab("/internal/documents", null)?.value, "documents");
     assert.equal(resolveTab("/internal/documents", "nope")?.value, "documents");
   });
 
   it("carries only the parameters asked for across tabs", () => {
-    const keep = new URLSearchParams({ audience: "faculty", tab: "programs" });
-    assert.equal(tabHref("/internal/programs", "opportunities", keep), "/internal/programs?audience=faculty&tab=opportunities");
-    assert.equal(tabHref("/internal/programs", "programs", keep), "/internal/programs?audience=faculty");
+    const keep = new URLSearchParams({ q: "report", tab: "documents" });
+    assert.equal(tabHref("/internal/documents", "reports", keep), "/internal/documents?q=report&tab=reports");
+    assert.equal(tabHref("/internal/documents", "documents", keep), "/internal/documents?q=report");
   });
 
   it("names the selected tab in breadcrumbs and the mobile title, and keeps the section active", () => {
     const crumbs = (path: string, tab?: string) => internalBreadcrumbs(path, tab).map((c) => c.label);
     assert.deepEqual(crumbs("/internal/programs"), ["Portal", "Collaborative Programs"]);
-    assert.deepEqual(crumbs("/internal/programs", "opportunities"), ["Portal", "Collaborative Programs", "Opportunities"]);
+    assert.deepEqual(crumbs("/internal/programs", "opportunities"), ["Portal", "Collaborative Programs"]);
     assert.deepEqual(crumbs("/internal/documents", "reports"), ["Portal", "Documents & Reports", "Reports"]);
     assert.deepEqual(crumbs("/internal/documents", "bogus"), ["Portal", "Documents & Reports"]);
-    assert.equal(navTitle("/internal/programs", "opportunities"), "Opportunities");
     assert.equal(navTitle("/internal/programs"), "Collaborative Programs");
-    assert.equal(navTitle("/internal/opportunities/o1"), "Opportunities");
     assert.equal(navTitle("/internal/documents", "reports"), "Reports");
-    for (const path of ["/internal/programs", "/internal/opportunities/o1"]) {
-      assert.equal(findNavItem(path)?.label, "Collaborative Programs", path);
-    }
+    assert.equal(findNavItem("/internal/programs")?.label, "Collaborative Programs");
   });
 
   it("redirects the old list URLs to the unified page, keeping their filters", () => {

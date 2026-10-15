@@ -83,7 +83,6 @@ function Snapshot({ totals, today }: Pick<DashboardData, "totals" | "today">) {
     { label: "Universities connected", value: totals.universities, href: "/internal/universities" },
     { label: "Recorded MoUs", value: totals.mous, href: "/internal/universities?coverage=with" },
     { label: "Programmes", value: totals.programmes, href: "/internal/programs" },
-    { label: "Opportunities", value: totals.opportunities, href: "/internal/programs?tab=opportunities" },
     { label: "Documents", value: totals.documents, href: "/internal/documents" },
   ];
 

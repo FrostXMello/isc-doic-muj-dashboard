@@ -1,22 +1,20 @@
-import { BookOpen, Compass, FolderOpen, GraduationCap } from "lucide-react";
+import { BookOpen, FolderOpen, GraduationCap } from "lucide-react";
 import {
   AudienceBadge,
   AvailabilityBadge,
   DocumentStatusBadge,
-  OpportunityStatusBadge,
 } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { ManageLink } from "@/components/internal/ui/manage-action";
 import { NotRecorded } from "@/components/internal/ui/page-header";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import type { getProgram } from "@/lib/internal/data/programs";
-import { formatDate } from "@/lib/internal/dates";
 import { audienceMeta, documentTypeLabel } from "@/lib/internal/status";
 
 type ProgramRecord = NonNullable<Awaited<ReturnType<typeof getProgram>>>;
 
 export function ProgramOverview({ record, notice }: { record: ProgramRecord; notice?: React.ReactNode }) {
-  const { program, audience, offerings, opportunities, documents } = record;
+  const { program, audience, offerings, documents } = record;
 
   return (
     <div className="space-y-6">
@@ -52,28 +50,6 @@ export function ProgramOverview({ record, notice }: { record: ProgramRecord; not
                   value: program.generalAudience ?? <NotRecorded>Not stated</NotRecorded>,
                 },
               ]}
-            />
-          </DetailSection>
-
-          <DetailSection
-            title="Opportunities"
-            icon={Compass}
-            description="Application calls published under this programme."
-          >
-            <LinkedList
-              emptyTitle="No opportunities recorded for this programme"
-              items={opportunities.map((opportunity) => ({
-                key: opportunity.id,
-                href: `/internal/opportunities/${opportunity.id}`,
-                title: opportunity.title,
-                meta: [
-                  opportunity.institution?.name,
-                  opportunity.deadline ? `Deadline ${formatDate(opportunity.deadline)}` : "No deadline recorded",
-                ]
-                  .filter(Boolean)
-                  .join(" · "),
-                badge: <OpportunityStatusBadge status={opportunity.status} />,
-              }))}
             />
           </DetailSection>
         </div>
