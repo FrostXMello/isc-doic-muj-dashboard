@@ -7,39 +7,35 @@ import type {
   AgreementType,
   AgreementView,
   InstitutionView,
-  PartnershipStatus,
-  RecordSource,
   Region,
 } from "@/lib/internal/types";
-
-export const partnershipStatuses: readonly PartnershipStatus[] = [
-  "active",
-  "listed",
-  "renewal-due",
-  "in-progress",
-  "lapsed",
-  "not-recorded",
-];
-
-export const institutionSources: readonly RecordSource[] = ["official", "directory", "sample"];
+import {
+  matchesQsRankingBand,
+  qsRankSortKey,
+  qsRankingBands,
+  type QsRankingBand,
+} from "@/lib/official/qs-rankings-2026";
 
 export const agreementCoverage = ["with", "without"] as const;
 export type AgreementCoverage = (typeof agreementCoverage)[number];
+
+export { qsRankingBands };
+export type { QsRankingBand };
 
 export type InstitutionFilters = {
   q?: string;
   region?: Region;
   country?: string;
-  status?: PartnershipStatus;
-  source?: RecordSource;
   /** Has at least one agreement with this derived status. */
   agreementStatus?: AgreementStatus;
   /** Has at least one agreement of this type. */
   agreementType?: AgreementType;
   coverage?: AgreementCoverage;
+  /** QS World University Rankings 2026 band. */
+  qs?: QsRankingBand;
 };
 
-export const universitySorts = ["name", "country", "expiry"] as const;
+export const universitySorts = ["name", "country", "expiry", "qs"] as const;
 export type UniversitySort = (typeof universitySorts)[number];
 
 export type UniversityRow = InstitutionView & { agreements: AgreementView[]; entry: UniversityEntry };
@@ -52,6 +48,13 @@ function sortRows(rows: UniversityRow[], sort: UniversitySort) {
       const [ga, va] = expirySortKey(a.entry.expiry);
       const [gb, vb] = expirySortKey(b.entry.expiry);
       return ga - gb || va - vb || byName(a, b);
+    });
+  }
+  if (sort === "qs") {
+    return rows.sort((a, b) => {
+      const qa = qsRankSortKey(a.entry.qsRankings[0]);
+      const qb = qsRankSortKey(b.entry.qsRankings[0]);
+      return qa - qb || byName(a, b);
     });
   }
   return rows.sort(byName);
@@ -73,14 +76,13 @@ export async function listInstitutions(
         matchesEntry(row.entry, filters.q) &&
         (!filters.region || row.region === filters.region) &&
         (!filters.country || row.country === filters.country) &&
-        (!filters.status || row.partnershipStatus === filters.status) &&
-        (!filters.source || row.source === filters.source) &&
         (!filters.agreementStatus ||
           row.agreements.some((agreement) => agreement.status === filters.agreementStatus)) &&
         (!filters.agreementType ||
           row.agreements.some((agreement) => agreement.type === filters.agreementType)) &&
         (!filters.coverage ||
-          (filters.coverage === "with" ? row.agreements.length > 0 : row.agreements.length === 0)),
+          (filters.coverage === "with" ? row.agreements.length > 0 : row.agreements.length === 0)) &&
+        (!filters.qs || matchesQsRankingBand(row.entry.qsRankings[0] ?? null, filters.qs)),
     );
   return sortRows(rows, sort);
 }
