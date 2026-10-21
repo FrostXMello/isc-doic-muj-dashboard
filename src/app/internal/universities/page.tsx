@@ -24,9 +24,8 @@ import { getDataMode } from "@/lib/internal/data/context";
 import {
   agreementCoverage,
   getInstitutionFilterOptions,
-  institutionSources,
   listInstitutions,
-  partnershipStatuses,
+  qsRankingBands,
   type UniversityRow,
   universitySorts,
 } from "@/lib/internal/data/institutions";
@@ -37,8 +36,8 @@ import {
   type SearchParamsProp,
   type SearchParamsRecord,
 } from "@/lib/internal/query";
-import { agreementStatusMeta, agreementTypeLabel, optionsFrom, partnershipStatusMeta, sourceMeta } from "@/lib/internal/status";
-import { meaningful } from "@/lib/internal/workbook/source";
+import { agreementStatusMeta, agreementTypeLabel, optionsFrom } from "@/lib/internal/status";
+import { qsRankingBandLabel } from "@/lib/official/qs-rankings-2027";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "MoUs" };
@@ -136,11 +135,10 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
         q: readParam(params, "q"),
         region: readEnumParam(params, "region", options.regions),
         country: readEnumParam(params, "country", options.countries),
-        status: readEnumParam(params, "status", partnershipStatuses),
-        source: readEnumParam(params, "source", institutionSources),
         coverage: readEnumParam(params, "coverage", agreementCoverage),
         agreementStatus: readEnumParam(params, "mouStatus", agreementStatuses),
         agreementType: readEnumParam(params, "mouType", agreementTypes),
+        qs: readEnumParam(params, "qs", qsRankingBands),
       },
       sort,
     ),
@@ -203,7 +201,9 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
         MoU register (0_MoU details.xlsx). They are internal and shown only to DoIC roles reading
         the access-controlled database
         {mode.source === "supabase" ? "" : "; this deployment reads the static dataset, so they show as Restricted"}.
-        Values written as &ldquo;NA&rdquo; or similar are shown as recorded; formula output is never shown.
+        The QS column is QS World University Rankings 2027, published on 18 June 2026; partners not
+        in that table show as not ranked. Values written as &ldquo;NA&rdquo; or similar are shown as recorded;
+        formula output is never shown.
         {mode.sampleData ? (
           <>
             {" "}
@@ -219,31 +219,16 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
       {regions.length > 0 ? <RegionIndex regions={regions} active={activeRegion} params={params} /> : null}
 
       <FilterBar
-        searchPlaceholder="Search name, country, officer, email, phone, reference"
+        searchPlaceholder="Search name, country, officer, email, phone, reference, QS rank"
         noun={{ singular: "university", plural: "universities" }}
         resultCount={rows.length}
         totalCount={all.length}
         selects={[
           {
-            name: "region",
-            label: "Region",
-            allLabel: "All regions",
-            options: options.regions.map((value) => ({ value, label: value })),
-          },
-          {
             name: "country",
             label: "Country",
             allLabel: "All countries",
             options: options.countries.map((value) => ({ value, label: value })),
-          },
-          {
-            name: "coverage",
-            label: "MoUs",
-            allLabel: "With or without MoUs",
-            options: [
-              { value: "with", label: "With MoUs" },
-              { value: "without", label: "No MoU recorded" },
-            ],
           },
           {
             name: "mouStatus",
@@ -258,16 +243,19 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
             options: optionsFrom(agreementTypes, agreementTypeLabel),
           },
           {
-            name: "status",
-            label: "Partnership",
-            allLabel: "All partnership statuses",
-            options: optionsFrom(partnershipStatuses, partnershipStatusMeta),
+            name: "qs",
+            label: "QS 2027",
+            allLabel: "Any QS 2027 rank",
+            options: qsRankingBands.map((value) => ({ value, label: qsRankingBandLabel[value] })),
           },
           {
-            name: "source",
-            label: "Source",
-            allLabel: "All sources",
-            options: institutionSources.map((value) => ({ value, label: sourceMeta[value].label })),
+            name: "coverage",
+            label: "MoUs",
+            allLabel: "With or without MoUs",
+            options: [
+              { value: "with", label: "With MoUs" },
+              { value: "without", label: "No MoU recorded" },
+            ],
           },
           {
             name: "sort",
@@ -276,6 +264,7 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
             options: [
               { value: "name", label: "Name" },
               { value: "country", label: "Country" },
+              { value: "qs", label: "QS 2027 (best first)" },
               { value: "expiry", label: "Soonest expiry" },
             ],
           },
@@ -301,7 +290,7 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
               )}
             >
               <span>University</span>
-              <span>QS ranking</span>
+              <span>QS 2027</span>
               <span>DoIC nodal officer</span>
               <span>Department</span>
               <span>Scope</span>
@@ -359,7 +348,7 @@ function UniversityEntryRow({ row }: { row: UniversityRow }) {
     entry.universityRows.length > 0 ||
     entry.universityContacts.length > 0 ||
     entry.earlierOfficers.length > 0;
-  const qsRankings = entry.qsRankings.flatMap((rank) => meaningful(rank) ?? []);
+  const qsRankings = entry.qsRankings;
   return (
     <li className="group/entry">
       <div className={cn("grid gap-3 px-4 py-4 [overflow-wrap:anywhere] lg:gap-5 lg:px-6", ROW_COLUMNS)}>
@@ -382,7 +371,7 @@ function UniversityEntryRow({ row }: { row: UniversityRow }) {
           {qsRankings.length > 0 ? (
             <span className="text-foreground">{qsRankings.join(" · ")}</span>
           ) : (
-            <span className="text-fg-faint">Not recorded</span>
+            <span className="text-fg-faint">Not in QS 2027</span>
           )}
         </div>
         <div className="min-w-0 text-[13px] [overflow-wrap:anywhere]">
@@ -413,7 +402,7 @@ function UniversityEntryRow({ row }: { row: UniversityRow }) {
           <div className="space-y-5 bg-overlay-subtle px-5 pt-2 pb-5 sm:px-6">
             <Facts
               items={[
-                entry.qsRankings.length > 0 ? { label: "QS ranking", value: entry.qsRankings.join(" · ") } : null,
+                entry.qsRankings.length > 0 ? { label: "QS 2027", value: entry.qsRankings.join(" · ") } : null,
                 entry.theRankings.length > 0 ? { label: "THE ranking", value: entry.theRankings.join(" · ") } : null,
                 entry.faculties.length > 0 ? { label: "Faculty", value: entry.faculties.join(" · ") } : null,
                 entry.departments.length > 0 ? { label: "Department", value: entry.departments.join(" · ") } : null,

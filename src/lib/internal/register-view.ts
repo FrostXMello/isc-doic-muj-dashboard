@@ -2,6 +2,7 @@ import type { AgreementDetails, RegisterAccess, RegisterRow } from "@/lib/intern
 import { expiryConflict, type ExpirySummary, summarizeExpiry } from "@/lib/internal/expiry";
 import { agreementTypeLabel } from "@/lib/internal/status";
 import type { AgreementView, InstitutionContact, InstitutionView } from "@/lib/internal/types";
+import { qs2027ForInstitution } from "@/lib/official/qs-rankings-2027";
 import { displayCell, displayHeaders, meaningful, personKey, sheetLabels } from "@/lib/internal/workbook/source";
 
 /**
@@ -53,6 +54,7 @@ export type UniversityEntry = {
   universityRows: RegisterRow[];
   /** Contacts not tied to one agreement and not a DoIC officer. */
   universityContacts: ContactView[];
+  /** QS World University Rankings 2027 only (published 18 June 2026; empty when the partner is not in that table). */
   qsRankings: string[];
   theRankings: string[];
   faculties: string[];
@@ -184,6 +186,7 @@ export function buildUniversityEntry(
   );
   const universityRows = rows.filter((row) => !row.agreementId || !agreementIds.has(row.agreementId));
   const allDetails = entries.map((entry) => entry.details);
+  const qs2027 = qs2027ForInstitution(institution.id);
 
   const entry: UniversityEntry = {
     agreements: entries,
@@ -191,7 +194,8 @@ export function buildUniversityEntry(
     earlierOfficers: mergeOfficers(earlierContacts),
     universityRows,
     universityContacts,
-    qsRankings: distinct(allDetails.map((details) => details?.qsRanking)),
+    // List and filters use QS World University Rankings 2027 (published 18 June 2026) only — not workbook-era values.
+    qsRankings: qs2027 ? [qs2027.rank] : [],
     theRankings: distinct(allDetails.map((details) => details?.theRanking)),
     faculties: distinct(allDetails.map((details) => details?.faculty)),
     departments: distinct(allDetails.map((details) => details?.department)),
@@ -216,6 +220,9 @@ export function buildUniversityEntry(
     institution.country,
     institution.region,
     institution.city,
+    qs2027?.rank,
+    qs2027?.qsName,
+    "qs 2027",
     ...officerText(entry.officers ?? []),
     ...officerText(entry.earlierOfficers),
     ...universityContacts.flatMap((contact) => [contact.name, contact.phone, contact.email, contact.note, contact.roleLabel]),
