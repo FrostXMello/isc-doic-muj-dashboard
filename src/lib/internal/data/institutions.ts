@@ -14,7 +14,7 @@ import {
   qsRankSortKey,
   qsRankingBands,
   type QsRankingBand,
-} from "@/lib/official/qs-rankings-2026";
+} from "@/lib/official/qs-rankings-2027";
 
 export const agreementCoverage = ["with", "without"] as const;
 export type AgreementCoverage = (typeof agreementCoverage)[number];
@@ -31,7 +31,7 @@ export type InstitutionFilters = {
   /** Has at least one agreement of this type. */
   agreementType?: AgreementType;
   coverage?: AgreementCoverage;
-  /** QS World University Rankings 2026 band. */
+  /** QS World University Rankings 2027 band (edition published 18 June 2026). */
   qs?: QsRankingBand;
 };
 

@@ -37,7 +37,7 @@ import {
   type SearchParamsRecord,
 } from "@/lib/internal/query";
 import { agreementStatusMeta, agreementTypeLabel, optionsFrom } from "@/lib/internal/status";
-import { qsRankingBandLabel } from "@/lib/official/qs-rankings-2026";
+import { qsRankingBandLabel } from "@/lib/official/qs-rankings-2027";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "MoUs" };
@@ -201,8 +201,8 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
         MoU register (0_MoU details.xlsx). They are internal and shown only to DoIC roles reading
         the access-controlled database
         {mode.source === "supabase" ? "" : "; this deployment reads the static dataset, so they show as Restricted"}.
-        The QS column is the published QS World University Rankings 2026 only; partners not in that
-        table show as not ranked. Values written as &ldquo;NA&rdquo; or similar are shown as recorded;
+        The QS column is QS World University Rankings 2027, published on 18 June 2026; partners not
+        in that table show as not ranked. Values written as &ldquo;NA&rdquo; or similar are shown as recorded;
         formula output is never shown.
         {mode.sampleData ? (
           <>
@@ -244,8 +244,8 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
           },
           {
             name: "qs",
-            label: "QS 2026",
-            allLabel: "Any QS 2026 rank",
+            label: "QS 2027",
+            allLabel: "Any QS 2027 rank",
             options: qsRankingBands.map((value) => ({ value, label: qsRankingBandLabel[value] })),
           },
           {
@@ -264,7 +264,7 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
             options: [
               { value: "name", label: "Name" },
               { value: "country", label: "Country" },
-              { value: "qs", label: "QS 2026 (best first)" },
+              { value: "qs", label: "QS 2027 (best first)" },
               { value: "expiry", label: "Soonest expiry" },
             ],
           },
@@ -290,7 +290,7 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
               )}
             >
               <span>University</span>
-              <span>QS 2026</span>
+              <span>QS 2027</span>
               <span>DoIC nodal officer</span>
               <span>Department</span>
               <span>Scope</span>
@@ -371,7 +371,7 @@ function UniversityEntryRow({ row }: { row: UniversityRow }) {
           {qsRankings.length > 0 ? (
             <span className="text-foreground">{qsRankings.join(" · ")}</span>
           ) : (
-            <span className="text-fg-faint">Not in QS 2026</span>
+            <span className="text-fg-faint">Not in QS 2027</span>
           )}
         </div>
         <div className="min-w-0 text-[13px] [overflow-wrap:anywhere]">
@@ -402,7 +402,7 @@ function UniversityEntryRow({ row }: { row: UniversityRow }) {
           <div className="space-y-5 bg-overlay-subtle px-5 pt-2 pb-5 sm:px-6">
             <Facts
               items={[
-                entry.qsRankings.length > 0 ? { label: "QS 2026", value: entry.qsRankings.join(" · ") } : null,
+                entry.qsRankings.length > 0 ? { label: "QS 2027", value: entry.qsRankings.join(" · ") } : null,
                 entry.theRankings.length > 0 ? { label: "THE ranking", value: entry.theRankings.join(" · ") } : null,
                 entry.faculties.length > 0 ? { label: "Faculty", value: entry.faculties.join(" · ") } : null,
                 entry.departments.length > 0 ? { label: "Department", value: entry.departments.join(" · ") } : null,

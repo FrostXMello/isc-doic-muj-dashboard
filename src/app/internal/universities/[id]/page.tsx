@@ -178,7 +178,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
               <RegisterNotice register={register} />
               <Facts
                 items={[
-                  entry.qsRankings.length > 0 ? { label: "QS 2026", value: entry.qsRankings.join(" · ") } : null,
+                  entry.qsRankings.length > 0 ? { label: "QS 2027", value: entry.qsRankings.join(" · ") } : null,
                   entry.theRankings.length > 0 ? { label: "THE ranking", value: entry.theRankings.join(" · ") } : null,
                   entry.faculties.length > 0 ? { label: "Faculty", value: entry.faculties.join(" · ") } : null,
                   entry.departments.length > 0 ? { label: "Department", value: entry.departments.join(" · ") } : null,
