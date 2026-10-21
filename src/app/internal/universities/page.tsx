@@ -231,16 +231,22 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
             options: options.countries.map((value) => ({ value, label: value })),
           },
           {
+            name: "mouStatus",
+            label: "MoU status",
+            allLabel: "Any MoU status",
+            options: optionsFrom(agreementStatuses, agreementStatusMeta),
+          },
+          {
             name: "mouType",
             label: "MoU type",
             allLabel: "Any MoU type",
             options: optionsFrom(agreementTypes, agreementTypeLabel),
           },
           {
-            name: "mouStatus",
-            label: "MoU status",
-            allLabel: "Any MoU status",
-            options: optionsFrom(agreementStatuses, agreementStatusMeta),
+            name: "qs",
+            label: "QS 2026",
+            allLabel: "Any QS 2026 rank",
+            options: qsRankingBands.map((value) => ({ value, label: qsRankingBandLabel[value] })),
           },
           {
             name: "coverage",
@@ -250,12 +256,6 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
               { value: "with", label: "With MoUs" },
               { value: "without", label: "No MoU recorded" },
             ],
-          },
-          {
-            name: "qs",
-            label: "QS 2026",
-            allLabel: "Any QS 2026 rank",
-            options: qsRankingBands.map((value) => ({ value, label: qsRankingBandLabel[value] })),
           },
           {
             name: "sort",

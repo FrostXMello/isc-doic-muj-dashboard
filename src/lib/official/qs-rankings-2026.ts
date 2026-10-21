@@ -69,6 +69,21 @@ export const qsRankings2026ByInstitutionId: Readonly<Record<string, Qs2026Entry>
   "ofc-university-of-tyumen": { rank: "1201-1400", qsName: "University of Tyumen" },
   "ofc-university-of-western-australia": { rank: "77", qsName: "The University of Western Australia" },
   "ofc-west-university-of-timisoara": { rank: "1201-1400", qsName: "West University of Timisoara" },
+  // Earlier directory names (not on the official partner page) when they are the same institution QS ranked in 2026.
+  // Branch campuses and ambiguous systems are omitted: Curtin Malaysia, Wollongong in Dubai, Middlesex University Dubai, University of Massachusetts.
+  "dir-boston-university": { rank: "88", qsName: "Boston University" },
+  "dir-lancaster-university": { rank: "157", qsName: "Lancaster University" },
+  "dir-lmu-munich": { rank: "58", qsName: "Ludwig-Maximilians-Universität München" },
+  "dir-macquarie-university": { rank: "138", qsName: "Macquarie University" },
+  "dir-national-university-of-singapore": { rank: "8", qsName: "National University of Singapore (NUS)" },
+  "dir-sciences-po": { rank: "367", qsName: "Sciences Po Paris" },
+  "dir-singapore-management-university": { rank: "511", qsName: "Singapore Management University" },
+  "dir-technical-university-of-munich": { rank: "22", qsName: "Technical University of Munich" },
+  "dir-university-of-amsterdam": { rank: "53", qsName: "The University of Amsterdam" },
+  "dir-university-of-birmingham": { rank: "76", qsName: "University of Birmingham" },
+  "dir-university-of-toronto": { rank: "29", qsName: "University of Toronto" },
+  "dir-waseda-university": { rank: "196", qsName: "Waseda University" },
+  "dir-yonsei-university": { rank: "50", qsName: "Yonsei University" },
 };
 
 export function qs2026ForInstitution(institutionId: string): Qs2026Entry | null {
@@ -88,14 +103,8 @@ export function qsRankSortKey(rank: string | null | undefined): number {
   return Number.POSITIVE_INFINITY;
 }
 
-export const qsRankingBands = [
-  "top-100",
-  "101-500",
-  "501-1000",
-  "1001-plus",
-  "ranked",
-  "unranked",
-] as const;
+/** Non-overlapping bands. "Any QS 2026 rank" is the unfiltered default, so a separate "ranked" option is not offered. */
+export const qsRankingBands = ["top-100", "101-500", "501-1000", "1001-plus", "unranked"] as const;
 export type QsRankingBand = (typeof qsRankingBands)[number];
 
 export const qsRankingBandLabel: Record<QsRankingBand, string> = {
@@ -103,11 +112,10 @@ export const qsRankingBandLabel: Record<QsRankingBand, string> = {
   "101-500": "101–500",
   "501-1000": "501–1000",
   "1001-plus": "1001+",
-  ranked: "Ranked in QS 2026",
   unranked: "Not in QS 2026",
 };
 
-export function qsRankingBand(rank: string | null | undefined): Exclude<QsRankingBand, "ranked" | "unranked"> | null {
+export function qsRankingBand(rank: string | null | undefined): Exclude<QsRankingBand, "unranked"> | null {
   const key = qsRankSortKey(rank);
   if (!Number.isFinite(key)) return null;
   if (key <= 100) return "top-100";
@@ -117,9 +125,7 @@ export function qsRankingBand(rank: string | null | undefined): Exclude<QsRankin
 }
 
 export function matchesQsRankingBand(rank: string | null | undefined, band: QsRankingBand): boolean {
-  const has = Boolean(rank && Number.isFinite(qsRankSortKey(rank)));
-  if (band === "ranked") return has;
-  if (band === "unranked") return !has;
+  if (band === "unranked") return qsRankingBand(rank) === null;
   return qsRankingBand(rank) === band;
 }
 
