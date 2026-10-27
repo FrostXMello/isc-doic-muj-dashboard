@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import type { Dataset } from "@/lib/internal/data/dataset";
 import { createViews } from "@/lib/internal/data/views";
-import { eventInsights, eventsInsights, universityInsights } from "@/lib/internal/insights";
+import { eventInsights, universityInsights } from "@/lib/internal/insights";
 import { buildUniversityEntry } from "@/lib/internal/register-view";
 import type { Activity, Agreement, Institution } from "@/lib/internal/types";
 
@@ -117,18 +117,7 @@ describe("university insights", () => {
   });
 });
 
-describe("flagship events insights", () => {
-  const tabs = eventsInsights(activityViews, today);
-
-  it("counts events by year, type, and partner", () => {
-    assert.deepEqual(tabs.find((tab) => tab.id === "years")?.counts, [
-      { label: "2026", count: 4 },
-      { label: "2025", count: 1 },
-    ]);
-    assert.equal(tabs.find((tab) => tab.id === "types")?.counts?.[0]?.label, "Event");
-    assert.equal(tabs.find((tab) => tab.id === "partners")?.counts?.[0]?.href, "/internal/universities/uni-a");
-  });
-
+describe("flagship event insights", () => {
   it("puts one event in context with its university and country", () => {
     const event = activityViews.find((row) => row.id === "event-2026");
     assert.ok(event);

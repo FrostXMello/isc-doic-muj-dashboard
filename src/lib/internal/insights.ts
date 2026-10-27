@@ -1,4 +1,4 @@
-import type { InsightCount, InsightItem, InsightTab } from "@/components/internal/insights-card";
+import type { InsightItem, InsightTab } from "@/components/internal/insights-card";
 import { formatDate, formatDateRange, formatRelativeDays } from "@/lib/internal/dates";
 import { agreementHref } from "@/lib/internal/links";
 import type { UniversityEntry } from "@/lib/internal/register-view";
@@ -6,7 +6,7 @@ import { activityStatusMeta, activityTypeLabel, agreementStatusMeta, partnership
 import type { ActivityView, AgreementView, InstitutionView, ProgramAvailabilityView } from "@/lib/internal/types";
 
 /**
- * Insights cards for a university, the Flagship Events page, and one event.
+ * Insights cards for a university and for one flagship event.
  * Pure: counts and dates of recorded rows only, nothing estimated.
  */
 
@@ -26,15 +26,6 @@ const eventItem = (row: ActivityView, place = true): InsightItem => ({
 
 const latestFirst = (a: ActivityView, b: ActivityView) => b.startDate.localeCompare(a.startDate);
 const happened = (row: ActivityView) => row.daysFromToday <= 0 && row.status !== "cancelled";
-
-function countBy<T>(rows: readonly T[], key: (row: T) => string | null): Map<string, number> {
-  const counts = new Map<string, number>();
-  for (const row of rows) {
-    const value = key(row);
-    if (value) counts.set(value, (counts.get(value) ?? 0) + 1);
-  }
-  return counts;
-}
 
 export function universityInsights({
   institution,
@@ -141,51 +132,6 @@ export function universityInsights({
     });
   }
   return tabs;
-}
-
-export function eventsInsights(activities: readonly ActivityView[], today: string): InsightTab[] {
-  const thisYear = today.slice(0, 4);
-  const sorted = [...activities].sort(latestFirst);
-  const top = (counts: Map<string, number>, limit: number) =>
-    [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, limit);
-
-  const byYear: InsightCount[] = [...countBy(activities, (row) => row.startDate.slice(0, 4))]
-    .sort((a, b) => b[0].localeCompare(a[0]))
-    .map(([label, count]) => ({ label, count }));
-  const byType: InsightCount[] = top(countBy(activities, (row) => row.type), 10).map(([type, count]) => ({
-    label: activityTypeLabel[type as ActivityView["type"]],
-    count,
-    href: `/internal/activities?type=${type}`,
-  }));
-  const names = new Map(activities.flatMap((row) => (row.institution ? [[row.institution.id, row.institution.name] as const] : [])));
-  const byPartner: InsightCount[] = top(countBy(activities, (row) => row.institution?.id ?? null), 6).map(([id, count]) => ({
-    label: names.get(id) ?? id,
-    count,
-    href: `/internal/universities/${id}`,
-  }));
-  const byCountry = countBy(activities, (row) => row.country);
-
-  return [
-    {
-      id: "highlights",
-      label: "Highlights",
-      stats: [
-        { label: "Events", value: String(activities.length), href: "/internal/activities" },
-        { label: `In ${thisYear}`, value: String(activities.filter((row) => row.startDate.startsWith(thisYear)).length) },
-        {
-          label: "Upcoming",
-          value: String(activities.filter((row) => row.daysFromToday > 0 && row.status !== "cancelled").length),
-          href: "/internal/activities?when=upcoming",
-        },
-        { label: "Countries", value: String(byCountry.size) },
-      ],
-      highlights: sorted.filter(happened).slice(0, 8).map((row) => ({ ...eventItem(row), badge: activityTypeLabel[row.type] })),
-      empty: "No flagship events recorded yet.",
-    },
-    { id: "years", label: "By year", counts: byYear },
-    { id: "types", label: "By type", counts: byType },
-    ...(byPartner.length > 0 ? [{ id: "partners", label: "Partners", counts: byPartner }] : []),
-  ];
 }
 
 export function eventInsights(activity: ActivityView, all: readonly ActivityView[]): InsightTab[] {
