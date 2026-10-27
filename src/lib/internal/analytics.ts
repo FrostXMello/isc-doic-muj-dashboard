@@ -9,7 +9,8 @@
  * - Activities: completed = stored as completed; upcoming = planned or
  *   confirmed with a start date today or later; overdue = planned or confirmed
  *   whose last day has passed (`needs-update`); cancelled is counted only in
- *   the total.
+ *   the total. recent = the latest that started today or earlier, not
+ *   cancelled (the highlights card).
  * - Universities, MoUs, programmes, opportunities, documents: records, each
  *   counted once (a multi-party MoU is one MoU).
  * - MoU completeness: how many MoUs have a status, an end date, and an
@@ -59,6 +60,9 @@ const recordedMouStatuses = (Object.keys(agreementStatusMeta) as AgreementStatus
   (status) => status !== "not-stated",
 );
 
+/** Activities shown in the dashboard's highlights card. */
+const RECENT_SIZE = 6;
+
 export function computeDashboard(input: DashboardInput) {
   const { activities, agreements, institutions, opportunities, documents } = input;
 
@@ -71,6 +75,10 @@ export function computeDashboard(input: DashboardInput) {
   const completed = activities
     .filter((row) => row.status === "completed")
     .sort((a, b) => b.startDate.localeCompare(a.startDate));
+  const recent = activities
+    .filter((row) => row.daysFromToday <= 0 && row.status !== "cancelled")
+    .sort((a, b) => b.startDate.localeCompare(a.startDate))
+    .slice(0, RECENT_SIZE);
 
   const byStatus = recordedMouStatuses
     .map((status) => ({ status, count: agreements.filter((row) => row.status === status).length }))
@@ -111,6 +119,7 @@ export function computeDashboard(input: DashboardInput) {
     },
     activities: {
       total: activities.length,
+      recent,
       completed,
       upcoming,
       overdue,

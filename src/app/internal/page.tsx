@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import { ActivityHighlights } from "@/components/internal/activity-highlights";
 import { ActivityStatusBadge } from "@/components/internal/badges";
 import { DataNotice } from "@/components/internal/ui/source-badge";
 import { toneStyles } from "@/components/internal/ui/status-badge";
@@ -8,7 +9,7 @@ import { computeDashboard, type DashboardData } from "@/lib/internal/analytics";
 import { getDataMode } from "@/lib/internal/data/context";
 import { getDashboardInput } from "@/lib/internal/data/dashboard";
 import { formatDate, formatRelativeDays } from "@/lib/internal/dates";
-import { agreementStatusMeta } from "@/lib/internal/status";
+import { activityTypeLabel, agreementStatusMeta } from "@/lib/internal/status";
 import type { ActivityView } from "@/lib/internal/types";
 import { cn } from "@/lib/utils";
 
@@ -78,10 +79,10 @@ function NetworkMotif() {
   );
 }
 
-function Snapshot({ totals, today }: Pick<DashboardData, "totals" | "today">) {
+function Snapshot({ totals, today, activities }: Pick<DashboardData, "totals" | "today" | "activities">) {
   const metrics = [
     { label: "Universities connected", value: totals.universities, href: "/internal/universities" },
-    { label: "Recorded MoUs", value: totals.mous, href: "/internal/universities" },
+    { label: "Activities", value: activities.total, href: "/internal/activities" },
     { label: "Programmes", value: totals.programmes, href: "/internal/programs" },
     { label: "Documents", value: totals.documents, href: "/internal/documents" },
   ];
@@ -138,6 +139,20 @@ function Snapshot({ totals, today }: Pick<DashboardData, "totals" | "today">) {
             </Link>
           </li>
         ))}
+        <li
+          className="dash-rise col-span-2 border-t border-(--hero-line) pt-4 pb-1 sm:col-span-2 lg:col-span-1 lg:border-t-0 lg:border-l lg:pt-0 lg:pb-0 lg:pl-6"
+          style={{ animationDelay: `${metrics.length * 70}ms` }}
+        >
+          <ActivityHighlights
+            items={activities.recent.map((activity) => ({
+              id: activity.id,
+              title: activity.title,
+              kind: activityTypeLabel[activity.type],
+              when: formatDate(activity.startDate),
+              place: activity.institution?.name ?? [activity.city, activity.country].filter(Boolean).join(", "),
+            }))}
+          />
+        </li>
       </ul>
     </section>
   );
@@ -535,7 +550,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-12 pb-6 sm:space-y-14">
-      <Snapshot totals={totals} today={today} />
+      <Snapshot totals={totals} today={today} activities={activities} />
 
       {mode.sampleData ? (
         <DataNotice>Fictional sample records are included because INTERNAL_SAMPLE_DATA is on.</DataNotice>

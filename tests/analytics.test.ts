@@ -109,6 +109,11 @@ describe("dashboard activities", () => {
     assert.deepEqual(activities.completed.map((row) => row.id), ["done"]);
   });
 
+  it("highlights activities that have happened, latest first, without cancelled or future ones", () => {
+    const { activities } = dashboard();
+    assert.deepEqual(activities.recent.map((row) => row.id), ["overdue-new", "overdue-old", "done"]);
+  });
+
   it("handles no activities", () => {
     const { activities } = dashboard({ activities: [] });
     assert.deepEqual(
