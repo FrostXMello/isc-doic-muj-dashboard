@@ -84,10 +84,10 @@ export function computeDashboard(input: DashboardInput) {
       href: "/internal/universities?source=directory",
     },
     {
-      key: "no-mou",
-      label: "Universities with no MoU",
-      count: institutions.filter((row) => row.agreementCount === 0).length,
-      href: "/internal/universities?coverage=without",
+      key: "undated-mou",
+      label: "MoUs with no expiry recorded",
+      count: agreements.filter((row) => row.status === "not-stated").length,
+      href: "/internal/universities?expiry=undated",
     },
     {
       key: "unlinked",

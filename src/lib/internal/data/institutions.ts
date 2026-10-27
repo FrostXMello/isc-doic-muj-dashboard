@@ -16,8 +16,32 @@ import {
   type QsRankingBand,
 } from "@/lib/official/qs-rankings-2027";
 
-export const agreementCoverage = ["with", "without"] as const;
-export type AgreementCoverage = (typeof agreementCoverage)[number];
+/** Expiry windows; a university matches when any of its MoUs falls in the window. */
+export const expiryWindows = ["in-force", "within-90", "within-365", "ended", "open-ended", "undated"] as const;
+export type ExpiryWindow = (typeof expiryWindows)[number];
+
+const inForce = (agreement: AgreementView) => agreement.status === "active" || agreement.status === "expiring-soon";
+
+export function inExpiryWindow(agreement: AgreementView, window: ExpiryWindow) {
+  switch (window) {
+    case "in-force":
+      return inForce(agreement);
+    case "within-90":
+      return agreement.status === "expiring-soon";
+    case "within-365":
+      return inForce(agreement) && agreement.daysToExpiry !== null && agreement.daysToExpiry <= 365;
+    case "ended":
+      return agreement.status === "expired";
+    case "open-ended":
+      return agreement.status === "active" && agreement.endDate === null;
+    case "undated":
+      return agreement.status === "not-stated";
+  }
+}
+
+/** Faculty cells such as "FoA/FoSTA" name several faculties. */
+export const splitFaculties = (values: readonly string[]) =>
+  values.flatMap((value) => value.split("/").map((part) => part.trim())).filter(Boolean);
 
 export { qsRankingBands };
 export type { QsRankingBand };
@@ -30,7 +54,9 @@ export type InstitutionFilters = {
   agreementStatus?: AgreementStatus;
   /** Has at least one agreement of this type. */
   agreementType?: AgreementType;
-  coverage?: AgreementCoverage;
+  expiry?: ExpiryWindow;
+  faculty?: string;
+  department?: string;
   /** QS World University Rankings 2027 band (edition published 18 June 2026). */
   qs?: QsRankingBand;
 };
@@ -65,6 +91,7 @@ export async function listInstitutions(
   sort: UniversitySort = "name",
 ): Promise<UniversityRow[]> {
   const [{ today, data, views, contactAccess }, register] = await Promise.all([openDataContext(), loadRegister()]);
+  const { expiry } = filters;
   const rows = data.institutions
     .map((institution) => {
       const view = views.toInstitutionView(institution, today);
@@ -73,6 +100,7 @@ export async function listInstitutions(
     })
     .filter(
       (row) =>
+        row.agreements.length > 0 &&
         matchesEntry(row.entry, filters.q) &&
         (!filters.region || row.region === filters.region) &&
         (!filters.country || row.country === filters.country) &&
@@ -80,8 +108,9 @@ export async function listInstitutions(
           row.agreements.some((agreement) => agreement.status === filters.agreementStatus)) &&
         (!filters.agreementType ||
           row.agreements.some((agreement) => agreement.type === filters.agreementType)) &&
-        (!filters.coverage ||
-          (filters.coverage === "with" ? row.agreements.length > 0 : row.agreements.length === 0)) &&
+        (!expiry || row.agreements.some((agreement) => inExpiryWindow(agreement, expiry))) &&
+        (!filters.faculty || splitFaculties(row.entry.faculties).includes(filters.faculty)) &&
+        (!filters.department || row.entry.departments.includes(filters.department)) &&
         (!filters.qs || matchesQsRankingBand(row.entry.qsRankings[0] ?? null, filters.qs)),
     );
   return sortRows(rows, sort);

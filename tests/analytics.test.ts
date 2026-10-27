@@ -150,9 +150,13 @@ describe("dashboard totals, MoU records, and regions", () => {
   });
 
   it("flags only record gaps that exist, each with a link", () => {
-    const { attention } = dashboard({ institutions: [institution("uni-a"), institution("uni-b"), institution("lonely")] });
-    assert.deepEqual(attention.map((row) => [row.key, row.count]), [["no-mou", 1]]);
-    assert.equal(attention[0].href, "/internal/universities?coverage=without");
+    const { attention } = dashboard();
+    assert.deepEqual(attention.map((row) => [row.key, row.count]), [["undated-mou", 2]]);
+    assert.equal(attention[0].href, "/internal/universities?expiry=undated");
+    const dated = dashboard({
+      agreements: [agreement("live", { recordStatus: "signed", startDate: "2024-01-01", endDate: "2028-01-01" })],
+    });
+    assert.deepEqual(dated.attention, []);
   });
 
   it("groups universities by region and country without double counting", () => {

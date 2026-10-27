@@ -6,8 +6,9 @@ import type { AgreementStatus } from "@/lib/internal/types";
  * The expiry shown for a university in the list.
  *
  * Rules:
- *  - Only an end date stored on the agreement is used. An expiry is never
- *    worked out from a signing date plus a period.
+ *  - Only an end date stored on the agreement is used. The register import
+ *    may calculate one from signing date plus period; the agreement's
+ *    details then say so.
  *  - The nearest end date among agreements in force (active or expiring
  *    soon) wins; "expiring soon" means within EXPIRY_WARNING_DAYS, today
  *    included.

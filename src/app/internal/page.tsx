@@ -81,7 +81,7 @@ function NetworkMotif() {
 function Snapshot({ totals, today }: Pick<DashboardData, "totals" | "today">) {
   const metrics = [
     { label: "Universities connected", value: totals.universities, href: "/internal/universities" },
-    { label: "Recorded MoUs", value: totals.mous, href: "/internal/universities?coverage=with" },
+    { label: "Recorded MoUs", value: totals.mous, href: "/internal/universities" },
     { label: "Programmes", value: totals.programmes, href: "/internal/programs" },
     { label: "Documents", value: totals.documents, href: "/internal/documents" },
   ];

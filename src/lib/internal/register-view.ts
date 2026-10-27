@@ -81,6 +81,15 @@ function distinct(values: (string | null | undefined)[]) {
   return [...seen.values()];
 }
 
+/** Spelling variants in the register's Department column, so each department is one filter option. */
+const departmentSpellings: Record<string, string> = {
+  "hotel managment": "Hotel Management",
+  "chemical engg": "Chemical",
+};
+
+const department = (value: string | null | undefined) =>
+  value ? (departmentSpellings[value.trim().toLowerCase()] ?? value) : value;
+
 /** Merges contacts for the same person (by name, else by phone or email). */
 export function mergeOfficers(contacts: readonly ContactView[]): OfficerView[] {
   const people = new Map<string, OfficerView>();
@@ -198,7 +207,7 @@ export function buildUniversityEntry(
     qsRankings: qs2027 ? [qs2027.rank] : [],
     theRankings: distinct(allDetails.map((details) => details?.theRanking)),
     faculties: distinct(allDetails.map((details) => details?.faculty)),
-    departments: distinct(allDetails.map((details) => details?.department)),
+    departments: distinct(allDetails.map((details) => department(details?.department))),
     scopes: distinct(allDetails.map((details) => meaningful(details?.opportunities ?? null))),
     programmes: distinct(allDetails.map((details) => meaningful(details?.programmeReference ?? null))),
     expiry: summarizeExpiry(

@@ -96,7 +96,7 @@ describe("QS World University Rankings 2027 (published 18 June 2026)", () => {
     const bar = page.slice(page.indexOf("selects={["), page.indexOf("/>", page.indexOf("selects={[")));
     assert.deepEqual(
       [...bar.matchAll(/name: "([^"]+)"/g)].map((match) => match[1]),
-      ["country", "mouStatus", "mouType", "qs", "coverage", "sort"],
+      ["country", "faculty", "department", "expiry", "mouType", "qs", "sort"],
     );
     assert.equal(bar.includes('name: "region"'), false);
     assert.equal(bar.includes('name: "source"'), false);

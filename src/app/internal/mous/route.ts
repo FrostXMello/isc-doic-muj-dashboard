@@ -10,6 +10,5 @@ export function GET(request: NextRequest) {
     const value = params.get(from)?.trim();
     if (value) next.set(to, value);
   }
-  if (!next.has("mouStatus") && !next.has("mouType") && !next.has("qs")) next.set("coverage", "with");
   redirect(`/internal/universities?${next.toString()}`);
 }

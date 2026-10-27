@@ -22,13 +22,17 @@ import { DataNotice } from "@/components/internal/ui/source-badge";
 import { agreementStatuses, agreementTypes } from "@/lib/internal/data/agreements";
 import { getDataMode } from "@/lib/internal/data/context";
 import {
-  agreementCoverage,
+  type ExpiryWindow,
+  expiryWindows,
   getInstitutionFilterOptions,
   listInstitutions,
   qsRankingBands,
+  splitFaculties,
   type UniversityRow,
   universitySorts,
 } from "@/lib/internal/data/institutions";
+import { uniqueSorted } from "@/lib/internal/data/context";
+import { todayISO } from "@/lib/internal/dates";
 import { loadRegister } from "@/lib/internal/data/register";
 import {
   readEnumParam,
@@ -36,7 +40,7 @@ import {
   type SearchParamsProp,
   type SearchParamsRecord,
 } from "@/lib/internal/query";
-import { agreementStatusMeta, agreementTypeLabel, optionsFrom } from "@/lib/internal/status";
+import { agreementTypeLabel, optionsFrom } from "@/lib/internal/status";
 import { qsRankingBandLabel } from "@/lib/official/qs-rankings-2027";
 import { cn } from "@/lib/utils";
 
@@ -129,21 +133,33 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
   const [options, mode, register] = await Promise.all([getInstitutionFilterOptions(), getDataMode(), loadRegister()]);
   const sort = readEnumParam(params, "sort", universitySorts) ?? "name";
 
-  const [rows, all] = await Promise.all([
-    listInstitutions(
-      {
-        q: readParam(params, "q"),
-        region: readEnumParam(params, "region", options.regions),
-        country: readEnumParam(params, "country", options.countries),
-        coverage: readEnumParam(params, "coverage", agreementCoverage),
-        agreementStatus: readEnumParam(params, "mouStatus", agreementStatuses),
-        agreementType: readEnumParam(params, "mouType", agreementTypes),
-        qs: readEnumParam(params, "qs", qsRankingBands),
-      },
-      sort,
-    ),
-    listInstitutions(),
-  ]);
+  const all = await listInstitutions();
+  const faculties = uniqueSorted(all.flatMap((row) => splitFaculties(row.entry.faculties)));
+  const departments = uniqueSorted(all.flatMap((row) => row.entry.departments));
+  const rows = await listInstitutions(
+    {
+      q: readParam(params, "q"),
+      region: readEnumParam(params, "region", options.regions),
+      country: readEnumParam(params, "country", options.countries),
+      // Older dashboard links filter by derived MoU status; the bar offers expiry windows instead.
+      agreementStatus: readEnumParam(params, "mouStatus", agreementStatuses),
+      agreementType: readEnumParam(params, "mouType", agreementTypes),
+      expiry: readEnumParam(params, "expiry", expiryWindows),
+      faculty: readEnumParam(params, "faculty", faculties),
+      department: readEnumParam(params, "department", departments),
+      qs: readEnumParam(params, "qs", qsRankingBands),
+    },
+    sort,
+  );
+  const year = todayISO().slice(0, 4);
+  const expiryLabels: Record<ExpiryWindow, string> = {
+    "in-force": "In force",
+    "within-90": "Expiring within 90 days",
+    "within-365": "Expiring within 12 months",
+    ended: `Ended in ${year}`,
+    "open-ended": "Perpetual / until cancelled",
+    undated: "Expiry not recorded",
+  };
 
   const deleted = readParam(params, "notice") === "university-deleted";
   const activeRegion = readEnumParam(params, "region", options.regions);
@@ -231,31 +247,37 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
             options: options.countries.map((value) => ({ value, label: value })),
           },
           {
-            name: "mouStatus",
-            label: "MoU status",
-            allLabel: "Any MoU status",
-            options: optionsFrom(agreementStatuses, agreementStatusMeta),
+            name: "faculty",
+            label: "Faculty",
+            allLabel: "All faculties",
+            options: faculties.map((value) => ({ value, label: value })),
+          },
+          {
+            name: "department",
+            label: "Department",
+            allLabel: "All departments",
+            options: departments.map((value) => ({ value, label: value })),
+          },
+          {
+            name: "expiry",
+            label: "Expiry",
+            allLabel: "Any expiry",
+            options: expiryWindows.map((value) => ({ value, label: expiryLabels[value] })),
           },
           {
             name: "mouType",
             label: "MoU type",
             allLabel: "Any MoU type",
-            options: optionsFrom(agreementTypes, agreementTypeLabel),
+            options: optionsFrom(
+              agreementTypes.filter((type) => all.some((row) => row.agreements.some((a) => a.type === type))),
+              agreementTypeLabel,
+            ),
           },
           {
             name: "qs",
             label: "QS 2027",
             allLabel: "Any QS 2027 rank",
             options: qsRankingBands.map((value) => ({ value, label: qsRankingBandLabel[value] })),
-          },
-          {
-            name: "coverage",
-            label: "MoUs",
-            allLabel: "With or without MoUs",
-            options: [
-              { value: "with", label: "With MoUs" },
-              { value: "without", label: "No MoU recorded" },
-            ],
           },
           {
             name: "sort",
