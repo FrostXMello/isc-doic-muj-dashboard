@@ -335,8 +335,12 @@ export type DisplayCell =
   | { kind: "placeholder"; text: string }
   | { kind: "withheld" };
 
+/** Workbook QS columns predate QS World University Rankings 2027; the portal shows only the 2027 rank. */
+export const supersededColumns: ReadonlySet<string> = new Set([mouList.qs, "QS Ranking Sunita"]);
+
 /** How a source cell is shown (rules 1–3). Null: not recorded. */
 export function displayCell(header: string, values: SourceValues, formulas: Record<string, string>): DisplayCell | null {
+  if (supersededColumns.has(header)) return null;
   const value = values[header];
   if (header in formulas && !serialColumns.has(header)) return { kind: "withheld" };
   if (value === null || value === undefined) return null;
@@ -348,5 +352,7 @@ export function displayCell(header: string, values: SourceValues, formulas: Reco
 /** Headers to show for a source row: recorded, not serial, not internal keys. */
 export function displayHeaders(values: SourceValues, formulas: Record<string, string>) {
   const headers = new Set([...Object.keys(values), ...Object.keys(formulas)]);
-  return [...headers].filter((header) => !serialColumns.has(header) && !header.startsWith("_"));
+  return [...headers].filter(
+    (header) => !serialColumns.has(header) && !supersededColumns.has(header) && !header.startsWith("_"),
+  );
 }

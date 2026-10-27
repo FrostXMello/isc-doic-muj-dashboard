@@ -13,6 +13,7 @@ import {
   type UniversityEntry,
 } from "@/lib/internal/register-view";
 import { agreementTypeLabel } from "@/lib/internal/status";
+import { qs2027ForInstitution } from "@/lib/official/qs-rankings-2027";
 import {
   displayCell,
   displayHeaders,
@@ -369,7 +370,7 @@ export function AgreementRegisterFacts({ entry, showHeading = true }: { entry: A
             ? { label: "Renewal", value: agreement.renewal === "automatic" ? "Renews automatically" : "Renewed after review" }
             : null,
           fact("Recorded status", details?.recordedStatus),
-          fact("QS ranking", details?.qsRanking),
+          fact("QS 2027", qs2027ForInstitution(agreement.institutionId)?.rank ?? details?.qsRanking),
           fact("THE ranking", details?.theRanking),
           fact("Faculty", details?.faculty),
           fact("Department", details?.department),
