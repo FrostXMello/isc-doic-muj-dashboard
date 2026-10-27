@@ -16,7 +16,9 @@ import {
   getActivityFilterOptions,
   listActivities,
 } from "@/lib/internal/data/activities";
-import { formatDateRange, formatRelativeDays } from "@/lib/internal/dates";
+import { InsightsCard } from "@/components/internal/insights-card";
+import { formatDateRange, formatRelativeDays, todayISO } from "@/lib/internal/dates";
+import { eventsInsights } from "@/lib/internal/insights";
 import { readEnumParam, readParam, type SearchParamsProp } from "@/lib/internal/query";
 import { activityStatusMeta, activityTypeLabel, optionsFrom } from "@/lib/internal/status";
 import type { ActivityView } from "@/lib/internal/types";
@@ -174,6 +176,8 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
           ? " Fictional sample activities are included because INTERNAL_SAMPLE_DATA is on."
           : null}
       </DataNotice>
+
+      {all.length > 0 ? <InsightsCard title="Event insights" tabs={eventsInsights(all, todayISO())} /> : null}
 
       <FilterBar
         searchPlaceholder="Search title, institution, or place"

@@ -8,7 +8,9 @@ import { NotRecorded } from "@/components/internal/ui/page-header";
 import { ManageLink } from "@/components/internal/ui/manage-action";
 import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
-import { getActivity } from "@/lib/internal/data/activities";
+import { InsightsCard } from "@/components/internal/insights-card";
+import { getActivity, listActivities } from "@/lib/internal/data/activities";
+import { eventInsights } from "@/lib/internal/insights";
 import { formatDateRange, formatRelativeDays } from "@/lib/internal/dates";
 import type { IdParamsProp, SearchParamsProp } from "@/lib/internal/query";
 import { RecordNotice } from "@/components/internal/ui/record-notice";
@@ -38,7 +40,7 @@ function statusExplanation(activity: ActivityView) {
 
 export default async function ActivityDetailPage({ params, searchParams }: IdParamsProp & SearchParamsProp) {
   const { id } = await params;
-  const record = await getActivity(id);
+  const [record, all] = await Promise.all([getActivity(id), listActivities()]);
   if (!record) notFound();
 
   const { activity, documents } = record;
@@ -64,6 +66,8 @@ export default async function ActivityDetailPage({ params, searchParams }: IdPar
         }
       />
       <RecordNotice query={await searchParams} />
+
+      <InsightsCard tabs={eventInsights(activity, all)} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
