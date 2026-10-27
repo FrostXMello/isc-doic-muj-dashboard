@@ -71,23 +71,27 @@ describe("MoUs that ended before this year", () => {
     assert.equal(isRetiredAgreement(agreement("a", "uni-a", { endDate: "2026-03-01", recordStatus: "terminated" }), today), false);
   });
 
-  it("retires a university only when nothing current refers to it", () => {
+  it("retires a university whose MoUs all ended before this year", () => {
     const data = dataset([
       agreement("old-a", "uni-a", { endDate: "2024-06-30" }),
       agreement("old-b", "uni-b", { endDate: "2023-01-01" }),
       agreement("new-b", "uni-b", { endDate: "2026-05-01" }),
       agreement("old-c", "uni-c", { endDate: "2022-01-01" }),
+      agreement("undated-c", "uni-c", { startDate: null, endDate: null, recordStatus: "not-stated" }),
+      agreement("undated-d", "uni-d", { startDate: null, endDate: null, recordStatus: "not-stated" }),
     ], {
       documentLinks: [
         { id: "l1", documentId: "d1", institutionId: "uni-c", agreementId: null, availabilityId: null, programId: null },
         { id: "l2", documentId: "d1", institutionId: null, agreementId: "old-b", availabilityId: null, programId: null },
+        { id: "l3", documentId: "d1", institutionId: "uni-b", agreementId: null, availabilityId: null, programId: null },
       ],
     });
     const { data: current, retired } = retireStaleAgreements(data, today);
-    assert.deepEqual(current.agreements.map((a) => a.id), ["new-b"]);
-    assert.deepEqual([...retired.institutions], ["uni-a"]);
-    assert.deepEqual(current.institutions.map((i) => i.id), ["uni-b", "uni-c", "uni-d"]);
-    assert.deepEqual(current.documentLinks.map((l) => l.id), ["l1"]);
+    // An undated, unstated agreement neither keeps uni-c nor survives it; uni-d has nothing old, so it stays.
+    assert.deepEqual(current.agreements.map((a) => a.id), ["new-b", "undated-d"]);
+    assert.deepEqual([...retired.institutions].sort(), ["uni-a", "uni-c"]);
+    assert.deepEqual(current.institutions.map((i) => i.id), ["uni-b", "uni-d"]);
+    assert.deepEqual(current.documentLinks.map((l) => l.id), ["l3"]);
     assert.equal(isRetiredRow(retired, { institutionId: "uni-b", agreementId: "old-b" }), true);
     assert.equal(isRetiredRow(retired, { institutionId: "uni-a", agreementId: null }), true);
     assert.equal(isRetiredRow(retired, { institutionId: "uni-b", agreementId: "new-b" }), false);
