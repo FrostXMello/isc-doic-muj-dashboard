@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BookMarked, BookOpen, CalendarDays, ChevronDown, FileText, FolderOpen, Globe, Link2, Lock, UserRound } from "lucide-react";
+import { BookMarked, BookOpen, CalendarDays, ChevronDown, FileText, FolderOpen, Globe, Link2, UserRound } from "lucide-react";
 import { notFound } from "next/navigation";
 import { AgreementCard } from "@/components/internal/agreement-card";
 import {
@@ -12,15 +12,13 @@ import { SuccessNotice } from "@/components/internal/forms/form-fields";
 import { InsightsCard } from "@/components/internal/insights-card";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { EmptyState } from "@/components/internal/ui/empty-state";
-import { canManage, ManageLink } from "@/components/internal/ui/manage-action";
-import Link from "next/link";
+import { ManageLink } from "@/components/internal/ui/manage-action";
 import { NotRecorded } from "@/components/internal/ui/page-header";
 import { VerificationBadge } from "@/components/internal/ui/provenance";
 import { UniversityProvenance } from "@/components/internal/university-provenance";
 import {
   ContactRows,
   Facts,
-  OfficerList,
   RegisterNotice,
   UniversityRegisterRows,
 } from "@/components/internal/university-register";
@@ -76,6 +74,13 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
     offerings,
     today,
   });
+  const agreementIds = new Set(agreements.map(({ agreement }) => agreement.id));
+  const unlinkedContacts =
+    contactAccess.state === "granted"
+      ? contactAccess.contacts
+          .filter((row) => row.institutionId === institution.id && (!row.agreementId || !agreementIds.has(row.agreementId)))
+          .map((row) => ({ ...row, note: register.state === "granted" ? (register.contactNotes.get(row.id) ?? null) : null }))
+      : [];
   const summary = [
     `${institution.activeAgreementCount} of ${agreements.length} MoU${agreements.length === 1 ? "" : "s"} active`,
     entry.qsRankings[0] ? `QS ${entry.qsRankings[0]}` : null,
@@ -162,45 +167,6 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
         </div>
 
         <div className="min-w-0 space-y-6 lg:col-start-3 lg:row-start-2">
-          <DetailSection
-            id="contacts"
-            title="Nodal officers"
-            icon={contactAccess.state === "granted" ? UserRound : Lock}
-            description="Internal only; do not publish."
-            action={
-              <ManageLink
-                permission="institutions:update"
-                href={`/internal/universities/${institution.id}/contacts/new`}
-                label="Add"
-                icon="add"
-                size="sm"
-              />
-            }
-          >
-            {contactAccess.state === "restricted" ? (
-              <p className="px-6 pb-5 text-[13px] text-fg-faint">
-                {contactAccess.reason === "static-source"
-                  ? "Contacts are stored only in the access-controlled database."
-                  : "Your account does not hold an internal DoIC role."}
-              </p>
-            ) : (
-              <div className="space-y-4 px-6 pb-5 text-[13px]">
-                <div>
-                  <p className="mb-1.5 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">DoIC nodal officer</p>
-                  <OfficerList officers={entry.officers} />
-                </div>
-                {entry.earlierOfficers.length > 0 ? (
-                  <div>
-                    <p className="mb-1.5 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">Earlier nodal officer</p>
-                    <OfficerList officers={entry.earlierOfficers} />
-                  </div>
-                ) : null}
-                {entry.universityContacts.length > 0 ? <ContactRows contacts={entry.universityContacts} /> : null}
-                <ManageContacts universityId={institution.id} contacts={contactAccess.contacts.filter((row) => row.institutionId === institution.id)} />
-              </div>
-            )}
-          </DetailSection>
-
           {institution.note ? (
             <DetailSection title="Review note">
               <p className="px-6 pb-5 text-[13px] leading-relaxed text-muted-foreground">{institution.note}</p>
@@ -307,6 +273,14 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
             />
           </DetailSection>
 
+          {unlinkedContacts.length > 0 ? (
+            <DetailSection title="Other contacts" icon={UserRound} description="Not tied to a single MoU. Internal only." className="lg:col-span-2">
+              <div className="px-6 pb-5 text-[13px]">
+                <ContactRows contacts={unlinkedContacts} />
+              </div>
+            </DetailSection>
+          ) : null}
+
           <DetailSection title={`Also in ${institution.country}`} className="lg:col-span-2">
             <LinkedList
               emptyTitle="No other universities in this country"
@@ -321,43 +295,5 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
         </div>
       </details>
     </div>
-  );
-}
-
-/** Every contact with its edit link, for roles that may edit them. */
-async function ManageContacts({
-  universityId,
-  contacts,
-}: {
-  universityId: string;
-  contacts: readonly { id: string; roleLabel: string; name: string | null; agreementId: string | null }[];
-}) {
-  if (contacts.length === 0 || !(await canManage("institutions:update"))) return null;
-  return (
-    <details className="group rounded-xl border border-line">
-      <summary className="cursor-pointer list-none px-3 py-2 text-[12px] text-fg-subtle hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
-        Edit contacts ({contacts.length})
-      </summary>
-      <ul className="divide-y divide-hairline border-t border-hairline">
-        {contacts.map((contact) => (
-          <li key={contact.id} className="flex items-center justify-between gap-3 px-3 py-2">
-            <span className="min-w-0">
-              <span className="block truncate text-foreground">{contact.name ?? "Name not recorded"}</span>
-              <span className="block text-[11px] text-fg-faint">
-                {contact.roleLabel}
-                {contact.agreementId ? ` · ${contact.agreementId}` : ""}
-              </span>
-            </span>
-            <Link
-              href={`/internal/universities/${universityId}/contacts/${contact.id}/edit`}
-              className="shrink-0 text-[12px] text-muj-fg hover:text-foreground"
-              aria-label={`Edit ${contact.roleLabel} ${contact.name ?? ""}`.trim()}
-            >
-              Edit
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </details>
   );
 }

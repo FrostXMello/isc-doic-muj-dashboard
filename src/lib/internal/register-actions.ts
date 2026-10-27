@@ -136,7 +136,7 @@ export async function saveContact(_state: RecordFormState, formData: FormData): 
   if ((result.data ?? []).length === 0) return withValues(notPermitted, formData);
 
   refreshPortal();
-  redirect(`/internal/universities/${university}?notice=${editing ? "contact-updated" : "contact-created"}#contacts`);
+  redirect(`/internal/universities/${university}?notice=${editing ? "contact-updated" : "contact-created"}`);
 }
 
 export async function deleteContact(_state: RecordFormState, formData: FormData): Promise<RecordFormState> {
@@ -153,5 +153,5 @@ export async function deleteContact(_state: RecordFormState, formData: FormData)
   if (!data || data.length === 0) return notPermitted;
 
   refreshPortal();
-  redirect(`/internal/universities/${university}?notice=contact-deleted#contacts`);
+  redirect(`/internal/universities/${university}?notice=contact-deleted`);
 }

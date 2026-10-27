@@ -18,7 +18,7 @@ export default async function EditContactPage({ params }: Props) {
   const { id, contactId } = await params;
   const record = await getInstitution(id);
   if (!record) notFound();
-  const backHref = `/internal/universities/${id}#contacts`;
+  const backHref = `/internal/universities/${id}/edit#contacts`;
   if (access === "static") {
     return (
       <div className="space-y-6">
