@@ -63,8 +63,9 @@ export const officialCountries: readonly OfficialCountry[] = [
 ];
 
 /**
- * Countries referenced only by internal records: the home country (activities)
- * and countries of legacy directory names that are not on the official page.
+ * Countries referenced only by internal records: the home country (activities),
+ * countries of legacy directory names that are not on the official page, and
+ * countries added by the DoIC MoU register.
  */
 export const referenceCountries: readonly (Omit<OfficialCountry, "region"> & {
   region: OfficialRegion | null;
@@ -73,6 +74,8 @@ export const referenceCountries: readonly (Omit<OfficialCountry, "region"> & {
   { id: "singapore", name: "Singapore", region: "Asia", lat: 1.35, lon: 103.82 },
   { id: "japan", name: "Japan", region: "Asia", lat: 36.2, lon: 138.3 },
   { id: "netherlands", name: "Netherlands", region: "Europe", lat: 52.1, lon: 5.3 },
+  { id: "austria", name: "Austria", region: "Europe", lat: 47.5, lon: 14.6 },
+  { id: "philippines", name: "Philippines", region: "Asia", lat: 12.9, lon: 121.8 },
 ];
 
 const byId = new Map(

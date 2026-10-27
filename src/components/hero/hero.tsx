@@ -1,12 +1,12 @@
 import { Globe } from "@/components/globe/globe";
 import { site } from "@/lib/data";
-import { globeMarkers, globeTotals } from "@/lib/official/geo";
-
-const chipIds = globeMarkers
-  .filter((marker) => marker.precision === "city" || marker.institutions >= 3)
-  .map((marker) => marker.id);
+import { registerGlobe } from "@/lib/internal/data/globe";
 
 export function Hero() {
+  const { markers, totals: globeTotals } = registerGlobe();
+  const chipIds = markers
+    .filter((marker) => marker.precision === "city" || marker.institutions >= 3)
+    .map((marker) => marker.id);
   return (
     <section className="hero-glow relative flex min-h-[100svh] items-start overflow-hidden pt-24 pb-12 lg:items-center lg:pt-20 lg:pb-8">
       <div className="mx-auto grid w-full max-w-7xl items-center gap-8 px-5 sm:gap-10 sm:px-8 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-8">
@@ -38,15 +38,15 @@ export function Hero() {
             data-globe-note
           >
             <span className="text-fg-soft tabular-nums">
-              {globeTotals.institutions} institutions · {globeTotals.countries} countries
+              {globeTotals.universities} universities · {globeTotals.countries} countries
             </span>
             <span className="mt-0.5 block">
-              Mapped at country level from MUJ&apos;s official partner listing.
+              Partner universities with a current MoU, mapped by country.
             </span>
           </p>
         </div>
         <div className="min-w-0">
-          <Globe markers={globeMarkers} chipIds={chipIds} />
+          <Globe markers={markers} chipIds={chipIds} />
         </div>
       </div>
     </section>

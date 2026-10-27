@@ -282,7 +282,7 @@ for (const file of homeSources) {
   if (/\bExample\b|\(sample\)|smp-/.test(text)) error(`home: ${file} references sample data`);
 }
 const heroSource = readFileSync(join(process.cwd(), "src/components/hero/hero.tsx"), "utf8");
-if (!/globeTotals\.institutions/.test(heroSource) || !/globeTotals\.countries/.test(heroSource)) {
+if (!/globeTotals\.universities/.test(heroSource) || !/globeTotals\.countries/.test(heroSource)) {
   error("home: hero figures are not taken from globeTotals");
 }
 if (/agreementRows/.test(heroSource)) error("home: hero shows the agreement-row figure");

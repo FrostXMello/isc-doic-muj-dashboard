@@ -40,9 +40,9 @@ export function markerTitle(marker: GlobeMarker) {
 
 export function markerSummary(marker: GlobeMarker) {
   if (marker.precision === "city") {
-    return `${marker.city}, ${marker.country} · ${plural(marker.agreementRows, "agreement record", "agreement records")}`;
+    return `${marker.city}, ${marker.country} · ${plural(marker.agreementRows, "MoU", "MoUs")}`;
   }
-  return `${plural(marker.institutions, "institution", "institutions")} · ${plural(marker.agreementRows, "agreement record", "agreement records")}`;
+  return `${plural(marker.institutions, "university", "universities")} · ${plural(marker.agreementRows, "MoU", "MoUs")}`;
 }
 
 function markerDescription(marker: GlobeMarker) {
@@ -52,7 +52,7 @@ function markerDescription(marker: GlobeMarker) {
     marker.precision === "country" && marker.alsoListedUnder.length
       ? `; also listed under ${marker.alsoListedUnder.join(", ")}`
       : "";
-  return `${markerTitle(marker)}, ${marker.region}${also}: ${markerSummary(marker)}. ${placement}. Official MUJ source.`;
+  return `${markerTitle(marker)}, ${marker.region}${also}: ${markerSummary(marker)}. ${placement}. Source: ${marker.source.label}.`;
 }
 
 function buildScene(markers: readonly GlobeMarker[]) {
@@ -188,7 +188,7 @@ export function Globe({
   markers,
   chipIds,
 }: {
-  /** Derived from the official data layer (src/lib/official/geo). */
+  /** One point per country, e.g. from the current MoU list (src/lib/internal/data/globe). */
   markers: readonly GlobeMarker[];
   /** Markers offered as buttons under the globe; every marker stays selectable on the canvas. */
   chipIds: readonly string[];
@@ -544,8 +544,8 @@ export function Globe({
   return (
     <div className="w-full">
       <p id="globe-desc" className="sr-only">
-        Globe centred on Manipal University Jaipur. Each point is a country of
-        institutions listed on MUJ&apos;s official partner page, placed at a
+        Globe centred on Manipal University Jaipur. Each point is a country
+        with partner universities holding a current MoU with MUJ, placed at a
         country-level reference point rather than a campus location, with a
         curved link back to Jaipur.
       </p>
@@ -610,7 +610,7 @@ export function Globe({
               <p className="mt-0.5 text-sm text-foreground">{markerTitle(activeMarker)}</p>
               <p className="text-[12px] text-fg-soft">{markerSummary(activeMarker)}</p>
               <p className="mt-1 text-[10px] tracking-[0.12em] text-muted-foreground uppercase">
-                Official MUJ source
+                {activeMarker.source.label}
               </p>
             </div>
           ) : null}
@@ -629,7 +629,7 @@ export function Globe({
             : "Drag to turn the globe. Hover or tap a point to explore its connection to Jaipur."}
       </p>
       <ul
-        aria-label="Countries with the most listed partner institutions"
+        aria-label="Countries with the most partner universities"
         aria-describedby="globe-desc"
         data-globe-keyboard
         className="sr-only flex-wrap justify-center gap-1.5 focus-within:not-sr-only focus-within:mt-3 focus-within:flex"
