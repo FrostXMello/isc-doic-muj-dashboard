@@ -52,7 +52,7 @@ export function ActivityHighlights({ items }: { items: readonly Highlight[] }) {
           <span className="mt-1 line-clamp-2 text-[14px] leading-snug font-medium text-(--hero-fg)">{item.title}</span>
           <span className="mt-1 flex items-center gap-1 truncate text-[12px] text-(--hero-muted) group-hover:text-(--hero-fg)">
             <span className="truncate">{item.place}</span>
-            <ArrowUpRight aria-hidden className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
+            <ArrowUpRight aria-hidden className="size-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 pointer-coarse:opacity-100" />
           </span>
         </Link>
       ) : (
@@ -70,7 +70,7 @@ export function ActivityHighlights({ items }: { items: readonly Highlight[] }) {
               aria-label={entry.title}
               onClick={() => setIndex(i)}
               className={cn(
-                "h-1 rounded-full transition-all duration-300",
+                "relative h-1 rounded-full transition-all duration-300 after:absolute after:-inset-x-1 after:-inset-y-3",
                 i === index ? "w-5 bg-(--hero-fg)" : "w-2 bg-(--hero-soft)/50 hover:bg-(--hero-soft)",
               )}
             />

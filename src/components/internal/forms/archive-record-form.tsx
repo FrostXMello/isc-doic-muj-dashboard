@@ -22,7 +22,7 @@ export function ArchiveRecordForm({
 }) {
   const [state, action, pending] = useActionState<RecordFormState, FormData>(archiveRecord, {});
   return (
-    <form action={action} className="space-y-3 px-6 pt-1 pb-6" aria-busy={pending}>
+    <form action={action} className="space-y-3 px-4 sm:px-6 pt-1 pb-6" aria-busy={pending}>
       <input type="hidden" name="kind" value={kind} />
       <input type="hidden" name="existing" value={recordKey} />
       <input type="hidden" name="intent" value={archived ? "restore" : "archive"} />

@@ -1,6 +1,7 @@
 "use client";
 
 import { Mark } from "@/components/brand/mark";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { internalNav, isNavItemActive } from "@/lib/internal-nav";
 import { site } from "@/lib/data";
 import { cn } from "@/lib/utils";
@@ -34,10 +35,13 @@ export function Sidebar({
   collapsed,
   onToggle,
   showAdmin,
+  drawer = false,
 }: {
   collapsed: boolean;
   onToggle: () => void;
   showAdmin: boolean;
+  /** Mobile drawer: adds the theme switch and drops the collapse control. */
+  drawer?: boolean;
 }) {
   const pathname = usePathname();
 
@@ -45,7 +49,7 @@ export function Sidebar({
     <aside
       className={cn(
         "flex h-full flex-col border-r border-line bg-surface transition-[width] duration-300 ease-out",
-        collapsed ? "w-[68px]" : "w-[260px]",
+        drawer ? "w-full" : collapsed ? "w-[68px]" : "w-[260px]",
       )}
     >
       {/* Brand header */}
@@ -119,6 +123,9 @@ export function Sidebar({
           <ArrowLeft className="size-[18px] shrink-0 text-fg-faint group-hover:text-muted-foreground" />
           {!collapsed && <span className="truncate">Back to site</span>}
         </Link>
+        {drawer ? (
+          <ThemeToggle variant="labeled" className="mt-2" />
+        ) : (
         <button
           type="button"
           onClick={onToggle}
@@ -137,6 +144,7 @@ export function Sidebar({
             </>
           )}
         </button>
+        )}
       </div>
     </aside>
   );

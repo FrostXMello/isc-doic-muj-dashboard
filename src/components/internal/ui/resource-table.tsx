@@ -163,7 +163,7 @@ export function ResourceCard({
               <dt className="text-[10px] font-medium tracking-[0.14em] text-fg-faint uppercase">
                 {item.label}
               </dt>
-              <dd className="mt-0.5 truncate text-[12px] text-fg-soft">{item.value}</dd>
+              <dd className="mt-0.5 line-clamp-2 text-[12px] text-fg-soft [overflow-wrap:anywhere]">{item.value}</dd>
             </div>
           ))}
         </dl>

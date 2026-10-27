@@ -73,7 +73,7 @@ export function AgreementForm({
   const partners = new Set(Array.isArray(submittedPartners) ? submittedPartners : initial.partnerSlugs);
 
   return (
-    <form action={action} className="space-y-5 px-6 pt-2 pb-6" aria-busy={pending} noValidate>
+    <form action={action} className="space-y-5 px-4 sm:px-6 pt-2 pb-6" aria-busy={pending} noValidate>
       {initial.code ? <input type="hidden" name="code" value={initial.code} /> : null}
       <FormStatus state={state} />
 
@@ -235,7 +235,7 @@ export function AgreementForm({
 
       <div className="flex flex-wrap items-center gap-3 border-t border-hairline pt-4">
         <SubmitButton pending={pending}>{initial.code ? "Save changes" : "Add agreement"}</SubmitButton>
-        <Link href={cancelHref} className="text-[13px] text-fg-subtle hover:text-foreground">
+        <Link href={cancelHref} className="inline-flex min-h-10 items-center justify-center px-3 text-[13px] text-fg-subtle hover:text-foreground">
           Cancel
         </Link>
       </div>

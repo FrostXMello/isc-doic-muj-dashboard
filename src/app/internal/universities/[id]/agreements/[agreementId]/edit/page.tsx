@@ -97,7 +97,7 @@ export default async function EditAgreementPage({ params }: Props) {
                 }}
               />
             ) : (
-              <div className="px-6 pb-6">
+              <div className="px-4 sm:px-6 pb-6">
                 <RegisterNotice register={register} />
               </div>
             )}

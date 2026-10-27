@@ -73,7 +73,7 @@ export function DocumentFileUpload({
   }
 
   return (
-    <div className="space-y-3 px-6 pt-1 pb-6">
+    <div className="space-y-3 px-4 sm:px-6 pt-1 pb-6">
       <label htmlFor={`${id}-file`} className="block text-[12px] font-medium text-fg-soft">
         {hasFile ? "Replace the file" : "Upload the file"}
       </label>

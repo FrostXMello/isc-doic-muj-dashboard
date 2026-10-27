@@ -32,7 +32,7 @@ export default async function AdminDocumentsPage() {
           </div>
         }
       >
-        <p className="px-6 pb-6 text-[13px] text-fg-subtle">
+        <p className="px-4 sm:px-6 pb-6 text-[13px] text-fg-subtle">
           Upload, replace, archive, or delete files from each document&apos;s edit page. Allowed: PDF, Word, Excel,
           PowerPoint, text, CSV, PNG, and JPEG, up to 25 MB.
         </p>
@@ -44,7 +44,7 @@ export default async function AdminDocumentsPage() {
           icon={Download}
           description="CSV of the records your role can read. Contact details are never exported."
         >
-          <ul className="grid gap-2 px-6 pb-6 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid gap-2 px-4 sm:px-6 pb-6 sm:grid-cols-2 lg:grid-cols-3">
             {exportDatasets.map((dataset) => (
               <li key={dataset}>
                 <a href={exportHref(dataset)} download className={buttonClass("secondary", "sm")}>

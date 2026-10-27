@@ -83,7 +83,7 @@ export function SubmitButton({
     <button
       type="submit"
       disabled={pending}
-      className={buttonClass(tone)}
+      className={cn(buttonClass(tone), "max-sm:flex-1")}
     >
       {pending ? <LoaderCircle className="size-3.5 animate-spin" aria-hidden /> : null}
       {children}

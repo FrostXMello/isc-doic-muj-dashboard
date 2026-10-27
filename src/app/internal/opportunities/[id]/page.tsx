@@ -139,7 +139,7 @@ export default async function OpportunityDetailPage({ params, searchParams }: Id
                 />
               </>
             ) : (
-              <p className="px-6 py-4 text-[13px] text-muted-foreground">
+              <p className="px-4 sm:px-6 py-4 text-[13px] text-muted-foreground">
                 This call is not linked to a specific offering.
               </p>
             )}
@@ -148,7 +148,7 @@ export default async function OpportunityDetailPage({ params, searchParams }: Id
 
         <div className="space-y-6">
           <DetailSection title="Timeline" icon={CalendarClock}>
-            <ol className="space-y-4 px-6 py-4">
+            <ol className="space-y-4 px-4 sm:px-6 py-4">
               {[
                 { label: "Opens", date: opportunity.opensOn },
                 { label: "Deadline", date: opportunity.deadline },
@@ -181,7 +181,7 @@ export default async function OpportunityDetailPage({ params, searchParams }: Id
                 ]}
               />
             ) : (
-              <p className="px-6 py-4 text-[13px] text-muted-foreground">
+              <p className="px-4 sm:px-6 py-4 text-[13px] text-muted-foreground">
                 Not tied to a single institution.
               </p>
             )}

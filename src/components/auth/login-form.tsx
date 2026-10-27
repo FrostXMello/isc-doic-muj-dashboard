@@ -58,7 +58,7 @@ export function LoginForm({ next, notice }: { next: string | null; notice: React
       />
 
       <div className="flex items-center justify-between gap-4">
-        <label className="inline-flex cursor-pointer items-center gap-2 text-[13px] text-fg-soft select-none">
+        <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 text-[13px] text-fg-soft select-none">
           <input
             type="checkbox"
             name="remember"
@@ -69,7 +69,7 @@ export function LoginForm({ next, notice }: { next: string | null; notice: React
         </label>
         <Link
           href="/forgot-password"
-          className="text-[13px] text-fg-soft underline-offset-4 transition-colors hover:text-foreground hover:underline"
+          className="inline-flex min-h-10 items-center text-[13px] text-fg-soft underline-offset-4 transition-colors hover:text-foreground hover:underline"
         >
           Forgot password?
         </Link>

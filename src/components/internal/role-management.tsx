@@ -53,7 +53,7 @@ export async function RoleManagement({ filters }: { filters: { q?: string; role?
           {accountAdmin ? (
             <CreateUserForm allowedRoles={newAccountRoles} />
           ) : (
-            <p className="px-6 pt-1 pb-6 text-[13px] text-muted-foreground">
+            <p className="px-4 sm:px-6 pt-1 pb-6 text-[13px] text-muted-foreground">
               Account creation unavailable: the server has no Supabase secret key configured (SUPABASE_SECRET_KEY).
             </p>
           )}
@@ -66,10 +66,10 @@ export async function RoleManagement({ filters }: { filters: { q?: string; role?
         description="Grant or remove roles within your authority. Locked roles can only be changed by a Super admin; nobody changes their own. Passwords are never shown: you can only set a new one."
       >
         {directory === null ? (
-          <p className="px-6 pt-1 pb-6 text-[13px] text-danger-fg">Couldn&apos;t load accounts. Refresh the page to try again.</p>
+          <p className="px-4 sm:px-6 pt-1 pb-6 text-[13px] text-danger-fg">Couldn&apos;t load accounts. Refresh the page to try again.</p>
         ) : (
           <>
-            <div className="px-6 pb-4">
+            <div className="px-4 sm:px-6 pb-4">
               <FilterBar
                 searchPlaceholder="Search by name or email"
                 selects={[
@@ -90,7 +90,7 @@ export async function RoleManagement({ filters }: { filters: { q?: string; role?
               ) : null}
             </div>
             {rows.length === 0 ? (
-              <p className="px-6 pt-1 pb-6 text-[13px] text-muted-foreground">No accounts match.</p>
+              <p className="px-4 sm:px-6 pt-1 pb-6 text-[13px] text-muted-foreground">No accounts match.</p>
             ) : (
               <ul className="divide-y divide-hairline border-t border-hairline">
                 {rows.map((user) => (

@@ -531,3 +531,23 @@
     transition: none;
   }
 }
+
+/*
+ * Touch screens. iOS Safari zooms the page when a field under 16px gets
+ * focus, so text fields are 16px there. Unlayered, so it beats utilities.
+ */
+@media (pointer: coarse) {
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+}

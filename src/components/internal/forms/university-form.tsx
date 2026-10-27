@@ -82,7 +82,7 @@ export function UniversityForm({
   );
 
   return (
-    <form action={action} className="space-y-6 px-6 pt-2 pb-6" aria-busy={pending} noValidate>
+    <form action={action} className="space-y-6 px-4 sm:px-6 pt-2 pb-6" aria-busy={pending} noValidate>
       {initial.slug ? <input type="hidden" name="slug" value={initial.slug} /> : null}
       <FormStatus state={state} />
 
@@ -157,7 +157,7 @@ export function UniversityForm({
 
       <div className="flex flex-wrap items-center gap-3 border-t border-hairline pt-4">
         <SubmitButton pending={pending}>{initial.slug ? "Save changes" : "Add university"}</SubmitButton>
-        <Link href={cancelHref} className="text-[13px] text-fg-subtle hover:text-foreground">
+        <Link href={cancelHref} className="inline-flex min-h-10 items-center justify-center px-3 text-[13px] text-fg-subtle hover:text-foreground">
           Cancel
         </Link>
       </div>

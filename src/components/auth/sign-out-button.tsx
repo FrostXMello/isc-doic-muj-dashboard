@@ -6,7 +6,7 @@ import { useFormStatus } from "react-dom";
 
 /** Compact always-visible sign-out control for portal bars; the label hides on narrow screens. */
 export const signOutClass =
-  "inline-flex h-8 items-center gap-1.5 rounded-lg border border-line px-2.5 text-[12px] text-fg-soft transition-colors hover:border-line-bold hover:text-foreground disabled:opacity-60 [&>span]:hidden sm:[&>span]:inline";
+  "inline-flex h-8 min-w-8 items-center justify-center gap-1.5 rounded-lg border border-line px-2.5 pointer-coarse:h-10 pointer-coarse:min-w-10 text-[12px] text-fg-soft transition-colors hover:border-line-bold hover:text-foreground disabled:opacity-60 [&>span]:hidden sm:[&>span]:inline";
 
 function SubmitButton({ className, showIcon }: { className?: string; showIcon: boolean }) {
   const { pending } = useFormStatus();

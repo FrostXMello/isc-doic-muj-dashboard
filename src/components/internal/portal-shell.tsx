@@ -75,12 +75,12 @@ export function PortalShell({
             aria-hidden
           />
           {/* Drawer */}
-          <div className="relative z-10 h-full w-[280px] animate-[slideIn_0.25s_ease-out]">
-            <Sidebar collapsed={false} onToggle={closeMobile} showAdmin={account?.administration ?? false} />
+          <div className="relative z-10 h-full w-[min(300px,85vw)] animate-[slideIn_0.25s_ease-out]">
+            <Sidebar collapsed={false} onToggle={closeMobile} showAdmin={account?.administration ?? false} drawer />
             <button
               type="button"
               onClick={closeMobile}
-              className="absolute right-3 top-4 rounded-lg p-1.5 text-fg-subtle transition-colors hover:bg-overlay hover:text-foreground"
+              className="absolute right-3 top-3 rounded-lg p-2.5 text-fg-subtle transition-colors hover:bg-overlay hover:text-foreground"
               aria-label="Close navigation"
             >
               <X className="size-5" />
@@ -96,7 +96,7 @@ export function PortalShell({
           onMobileMenuToggle={() => setMobileOpenedAt(mobileOpen ? null : pathname)}
         />
         <main id="main" className="flex-1">
-          <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-7xl px-3 py-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 sm:py-6 lg:px-8">
             {children}
           </div>
         </main>

@@ -17,7 +17,7 @@ export default function InternalError({
   }, [error]);
 
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-24 text-center" role="alert">
+    <div className="flex flex-col items-center justify-center px-4 sm:px-6 py-24 text-center" role="alert">
       <div className="mb-5 flex size-14 items-center justify-center rounded-full bg-danger/[0.1]">
         <TriangleAlert className="size-6 text-danger" aria-hidden />
       </div>

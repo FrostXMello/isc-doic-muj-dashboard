@@ -73,7 +73,7 @@ export default async function AuditHistoryPage({ searchParams }: SearchParamsPro
       icon={History}
       description="Every change to records, roles, account status, and settings, newest first. Entries are written by the database and can't be edited or deleted, even by administrators."
     >
-      <div className="px-6 pb-4">
+      <div className="px-4 sm:px-6 pb-4">
         <FilterBar
           search={false}
           selects={[
@@ -86,16 +86,16 @@ export default async function AuditHistoryPage({ searchParams }: SearchParamsPro
         />
       </div>
       {failed ? (
-        <p className="px-6 pb-6 text-[13px] text-danger-fg">Couldn&apos;t load the audit history. Refresh the page to try again.</p>
+        <p className="px-4 sm:px-6 pb-6 text-[13px] text-danger-fg">Couldn&apos;t load the audit history. Refresh the page to try again.</p>
       ) : entries.length === 0 ? (
-        <p className="px-6 pb-6 text-[13px] text-muted-foreground">No entries match.</p>
+        <p className="px-4 sm:px-6 pb-6 text-[13px] text-muted-foreground">No entries match.</p>
       ) : (
         <ol className="divide-y divide-hairline border-t border-hairline">
           {entries.map((entry) => {
             const changes = auditChanges(entry.old_data, entry.new_data);
             const event = typeof entry.new_data?.event === "string" ? entry.new_data.event : typeof entry.old_data?.event === "string" ? entry.old_data.event : null;
             return (
-              <li key={entry.id} className="px-6 py-4 text-[13px]">
+              <li key={entry.id} className="px-4 sm:px-6 py-4 text-[13px]">
                 <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                   <span className="font-medium text-foreground">
                     {event ? event.replace(/-/g, " ") : auditActionLabels[entry.action]} · {auditTableLabels[entry.table_name] ?? entry.table_name}
@@ -138,7 +138,7 @@ export default async function AuditHistoryPage({ searchParams }: SearchParamsPro
         </ol>
       )}
       {lastPage > 1 ? (
-        <nav aria-label="Audit pages" className="flex items-center justify-between border-t border-hairline px-6 py-3 text-[13px]">
+        <nav aria-label="Audit pages" className="flex items-center justify-between border-t border-hairline px-4 sm:px-6 py-3 text-[13px]">
           {page > 1 ? (
             <Link href={pageHref(page - 1)} className="inline-flex items-center gap-1 text-fg-subtle hover:text-foreground">
               <ChevronLeft className="size-4" aria-hidden /> Newer

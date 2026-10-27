@@ -23,12 +23,12 @@ export function Topbar({
   const pageTitle = navTitle(pathname, tab);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-line bg-surface/80 px-4 backdrop-blur-sm sm:px-6">
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-line bg-surface/80 px-3 backdrop-blur-sm sm:h-16 sm:gap-4 sm:px-6">
       {/* Mobile menu toggle */}
       <button
         type="button"
         onClick={onMobileMenuToggle}
-        className="rounded-lg p-2 text-fg-subtle transition-colors hover:bg-overlay hover:text-foreground lg:hidden"
+        className="-ml-1 rounded-lg p-2.5 text-fg-subtle transition-colors hover:bg-overlay hover:text-foreground lg:hidden"
         aria-label="Toggle navigation"
       >
         <Menu className="size-5" />
@@ -67,7 +67,7 @@ export function Topbar({
 
       {/* Right actions */}
       <div className="flex shrink-0 items-center gap-1">
-        <ThemeToggle className="mr-1" />
+        <ThemeToggle className="mr-1 hidden sm:inline-flex" />
 
         {account ? (
           <>

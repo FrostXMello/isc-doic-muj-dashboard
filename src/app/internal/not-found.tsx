@@ -3,7 +3,7 @@ import { buttonClass } from "@/components/internal/ui/button-styles";
 
 export default function InternalNotFound() {
   return (
-    <div className="dash-rise flex flex-col items-center justify-center px-6 py-24 text-center">
+    <div className="dash-rise flex flex-col items-center justify-center px-4 sm:px-6 py-24 text-center">
       <p className="font-display text-[clamp(4rem,12vw,7rem)] leading-none font-medium tracking-[-0.06em] text-muj">
         404
       </p>

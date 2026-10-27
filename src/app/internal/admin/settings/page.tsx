@@ -57,7 +57,7 @@ export default async function AdminSettingsPage({ searchParams }: SearchParamsPr
             cancelHref="/internal/admin"
           />
         ) : (
-          <p className="px-6 pb-6 text-[13px] text-fg-soft">
+          <p className="px-4 sm:px-6 pb-6 text-[13px] text-fg-soft">
             {settings.accessContactEmail ?? "No contact email set."} {settings.accessContactNote}
           </p>
         )}
@@ -68,7 +68,7 @@ export default async function AdminSettingsPage({ searchParams }: SearchParamsPr
         icon={Lock}
         description="Security controls are never free-form settings."
       >
-        <ul className="list-disc space-y-1.5 px-6 pb-6 pl-10 text-[13px] text-fg-subtle">
+        <ul className="list-disc space-y-1.5 px-4 sm:px-6 pb-6 pl-10 text-[13px] text-fg-subtle">
           <li>Roles, permissions, and row level security are defined in reviewed database migrations.</li>
           <li>Sign-in, password, and session rules are configured in Supabase Auth by the project owner.</li>
           <li>The first Super admin is provisioned by the database owner with a reviewed script.</li>

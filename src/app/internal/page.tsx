@@ -133,7 +133,7 @@ function Snapshot({ totals, today, activities }: Pick<DashboardData, "totals" | 
                 {metric.label}
                 <ArrowUpRight
                   aria-hidden
-                  className="size-3.5 -translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100"
+                  className="size-3.5 -translate-x-1 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100 pointer-coarse:translate-x-0 pointer-coarse:opacity-100"
                 />
               </span>
             </Link>
@@ -232,7 +232,7 @@ function AgendaGroup({
                     {showStatus ? <ActivityStatusBadge status={activity.status} /> : null}
                     <ArrowUpRight
                       aria-hidden
-                      className="size-4 text-fg-faint opacity-0 transition-opacity group-hover:opacity-100"
+                      className="size-4 text-fg-faint opacity-0 transition-opacity group-hover:opacity-100 pointer-coarse:opacity-100"
                     />
                   </span>
                 </Link>

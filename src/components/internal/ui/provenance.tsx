@@ -104,13 +104,13 @@ export function ContactsPanel({
       ) : (
         <ul className="divide-y divide-hairline">
           {contacts.map((row) => (
-            <li key={row.id} className="px-6 py-4 text-[13px]">
+            <li key={row.id} className="px-4 sm:px-6 py-4 text-[13px]">
               <p className="text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">
                 {row.roleLabel}
               </p>
               <p className="mt-1 text-foreground">{row.name ?? <NotRecorded />}</p>
               <p className="mt-0.5 text-muted-foreground">
-                {row.email ? <a href={`mailto:${row.email}`} className="hover:text-foreground">{row.email}</a> : null}
+                {row.email ? <a href={`mailto:${row.email}`} className="[overflow-wrap:anywhere] hover:text-foreground">{row.email}</a> : null}
                 {row.email && row.phone ? " · " : null}
                 {row.phone}
               </p>

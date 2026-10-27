@@ -97,6 +97,12 @@ function Timeline({ bars, today, undated }: NonNullable<InsightTab["timeline"]>)
                   onFocus={() => setActive(bar.id)}
                   onMouseLeave={() => setActive(null)}
                   onBlur={() => setActive(null)}
+                  onClick={(event) => {
+                    if (active !== bar.id && window.matchMedia("(pointer: coarse)").matches) {
+                      event.preventDefault();
+                      setActive(bar.id);
+                    }
+                  }}
                   aria-label={`${bar.label}, ${bar.meta}`}
                   className={cn(
                     "absolute inset-y-0 rounded-full transition-[filter,transform] hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
@@ -121,7 +127,10 @@ function Timeline({ bars, today, undated }: NonNullable<InsightTab["timeline"]>)
             <span className="font-medium text-foreground">{shown.label}</span> · {shown.meta}
           </>
         ) : bars.length > 0 ? (
-          "Point at a bar to see that MoU's term; select it to open the MoU."
+          <>
+            <span className="pointer-coarse:hidden">Point at a bar to see that MoU&apos;s term; select it to open the MoU.</span>
+            <span className="hidden pointer-coarse:inline">Tap a bar to see that MoU&apos;s term; tap it again to open the MoU.</span>
+          </>
         ) : null}
       </p>
       {undated.length > 0 ? (
@@ -187,7 +196,7 @@ function Highlights({ items }: { items: InsightItem[] }) {
         onClick={() => step(-1)}
         disabled={items.length < 2}
         aria-label="Previous highlight"
-        className="shrink-0 rounded-xl px-1.5 text-fg-subtle transition-colors hover:bg-overlay hover:text-foreground disabled:opacity-30"
+        className="shrink-0 rounded-xl px-1.5 text-fg-subtle pointer-coarse:px-2.5 transition-colors hover:bg-overlay hover:text-foreground disabled:opacity-30"
       >
         <ChevronLeft className="size-4" />
       </button>
@@ -211,7 +220,7 @@ function Highlights({ items }: { items: InsightItem[] }) {
         onClick={() => step(1)}
         disabled={items.length < 2}
         aria-label="Next highlight"
-        className="shrink-0 rounded-xl px-1.5 text-fg-subtle transition-colors hover:bg-overlay hover:text-foreground disabled:opacity-30"
+        className="shrink-0 rounded-xl px-1.5 text-fg-subtle pointer-coarse:px-2.5 transition-colors hover:bg-overlay hover:text-foreground disabled:opacity-30"
       >
         <ChevronRight className="size-4" />
       </button>
@@ -300,7 +309,7 @@ export function InsightsCard({
                 aria-controls={`${id}-panel`}
                 onClick={() => setSelected(row.id)}
                 className={cn(
-                  "rounded-full py-1 transition-colors",
+                  "rounded-full py-1 transition-colors pointer-coarse:py-2",
                   compact ? "px-2 text-[11.5px]" : "px-3 text-[12px]",
                   row.id === tab.id ? "bg-card text-foreground shadow-sm" : "text-fg-subtle hover:text-foreground",
                 )}

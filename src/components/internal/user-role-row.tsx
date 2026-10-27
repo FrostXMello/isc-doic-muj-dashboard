@@ -140,7 +140,7 @@ export function UserRoleRow({
   const visibleRoles = appRoles.filter((role) => user.roles.includes(role) || user.assignable.includes(role));
 
   return (
-    <li className="portal-row-marker flex flex-col gap-3 px-6 py-5 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
+    <li className="portal-row-marker flex flex-col gap-3 px-4 sm:px-6 py-5 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
       <div className="flex min-w-0 items-center gap-3">
         <span
           aria-hidden
@@ -203,7 +203,7 @@ export function UserRoleRow({
                 aria-pressed={held}
                 title={held ? `Remove ${roleLabels[role]}` : `Grant ${roleLabels[role]}`}
                 className={cn(
-                  "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[12px] transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-60",
+                  "inline-flex h-8 items-center gap-1.5 rounded-full border px-3 text-[12px] transition-colors pointer-coarse:h-10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-60",
                   held
                     ? "border-muj/60 bg-muj/[0.1] font-medium text-foreground hover:border-danger/50"
                     : "border-dashed border-line-strong text-fg-subtle hover:border-muj/50 hover:text-foreground",

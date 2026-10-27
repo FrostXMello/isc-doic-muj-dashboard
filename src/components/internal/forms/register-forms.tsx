@@ -60,7 +60,7 @@ export function AgreementDetailsForm({
   const field = (name: string) => `${id}-${name}`;
 
   return (
-    <form action={action} className="space-y-5 px-6 pt-2 pb-6" aria-busy={pending} noValidate>
+    <form action={action} className="space-y-5 px-4 sm:px-6 pt-2 pb-6" aria-busy={pending} noValidate>
       <input type="hidden" name="code" value={code} />
       <input type="hidden" name="lead" value={lead} />
       <FormStatus state={state} />
@@ -137,7 +137,7 @@ export function AgreementDetailsForm({
       </div>
       <div className="flex flex-wrap items-center gap-3 border-t border-hairline pt-4">
         <SubmitButton pending={pending}>Save register details</SubmitButton>
-        <Link href={cancelHref} className="text-[13px] text-fg-subtle hover:text-foreground">
+        <Link href={cancelHref} className="inline-flex min-h-10 items-center justify-center px-3 text-[13px] text-fg-subtle hover:text-foreground">
           Cancel
         </Link>
       </div>
@@ -172,7 +172,7 @@ export function ContactForm({
   const field = (name: string) => `${id}-${name}`;
 
   return (
-    <form action={action} className="space-y-5 px-6 pt-2 pb-6" aria-busy={pending} noValidate>
+    <form action={action} className="space-y-5 px-4 sm:px-6 pt-2 pb-6" aria-busy={pending} noValidate>
       <input type="hidden" name="university" value={university} />
       {initial.code ? <input type="hidden" name="code" value={initial.code} /> : null}
       <FormStatus state={state} />
@@ -254,7 +254,7 @@ export function ContactForm({
       <p className="text-[12px] text-fg-faint">Contacts are internal to DoIC roles and never shown on the public site.</p>
       <div className="flex flex-wrap items-center gap-3 border-t border-hairline pt-4">
         <SubmitButton pending={pending}>{initial.code ? "Save contact" : "Add contact"}</SubmitButton>
-        <Link href={cancelHref} className="text-[13px] text-fg-subtle hover:text-foreground">
+        <Link href={cancelHref} className="inline-flex min-h-10 items-center justify-center px-3 text-[13px] text-fg-subtle hover:text-foreground">
           Cancel
         </Link>
       </div>

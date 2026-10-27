@@ -21,7 +21,7 @@ export function DeleteRecordForm({
   const id = useId();
 
   return (
-    <form action={formAction} className="space-y-3 px-6 pt-1 pb-6" aria-busy={pending}>
+    <form action={formAction} className="space-y-3 px-4 sm:px-6 pt-1 pb-6" aria-busy={pending}>
       {Object.entries(fields).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
       ))}

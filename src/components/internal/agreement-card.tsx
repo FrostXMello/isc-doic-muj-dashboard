@@ -56,7 +56,7 @@ function TermProgress({ agreement, today }: { agreement: AgreementView; today: s
   const percent = Math.max(0, Math.min(100, Math.round((elapsed / Math.max(total, 1)) * 100)));
   const tone = agreementStatusMeta[agreement.status].tone;
   return (
-    <div className="border-b border-hairline px-6 py-4">
+    <div className="border-b border-hairline px-4 sm:px-6 py-4">
       <div className="flex justify-between text-[12px] text-muted-foreground">
         <span>{formatDate(agreement.startDate)}</span>
         <span>{formatDate(agreement.endDate)}</span>
@@ -108,17 +108,22 @@ export async function AgreementCard({
 
   return (
     <details id={`agreement-${agreement.id}`} open={open} className="group scroll-mt-24 border-t border-hairline">
-      <summary className="portal-row-marker flex cursor-pointer list-none items-start gap-3 px-6 py-4 hover:bg-overlay [&::-webkit-details-marker]:hidden">
+      <summary className="portal-row-marker flex cursor-pointer list-none items-start gap-3 px-4 sm:px-6 py-4 hover:bg-overlay [&::-webkit-details-marker]:hidden">
         <div className="min-w-0 flex-1">
           <p className="text-[14px] font-medium text-foreground">{agreement.title}</p>
-          <p className="mt-0.5 text-[12px] text-muted-foreground">
+          <p className="mt-0.5 text-[12px] text-muted-foreground [overflow-wrap:anywhere]">
             <span className="font-mono">{agreement.reference}</span> ·{" "}
             {agreement.typeLabel ?? agreementTypeLabel[agreement.type]} ·{" "}
             {formatDateRange(agreement.startDate, agreement.endDate)}
             {role === "partner" ? " · additional partner" : null}
           </p>
+          <span className="mt-2 inline-flex sm:hidden">
+            <AgreementStatusBadge status={agreement.status} daysToExpiry={agreement.daysToExpiry} />
+          </span>
         </div>
-        <AgreementStatusBadge status={agreement.status} daysToExpiry={agreement.daysToExpiry} />
+        <span className="hidden shrink-0 sm:inline-flex">
+          <AgreementStatusBadge status={agreement.status} daysToExpiry={agreement.daysToExpiry} />
+        </span>
         <ChevronDown
           className="mt-0.5 size-4 shrink-0 text-fg-dim transition-transform group-open:rotate-180 group-open:text-muj-fg motion-reduce:transition-none"
           aria-hidden
@@ -223,7 +228,7 @@ export async function AgreementCard({
         <TermProgress agreement={agreement} today={today} />
 
         {register ? (
-          <div className="border-b border-hairline px-6 py-4">
+          <div className="border-b border-hairline px-4 sm:px-6 py-4">
             <p className="mb-3 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">DoIC MoU register</p>
             <AgreementRegisterFacts entry={register} showHeading={false} />
           </div>
@@ -275,12 +280,12 @@ export async function AgreementCard({
             ) : null}
           </div>
         ) : (
-          <p className="border-t border-hairline px-6 py-3 text-[12px] text-fg-faint">
+          <p className="border-t border-hairline px-4 sm:px-6 py-3 text-[12px] text-fg-faint">
             No documents, programme offerings, or activities are linked to this MoU yet.
           </p>
         )}
 
-        <div className="flex flex-wrap items-center gap-2 border-t border-hairline px-6 py-3">
+        <div className="flex flex-wrap items-center gap-2 border-t border-hairline px-4 sm:px-6 py-3">
           <ManageLink
             permission="agreements:update"
             href={`/internal/universities/${agreement.institutionId}/agreements/${agreement.id}/edit`}
@@ -314,7 +319,7 @@ export async function AgreementCard({
 function RelatedBlock({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="min-w-0 pb-1">
-      <p className="px-6 pt-3 pb-2 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">{title}</p>
+      <p className="px-4 sm:px-6 pt-3 pb-2 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">{title}</p>
       {children}
     </div>
   );

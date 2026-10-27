@@ -21,7 +21,7 @@ export function CreateUserForm({ allowedRoles }: { allowedRoles: readonly AppRol
     <form
       key={state.message}
       action={action}
-      className="grid gap-5 px-6 pt-2 pb-6 sm:grid-cols-2"
+      className="grid gap-5 px-4 sm:px-6 pt-2 pb-6 sm:grid-cols-2"
       aria-busy={pending}
     >
       <div>

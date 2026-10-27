@@ -111,7 +111,7 @@ export default async function ProgramOfferingPage({ params, searchParams }: IdPa
           </DetailSection>
 
           <DetailSection title="Programme" icon={BookOpen} action={<SourceBadge source={program.source} />}>
-            <div className="px-6 py-4">
+            <div className="px-4 sm:px-6 py-4">
               <p className="text-[14px] font-medium text-foreground">{program.name}</p>
               <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
                 {program.description}
@@ -143,7 +143,7 @@ export default async function ProgramOfferingPage({ params, searchParams }: IdPa
                 ]}
               />
             ) : (
-              <p className="px-6 py-4 text-[13px] text-muted-foreground">Institution record missing.</p>
+              <p className="px-4 sm:px-6 py-4 text-[13px] text-muted-foreground">Institution record missing.</p>
             )}
           </DetailSection>
 
@@ -166,7 +166,7 @@ export default async function ProgramOfferingPage({ params, searchParams }: IdPa
                 ]}
               />
             ) : (
-              <p className="px-6 py-4 text-[13px] text-muted-foreground">
+              <p className="px-4 sm:px-6 py-4 text-[13px] text-muted-foreground">
                 No agreement is cited as the basis for this offering.
               </p>
             )}

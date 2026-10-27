@@ -38,7 +38,7 @@ export default async function NationalCollaborationsPage() {
               const year = displayCell(YEAR, row.values, row.formulas);
               const extra = displayHeaders(row.values, row.formulas).filter((header) => header !== NAME && header !== YEAR);
               return (
-                <li key={row.importKey} className="flex flex-col gap-1 px-6 py-3 sm:flex-row sm:items-baseline sm:gap-4">
+                <li key={row.importKey} className="flex flex-col gap-1 px-4 sm:px-6 py-3 sm:flex-row sm:items-baseline sm:gap-4">
                   <span className="min-w-0 flex-1 text-[14px] text-foreground">
                     {name && name.kind !== "withheld" ? (
                       <RecordedText value={name.text} />

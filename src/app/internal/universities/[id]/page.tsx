@@ -169,14 +169,14 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
         <div className="min-w-0 space-y-6 lg:col-start-3 lg:row-start-2">
           {institution.note ? (
             <DetailSection title="Review note">
-              <p className="px-6 pb-5 text-[13px] leading-relaxed text-muted-foreground">{institution.note}</p>
+              <p className="px-4 sm:px-6 pb-5 text-[13px] leading-relaxed text-muted-foreground">{institution.note}</p>
             </DetailSection>
           ) : null}
         </div>
       </div>
 
       <details className="group portal-surface overflow-hidden">
-        <summary className="flex cursor-pointer list-none items-center gap-3 px-6 py-4 hover:bg-overlay [&::-webkit-details-marker]:hidden">
+        <summary className="flex cursor-pointer list-none items-center gap-3 px-4 sm:px-6 py-4 hover:bg-overlay [&::-webkit-details-marker]:hidden">
           <span className="min-w-0 flex-1">
             <span className="block text-[14px] font-medium text-foreground">More details</span>
             <span className="block text-[12px] text-muted-foreground">
@@ -215,14 +215,14 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
               }))}
             />
             {opportunities.length > 0 ? (
-              <p className="border-t border-hairline px-6 py-3 text-[12px] text-muted-foreground">
+              <p className="border-t border-hairline px-4 sm:px-6 py-3 text-[12px] text-muted-foreground">
                 {opportunities.length} application {opportunities.length === 1 ? "call references" : "calls reference"} this university.
               </p>
             ) : null}
           </DetailSection>
 
           <DetailSection title="DoIC MoU register" icon={BookMarked}>
-            <div className="space-y-4 px-6 pb-5">
+            <div className="space-y-4 px-4 sm:px-6 pb-5">
               <RegisterNotice register={register} />
               <Facts
                 items={[
@@ -275,7 +275,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
 
           {unlinkedContacts.length > 0 ? (
             <DetailSection title="Other contacts" icon={UserRound} description="Not tied to a single MoU. Internal only." className="lg:col-span-2">
-              <div className="px-6 pb-5 text-[13px]">
+              <div className="px-4 sm:px-6 pb-5 text-[13px]">
                 <ContactRows contacts={unlinkedContacts} />
               </div>
             </DetailSection>

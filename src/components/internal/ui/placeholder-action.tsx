@@ -61,7 +61,7 @@ export function PlaceholderAction({
         }}
         className="m-auto w-[min(92vw,26rem)] rounded-[1.5rem] border border-line bg-popover p-0 text-foreground shadow-[0_40px_80px_-30px_rgba(0,0,0,0.5)] backdrop:bg-scrim backdrop:backdrop-blur-[3px]"
       >
-        <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-2">
+        <div className="flex items-start justify-between gap-4 px-4 sm:px-6 pt-6 pb-2">
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-full bg-muj/[0.12]">
               <Lock className="size-4 text-muj-fg" aria-hidden />
@@ -79,13 +79,13 @@ export function PlaceholderAction({
             <X className="size-4" />
           </button>
         </div>
-        <div className="space-y-3 px-6 py-3 text-[13px] leading-relaxed text-muted-foreground">
+        <div className="space-y-3 px-4 sm:px-6 py-3 text-[13px] leading-relaxed text-muted-foreground">
           <p>{reason}</p>
           <p className="text-[11px] font-medium tracking-[0.16em] text-fg-faint uppercase">
             Preview · no data was changed
           </p>
         </div>
-        <div className="flex justify-end px-6 pt-2 pb-6">
+        <div className="flex justify-end px-4 sm:px-6 pt-2 pb-6">
           <button
             type="button"
             onClick={() => dialogRef.current?.close()}

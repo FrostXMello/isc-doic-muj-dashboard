@@ -39,11 +39,18 @@ export function Footer() {
               ))}
               <a
                 href={`mailto:${contact.email}`}
-                className="mt-3 block text-foreground underline decoration-line-bold underline-offset-4 hover:decoration-cyan"
+                className="mt-3 inline-block py-1.5 text-foreground underline decoration-line-bold underline-offset-4 [overflow-wrap:anywhere] hover:decoration-cyan"
               >
                 {contact.email}
               </a>
-              <span className="block">{contact.telephone}</span>
+              {contact.telephone ? (
+                <a
+                  href={`tel:${contact.telephone.split("(")[0].replace(/[^\d+]/g, "")}`}
+                  className="block w-fit py-1.5 hover:text-foreground"
+                >
+                  {contact.telephone}
+                </a>
+              ) : null}
             </address>
           </div>
         </div>
@@ -53,10 +60,10 @@ export function Footer() {
           <p>
             © {year} {site.university}. {site.managedBy}.
           </p>
-          <ul className="flex gap-4">
+          <ul className="-mx-2 flex gap-1">
             {legalNav.map((item) => (
               <li key={item.href}>
-                <Link href={item.href} className="transition-colors hover:text-foreground">
+                <Link href={item.href} className="inline-flex min-h-10 items-center px-2 transition-colors hover:text-foreground">
                   {item.label}
                 </Link>
               </li>

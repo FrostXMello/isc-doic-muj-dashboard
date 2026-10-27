@@ -73,7 +73,7 @@ function BackToSignIn() {
     <p className="text-center text-[13px]">
       <Link
         href="/login"
-        className="text-fg-soft underline-offset-4 transition-colors hover:text-foreground hover:underline"
+        className="inline-flex min-h-10 items-center text-fg-soft underline-offset-4 transition-colors hover:text-foreground hover:underline"
       >
         Back to sign in
       </Link>

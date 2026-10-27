@@ -46,7 +46,9 @@ export function PageHeader({
           </p>
         )}
       </div>
-      {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+      {actions && (
+        <div className="flex shrink-0 flex-wrap items-center gap-2 max-sm:[&>*]:flex-1">{actions}</div>
+      )}
     </header>
   );
 }
@@ -76,7 +78,7 @@ export function PanelHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 px-6 pt-6 pb-3">
+    <div className="flex items-start justify-between gap-4 px-4 sm:px-6 pt-6 pb-3">
       <div className="flex min-w-0 items-start gap-3">
         {Icon && (
           <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-muj/[0.12]">

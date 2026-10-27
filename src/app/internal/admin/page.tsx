@@ -11,7 +11,7 @@ export default async function AdministrationOverviewPage() {
 
   return (
     <DetailSection title="Roles" icon={ShieldCheck}>
-      <dl className="grid gap-4 px-6 pb-6 sm:grid-cols-2">
+      <dl className="grid gap-4 px-4 sm:px-6 pb-6 sm:grid-cols-2">
         {appRoles.map((role) => (
           <div key={role}>
             <dt className="text-[13px] font-medium text-foreground">{roleLabels[role]}</dt>

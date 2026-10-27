@@ -129,7 +129,7 @@ export function RecordForm({
   }
 
   return (
-    <form action={formAction} className="space-y-6 px-6 pt-2 pb-6" aria-busy={pending} noValidate>
+    <form action={formAction} className="space-y-6 px-4 sm:px-6 pt-2 pb-6" aria-busy={pending} noValidate>
       {Object.entries(hidden ?? {}).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />
       ))}
@@ -146,7 +146,7 @@ export function RecordForm({
 
       <div className="flex flex-wrap items-center gap-3 border-t border-hairline pt-4">
         <SubmitButton pending={pending}>{submitLabel}</SubmitButton>
-        <Link href={cancelHref} className="text-[13px] text-fg-subtle hover:text-foreground">
+        <Link href={cancelHref} className="inline-flex min-h-10 items-center justify-center px-3 text-[13px] text-fg-subtle hover:text-foreground">
           Cancel
         </Link>
       </div>

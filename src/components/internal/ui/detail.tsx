@@ -47,7 +47,9 @@ export function DetailHeader({
           )}
           {badges && <div className="mt-4 flex flex-wrap items-center gap-2">{badges}</div>}
         </div>
-        {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+        {actions && (
+          <div className="flex shrink-0 flex-wrap items-center gap-2 max-sm:[&>*]:flex-1">{actions}</div>
+        )}
       </div>
     </header>
   );
@@ -93,7 +95,7 @@ export function KeyValueList({
         <div
           key={item.label}
           className={cn(
-            "min-w-0 border-t border-hairline px-6 py-4",
+            "min-w-0 border-t border-hairline px-4 sm:px-6 py-4",
             item.wide && "sm:col-span-2",
           )}
         >
@@ -134,10 +136,10 @@ export function LinkedList({
         <li key={item.key}>
           <Link
             href={item.href}
-            className="portal-row-marker group flex items-center gap-3 px-6 py-3.5 transition-colors hover:bg-overlay"
+            className="portal-row-marker group flex items-center gap-3 px-4 sm:px-6 py-3.5 transition-colors hover:bg-overlay"
           >
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[14px] text-foreground">{item.title}</p>
+              <p className="line-clamp-2 text-[14px] text-foreground sm:truncate">{item.title}</p>
               {item.meta && (
                 <p className="mt-0.5 truncate text-[12px] text-muted-foreground">{item.meta}</p>
               )}

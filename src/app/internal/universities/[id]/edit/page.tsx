@@ -26,7 +26,7 @@ type Props = { params: Promise<{ id: string }>; searchParams: Promise<SearchPara
 function EditPanel({ title, meta, open, children }: { title: string; meta: string; open?: boolean; children: React.ReactNode }) {
   return (
     <details open={open} className="group border-t border-hairline">
-      <summary className="portal-row-marker flex cursor-pointer list-none items-start gap-3 px-6 py-4 hover:bg-overlay [&::-webkit-details-marker]:hidden">
+      <summary className="portal-row-marker flex cursor-pointer list-none items-start gap-3 px-4 sm:px-6 py-4 hover:bg-overlay [&::-webkit-details-marker]:hidden">
         <span className="min-w-0 flex-1">
           <span className="block text-[14px] font-medium [overflow-wrap:anywhere] text-foreground">{title}</span>
           <span className="mt-0.5 block text-[12px] [overflow-wrap:anywhere] text-muted-foreground">{meta}</span>
@@ -43,7 +43,7 @@ function EditPanel({ title, meta, open, children }: { title: string; meta: strin
 
 function PanelHeading({ children }: { children: React.ReactNode }) {
   return (
-    <p className="px-6 pt-4 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">{children}</p>
+    <p className="px-4 sm:px-6 pt-4 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">{children}</p>
   );
 }
 
@@ -140,9 +140,9 @@ export default async function EditUniversityPage({ params, searchParams }: Props
         }
       >
         {lead.length === 0 ? (
-          <p className="border-t border-hairline px-6 py-4 text-[13px] text-fg-faint">No MoUs are recorded under this university.</p>
+          <p className="border-t border-hairline px-4 sm:px-6 py-4 text-[13px] text-fg-faint">No MoUs are recorded under this university.</p>
         ) : !canEditAgreements ? (
-          <p className="border-t border-hairline px-6 py-4 text-[13px] text-fg-faint">Your role can&apos;t edit MoUs.</p>
+          <p className="border-t border-hairline px-4 sm:px-6 py-4 text-[13px] text-fg-faint">Your role can&apos;t edit MoUs.</p>
         ) : (
           lead.map(({ agreement }) => {
             const details = detailsFor(agreement.id);
@@ -200,12 +200,12 @@ export default async function EditUniversityPage({ params, searchParams }: Props
                       }}
                     />
                   ) : (
-                    <div className="px-6 pt-2 pb-4">
+                    <div className="px-4 sm:px-6 pt-2 pb-4">
                       <RegisterNotice register={register} />
                     </div>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-3 border-t border-hairline px-6 py-3 text-[12px]">
+                <div className="flex flex-wrap gap-3 border-t border-hairline px-4 sm:px-6 py-3 text-[12px]">
                   <Link
                     href={`/internal/universities/${institution.id}/agreements/${agreement.id}/edit`}
                     className="text-muj-fg hover:text-foreground"
@@ -218,7 +218,7 @@ export default async function EditUniversityPage({ params, searchParams }: Props
           })
         )}
         {partnerOf.length > 0 ? (
-          <div className="border-t border-hairline px-6 py-4 text-[12px] text-fg-subtle">
+          <div className="border-t border-hairline px-4 sm:px-6 py-4 text-[12px] text-fg-subtle">
             <p className="mb-1.5">Also a partner on these MoUs, which are edited under their lead university:</p>
             <ul className="space-y-1">
               {partnerOf.map(({ agreement }) => (
@@ -243,7 +243,7 @@ export default async function EditUniversityPage({ params, searchParams }: Props
         description="Internal only; never shown on the public site."
       >
         {contactAccess.state === "restricted" ? (
-          <p className="border-t border-hairline px-6 py-4 text-[13px] text-fg-faint">
+          <p className="border-t border-hairline px-4 sm:px-6 py-4 text-[13px] text-fg-faint">
             Contacts are stored only in the access-controlled database.
           </p>
         ) : (
@@ -268,7 +268,7 @@ export default async function EditUniversityPage({ params, searchParams }: Props
                     agreementCode: contact.agreementId,
                   }}
                 />
-                <div className="border-t border-hairline px-6 py-3 text-[12px]">
+                <div className="border-t border-hairline px-4 sm:px-6 py-3 text-[12px]">
                   <Link
                     href={`/internal/universities/${institution.id}/contacts/${contact.id}/edit`}
                     className="text-muj-fg hover:text-foreground"

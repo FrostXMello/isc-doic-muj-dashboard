@@ -95,7 +95,7 @@ export function UniversityProvenance({
   ];
 
   return (
-    <div className="space-y-4 px-6 pb-5">
+    <div className="space-y-4 px-4 sm:px-6 pb-5">
       <div className="flex flex-col items-start gap-1.5 rounded-xl border border-hairline bg-overlay-subtle px-3 py-2.5">
         <VerificationBadge status={institution.verification} />
         <p className="text-[12px] leading-relaxed text-fg-subtle">{verificationMeta[institution.verification].description}</p>

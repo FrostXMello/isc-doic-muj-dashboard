@@ -43,7 +43,7 @@ export default async function AdminContentPage() {
           : "This deployment reads the bundled official dataset, so records are read-only here."
       }
     >
-      <div className="overflow-x-auto px-6 pb-6">
+      <div className="overflow-x-auto px-4 sm:px-6 pb-6">
         <table className="w-full min-w-[560px] border-collapse text-[13px]">
           <caption className="sr-only">Records by type</caption>
           <thead>
