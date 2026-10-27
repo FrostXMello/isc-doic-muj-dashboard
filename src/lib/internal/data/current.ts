@@ -10,7 +10,8 @@ import type { Agreement } from "@/lib/internal/types";
  * An undated agreement whose status is not stated does not keep it: it is
  * usually the same MoU listed without dates. A retired university's undated
  * agreements, programme offerings, and opportunities are retired with it;
- * activities and documents stay, unlinked from it.
+ * activities and documents stay, unlinked from it. The same applies to a
+ * university the DoIC MoU register does not name (see `listed` below).
  */
 
 export type Retired = { agreements: ReadonlySet<string>; institutions: ReadonlySet<string> };
@@ -31,23 +32,41 @@ export function isRetiredAgreement(agreement: Agreement, today: string) {
 /** An agreement with no dates and no stated status says nothing about whether the MoU is current. */
 const isUndated = (agreement: Agreement) => agreement.endDate === null && agreement.recordStatus === "not-stated";
 
-export function retireStaleAgreements(data: Dataset, today: string): { data: Dataset; retired: Retired } {
+/** Ids from the official records, the earlier directory, or the register import; portal-created ids have none. */
+const CATALOGUED = /^(ofc|dir|wb)-/;
+
+/**
+ * `listed`: universities the DoIC MoU register names. A catalogued university
+ * it does not name is retired with all of its agreements; universities added
+ * in the portal are kept.
+ */
+export function retireStaleAgreements(
+  data: Dataset,
+  today: string,
+  listed?: ReadonlySet<string>,
+): { data: Dataset; retired: Retired } {
+  const unlisted = new Set(
+    listed ? data.institutions.filter((row) => CATALOGUED.test(row.id) && !listed.has(row.id)).map((row) => row.id) : [],
+  );
   const stale = new Set(data.agreements.filter((a) => isRetiredAgreement(a, today)).map((a) => a.id));
-  if (stale.size === 0) return { data, retired: noneRetired };
+  if (stale.size === 0 && unlisted.size === 0) return { data, retired: noneRetired };
 
   const parties = (agreement: Agreement) => [agreement.institutionId, ...(agreement.partnerInstitutionIds ?? [])];
   const current = new Set(
     data.agreements.filter((a) => !stale.has(a.id) && !isUndated(a)).flatMap(parties),
   );
-  const institutions = new Set(
-    data.agreements
+  const institutions = new Set([
+    ...unlisted,
+    ...data.agreements
       .filter((a) => stale.has(a.id))
       .flatMap(parties)
       .filter((id) => !current.has(id)),
-  );
+  ]);
   const agreements = new Set([
     ...stale,
-    ...data.agreements.filter((a) => isUndated(a) && institutions.has(a.institutionId)).map((a) => a.id),
+    ...data.agreements
+      .filter((a) => unlisted.has(a.institutionId) || (isUndated(a) && institutions.has(a.institutionId)))
+      .map((a) => a.id),
   ]);
 
   const availability = data.availability.filter((row) => !institutions.has(row.institutionId));

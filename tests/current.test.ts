@@ -96,4 +96,14 @@ describe("MoUs that ended before this year", () => {
     assert.equal(isRetiredRow(retired, { institutionId: "uni-a", agreementId: null }), true);
     assert.equal(isRetiredRow(retired, { institutionId: "uni-b", agreementId: "new-b" }), false);
   });
+
+  it("keeps only universities the register names, plus ones added in the portal", () => {
+    const data: Dataset = {
+      ...dataset([agreement("a1", "ofc-listed"), agreement("a2", "ofc-unlisted"), agreement("a3", "added-x7k2")]),
+      institutions: ["ofc-listed", "ofc-unlisted", "dir-unlisted", "added-x7k2"].map(institution),
+    };
+    const { data: current } = retireStaleAgreements(data, today, new Set(["ofc-listed"]));
+    assert.deepEqual(current.institutions.map((i) => i.id), ["ofc-listed", "added-x7k2"]);
+    assert.deepEqual(current.agreements.map((a) => a.id), ["a1", "a3"]);
+  });
 });

@@ -100,6 +100,9 @@ export function withRegisterSnapshot(base: Dataset): Dataset {
   };
 }
 
+/** Universities the DoIC MoU register lists, on any sheet. */
+export const registerInstitutions: ReadonlySet<string> = new Set(snapshot.listedInstitutions);
+
 /** Register details by agreement id. */
 export function snapshotDetails(): Map<string, AgreementDetails> {
   return new Map(

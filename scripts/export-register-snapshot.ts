@@ -33,6 +33,8 @@ const snapshot = {
   source: plan.sourceFile,
   batch: plan.batch,
   countries: plan.countries,
+  /** Every university a register row (any sheet) is matched to. */
+  listedInstitutions: [...new Set(plan.rows.flatMap((row) => (row.institutionSlug ? [row.institutionSlug] : [])))].sort(),
   institutions: plan.institutions.map(({ slug, name, normalizedName, countryId, excelRow }) => ({
     slug,
     name,

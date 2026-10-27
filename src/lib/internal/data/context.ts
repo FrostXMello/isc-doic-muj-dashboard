@@ -9,7 +9,7 @@ import {
   staticDataset,
 } from "@/lib/internal/data/dataset";
 import type { LocalRegister } from "@/lib/internal/data/local-register";
-import { withRegisterSnapshot } from "@/lib/internal/data/register-snapshot";
+import { registerInstitutions, withRegisterSnapshot } from "@/lib/internal/data/register-snapshot";
 import { type InternalDataSource, resolveInternalDataSource } from "@/lib/internal/data/source";
 import { createViews, type Views } from "@/lib/internal/data/views";
 import type { InstitutionContact } from "@/lib/internal/types";
@@ -40,7 +40,7 @@ type Prepared = { data: Dataset; views: Views; retired: Retired };
 let staticViews: (Prepared & { samples: boolean; today: string; local?: LocalRegister }) | undefined;
 
 function prepare(raw: Dataset, today: string): Prepared {
-  const { data, retired } = retireStaleAgreements(canonicalDataset(raw), today);
+  const { data, retired } = retireStaleAgreements(canonicalDataset(raw), today, registerInstitutions);
   return { data, views: createViews(data), retired };
 }
 
