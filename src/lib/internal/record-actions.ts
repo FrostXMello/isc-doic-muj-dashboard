@@ -2,6 +2,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
+import { isSnapshotAgreement, isSnapshotInstitution } from "@/lib/internal/data/register-snapshot";
 import { agreementHref } from "@/lib/internal/links";
 import {
   fieldError,
@@ -68,6 +69,10 @@ export async function saveInstitution(_state: RecordFormState, formData: FormDat
     is_public: input.isPublic,
     verification: input.verification,
     source_url: input.sourceUrl,
+    source_title: input.sourceTitle,
+    source_checked_on: input.sourceCheckedOn,
+    latitude: input.latitude,
+    longitude: input.longitude,
   };
 
   let slug = editing ? existingSlug : newInstitutionSlug(input.name);
@@ -75,7 +80,12 @@ export async function saveInstitution(_state: RecordFormState, formData: FormDat
   if (editing) {
     const result = await supabase.from("institutions").update(row).eq("slug", slug).select("slug");
     error = result.error;
-    if (!error && (result.data ?? []).length === 0) return withValues(notPermitted, formData);
+    if (!error && (result.data ?? []).length === 0) {
+      if (!isSnapshotInstitution(slug)) return withValues(notPermitted, formData);
+      const inserted = await supabase.from("institutions").insert({ ...row, slug }).select("slug");
+      error = inserted.error;
+      if (!error && (inserted.data ?? []).length === 0) return withValues(notPermitted, formData);
+    }
   } else {
     let result = await supabase.from("institutions").insert({ ...row, slug }).select("slug");
     // A slug collision is astronomically unlikely; retry once with a new suffix.
@@ -178,9 +188,12 @@ export async function saveAgreement(_state: RecordFormState, formData: FormData)
   };
 
   const code = editing ? existingCode : newAgreementCode();
-  const result = editing
+  let result = editing
     ? await supabase.from("agreements").update(row).eq("code", code).select("id")
     : await supabase.from("agreements").insert({ ...row, code }).select("id");
+  if (editing && !result.error && (result.data ?? []).length === 0 && isSnapshotAgreement(code)) {
+    result = await supabase.from("agreements").insert({ ...row, code }).select("id");
+  }
 
   if (result.error) {
     const { code: pgCode, message = "" } = result.error;

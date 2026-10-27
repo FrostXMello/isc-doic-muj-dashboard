@@ -31,7 +31,7 @@ const detailFields: { name: TextKey; label: string; hint?: string; long?: boolea
   { name: "recordedStatus", label: "Recorded status", hint: "As written in the register (Active, Expired, Closed)." },
   { name: "periodText", label: "Period", hint: "e.g. 5 years, Perpetual." },
   { name: "expiryText", label: "Expiry (text)", hint: "Only when the expiry is not a date, e.g. Perpetual." },
-  { name: "qsRanking", label: "QS ranking" },
+  { name: "qsRanking", label: "QS 2027 rank (override)" },
   { name: "theRanking", label: "THE ranking" },
   { name: "faculty", label: "Faculty" },
   { name: "department", label: "Department" },
@@ -45,11 +45,14 @@ export function AgreementDetailsForm({
   lead,
   initial,
   cancelHref,
+  publishedQs = null,
 }: {
   code: string;
   lead: string;
   initial: AgreementDetailsInitial;
   cancelHref: string;
+  /** The university's rank in the published QS 2027 table, if any. */
+  publishedQs?: string | null;
 }) {
   const [state, action, pending] = useActionState<RecordFormState, FormData>(saveAgreementDetails, {});
   const id = useId();
@@ -89,7 +92,11 @@ export function AgreementDetailsForm({
             id={field(name)}
             label={label}
             error={errors[name]}
-            hint={hint}
+            hint={
+              name === "qsRanking"
+                ? `Leave blank to show the published QS 2027 rank${publishedQs ? ` (${publishedQs})` : " (not ranked)"}.`
+                : hint
+            }
             className={long ? "sm:col-span-2" : undefined}
           >
             {long ? (
@@ -102,7 +109,7 @@ export function AgreementDetailsForm({
               />
             ) : (
               <input
-                {...describedBy(field(name), errors[name], Boolean(hint), "h-9")}
+                {...describedBy(field(name), errors[name], Boolean(hint) || name === "qsRanking", "h-9")}
                 name={name}
                 maxLength={detailTextLimits[name]}
                 defaultValue={valueOf(state, name, initial[name])}

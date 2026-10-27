@@ -112,7 +112,13 @@ export type InstitutionInput = {
   isPublic: boolean;
   verification: VerificationStatus;
   sourceUrl: string | null;
+  sourceTitle: string | null;
+  sourceCheckedOn: string | null;
+  latitude: number | null;
+  longitude: number | null;
 };
+
+const COORDINATE = /^-?\d{1,3}(\.\d+)?$/;
 
 export function parseInstitutionForm(formData: FormData): Parsed<InstitutionInput> {
   const errors: Record<string, string> = {};
@@ -124,6 +130,10 @@ export function parseInstitutionForm(formData: FormData): Parsed<InstitutionInpu
   const note = text(formData, "note");
   const verification = text(formData, "verification") || "unverified";
   const sourceUrl = text(formData, "sourceUrl");
+  const sourceTitle = text(formData, "sourceTitle");
+  const sourceCheckedOn = text(formData, "sourceCheckedOn");
+  const latitude = text(formData, "latitude");
+  const longitude = text(formData, "longitude");
 
   if (!name) errors.name = "Enter the university's name.";
   else if (name.length > 200) errors.name = "Use at most 200 characters.";
@@ -137,6 +147,17 @@ export function parseInstitutionForm(formData: FormData): Parsed<InstitutionInpu
   if (!isOneOf(verification, verificationOptions)) errors.verification = "Choose a verification state.";
   if (sourceUrl && (!URL_PATTERN.test(sourceUrl) || sourceUrl.length > 500)) {
     errors.sourceUrl = "Enter a full link starting with https://.";
+  }
+  if (sourceTitle.length > 300) errors.sourceTitle = "Use at most 300 characters.";
+  if (sourceCheckedOn && !isValidDate(sourceCheckedOn)) errors.sourceCheckedOn = "Enter a valid date.";
+  if (latitude && (!COORDINATE.test(latitude) || Math.abs(Number(latitude)) > 90)) {
+    errors.latitude = "Enter a latitude between -90 and 90.";
+  }
+  if (longitude && (!COORDINATE.test(longitude) || Math.abs(Number(longitude)) > 180)) {
+    errors.longitude = "Enter a longitude between -180 and 180.";
+  }
+  if (Boolean(latitude) !== Boolean(longitude) && !errors.latitude && !errors.longitude) {
+    errors[latitude ? "longitude" : "latitude"] = "Enter both coordinates, or neither.";
   }
 
   if (Object.keys(errors).length > 0) return fail(formData, errors);
@@ -152,6 +173,10 @@ export function parseInstitutionForm(formData: FormData): Parsed<InstitutionInpu
       isPublic: formData.get("isPublic") === "on",
       verification: verification as VerificationStatus,
       sourceUrl: optional(sourceUrl),
+      sourceTitle: optional(sourceTitle),
+      sourceCheckedOn: optional(sourceCheckedOn),
+      latitude: latitude ? Number(latitude) : null,
+      longitude: longitude ? Number(longitude) : null,
     },
   };
 }

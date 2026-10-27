@@ -373,7 +373,7 @@ export function AgreementRegisterFacts({ entry, showHeading = true }: { entry: A
             ? { label: "Renewal", value: agreement.renewal === "automatic" ? "Renews automatically" : "Renewed after review" }
             : null,
           fact("Recorded status", details?.recordedStatus),
-          fact("QS 2027", qs2027ForInstitution(agreement.institutionId)?.rank ?? details?.qsRanking),
+          fact("QS 2027", details?.qsRanking || qs2027ForInstitution(agreement.institutionId)?.rank),
           fact("THE ranking", details?.theRanking),
           fact("Faculty", details?.faculty),
           fact("Department", details?.department),

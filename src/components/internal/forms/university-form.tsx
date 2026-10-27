@@ -25,6 +25,10 @@ export type UniversityFormInitial = {
   isPublic: boolean;
   verification: VerificationStatus;
   sourceUrl: string | null;
+  sourceTitle?: string | null;
+  sourceCheckedOn?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 export function UniversityForm({
@@ -126,6 +130,45 @@ export function UniversityForm({
             placeholder="https://"
             maxLength={500}
             defaultValue={valueOf(state, "sourceUrl", initial.sourceUrl)}
+          />
+        </Field>
+        <Field id={field("sourceTitle")} label="Source title (optional)" error={errors.sourceTitle} hint="e.g. the page or register sheet name.">
+          <input
+            {...describedBy(field("sourceTitle"), errors.sourceTitle, true, "h-9")}
+            name="sourceTitle"
+            maxLength={300}
+            defaultValue={valueOf(state, "sourceTitle", initial.sourceTitle ?? null)}
+          />
+        </Field>
+        <Field id={field("sourceCheckedOn")} label="Source last checked (optional)" error={errors.sourceCheckedOn}>
+          <input
+            {...describedBy(field("sourceCheckedOn"), errors.sourceCheckedOn, false, "h-9")}
+            name="sourceCheckedOn"
+            type="date"
+            defaultValue={valueOf(state, "sourceCheckedOn", initial.sourceCheckedOn ?? null)}
+          />
+        </Field>
+        <Field
+          id={field("latitude")}
+          label="Latitude (optional)"
+          error={errors.latitude}
+          hint="Campus location, in decimal degrees. Enter both or neither."
+        >
+          <input
+            {...describedBy(field("latitude"), errors.latitude, true, "h-9 tabular-nums")}
+            name="latitude"
+            inputMode="decimal"
+            placeholder="26.84"
+            defaultValue={valueOf(state, "latitude", initial.latitude?.toString() ?? null)}
+          />
+        </Field>
+        <Field id={field("longitude")} label="Longitude (optional)" error={errors.longitude}>
+          <input
+            {...describedBy(field("longitude"), errors.longitude, false, "h-9 tabular-nums")}
+            name="longitude"
+            inputMode="decimal"
+            placeholder="75.56"
+            defaultValue={valueOf(state, "longitude", initial.longitude?.toString() ?? null)}
           />
         </Field>
         <Field id={field("note")} label="Review note (optional)" error={errors.note} className="sm:col-span-2">

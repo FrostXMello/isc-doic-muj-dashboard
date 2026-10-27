@@ -102,6 +102,14 @@ export function withRegisterSnapshot(base: Dataset): Dataset {
   };
 }
 
+const snapshotInstitutionIds = new Set(snapshot.institutions.map((row) => row.slug));
+
+/** A university the snapshot adds, which the database may not hold yet. */
+export const isSnapshotInstitution = (slug: string) => snapshotInstitutionIds.has(slug);
+
+/** An agreement the snapshot holds, which the database may not hold yet. */
+export const isSnapshotAgreement = (code: string) => registerScope.agreements.has(code);
+
 /** What the DoIC MoU register records, for `retireStaleAgreements`. */
 export const registerScope: RegisterScope = {
   listed: new Set(snapshot.listedInstitutions),

@@ -196,6 +196,7 @@ export function buildUniversityEntry(
   const universityRows = rows.filter((row) => !row.agreementId || !agreementIds.has(row.agreementId));
   const allDetails = entries.map((entry) => entry.details);
   const qs2027 = qs2027ForInstitution(institution.id);
+  const enteredQs = distinct(allDetails.map((details) => details?.qsRanking));
 
   const entry: UniversityEntry = {
     agreements: entries,
@@ -203,8 +204,9 @@ export function buildUniversityEntry(
     earlierOfficers: mergeOfficers(earlierContacts),
     universityRows,
     universityContacts,
-    // List and filters use QS World University Rankings 2027 (published 18 June 2026) only — not workbook-era values.
-    qsRankings: qs2027 ? [qs2027.rank] : [],
+    // QS World University Rankings 2027 (published 18 June 2026), unless DoIC entered a rank in the register
+    // details; workbook-era QS values are never imported into those details.
+    qsRankings: enteredQs.length > 0 ? enteredQs : qs2027 ? [qs2027.rank] : [],
     theRankings: distinct(allDetails.map((details) => details?.theRanking)),
     faculties: distinct(allDetails.map((details) => details?.faculty)),
     departments: distinct(allDetails.map((details) => department(details?.department))),

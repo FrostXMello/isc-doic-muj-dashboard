@@ -12,6 +12,7 @@ import { listInstitutionOptions } from "@/lib/internal/data/institutions";
 import { loadRegister } from "@/lib/internal/data/register";
 import { agreementHref } from "@/lib/internal/links";
 import { deleteAgreement } from "@/lib/internal/record-actions";
+import { qs2027ForInstitution } from "@/lib/official/qs-rankings-2027";
 
 export const metadata: Metadata = { title: "Edit MoU" };
 
@@ -77,6 +78,7 @@ export default async function EditAgreementPage({ params }: Props) {
                 code={agreement.id}
                 lead={agreement.institutionId}
                 cancelHref={backHref}
+                publishedQs={qs2027ForInstitution(agreement.institutionId)?.rank ?? null}
                 initial={{
                   doicReference: details?.doicReference ?? null,
                   initiationYear: details?.initiationYear ?? null,

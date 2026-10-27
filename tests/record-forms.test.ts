@@ -118,6 +118,36 @@ describe("parseInstitutionForm", () => {
     if (result.ok) return;
     assert.deepEqual(Object.keys(result.state.fieldErrors ?? {}).sort(), ["country", "name", "website"]);
   });
+
+  it("parses provenance and coordinates", () => {
+    const result = parseInstitutionForm(
+      form({
+        name: "Example University",
+        country: "united-kingdom",
+        sourceTitle: "MoU list row 12",
+        sourceCheckedOn: "2026-10-27",
+        latitude: "51.5",
+        longitude: "-0.12",
+      }),
+    );
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    assert.equal(result.value.sourceTitle, "MoU list row 12");
+    assert.equal(result.value.sourceCheckedOn, "2026-10-27");
+    assert.equal(result.value.latitude, 51.5);
+    assert.equal(result.value.longitude, -0.12);
+  });
+
+  it("rejects a lone or out-of-range coordinate and an invalid check date", () => {
+    const lone = parseInstitutionForm(form({ name: "X", country: "uk", latitude: "10" }));
+    assert.equal(lone.ok, false);
+    if (!lone.ok) assert.deepEqual(Object.keys(lone.state.fieldErrors ?? {}), ["longitude"]);
+    const bad = parseInstitutionForm(
+      form({ name: "X", country: "uk", latitude: "95", longitude: "10", sourceCheckedOn: "2026-02-30" }),
+    );
+    assert.equal(bad.ok, false);
+    if (!bad.ok) assert.deepEqual(Object.keys(bad.state.fieldErrors ?? {}).sort(), ["latitude", "sourceCheckedOn"]);
+  });
 });
 
 describe("generated keys", () => {
