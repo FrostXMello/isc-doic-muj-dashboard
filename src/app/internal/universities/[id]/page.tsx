@@ -76,6 +76,13 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
     offerings,
     today,
   });
+  const summary = [
+    `${institution.activeAgreementCount} of ${agreements.length} MoU${agreements.length === 1 ? "" : "s"} active`,
+    entry.qsRankings[0] ? `QS ${entry.qsRankings[0]}` : null,
+    activities.length ? `${activities.length} event${activities.length === 1 ? "" : "s"}` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <div className="space-y-6">
@@ -112,10 +119,12 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
 
       {notice ? <SuccessNotice>{notice}</SuccessNotice> : null}
 
-      <InsightsCard tabs={insights} />
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+        <div className="min-w-0 lg:col-start-3 lg:row-start-1">
+          <InsightsCard compact tabs={insights} subtitle={summary} />
+        </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="min-w-0 space-y-6 lg:col-span-2">
+        <div className="min-w-0 space-y-6 lg:col-span-2 lg:col-start-1 lg:row-span-2 lg:row-start-1">
           <DetailSection
             title={`MoUs (${agreements.length})`}
             icon={FileText}
@@ -152,7 +161,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
           </DetailSection>
         </div>
 
-        <div className="min-w-0 space-y-6">
+        <div className="min-w-0 space-y-6 lg:col-start-3 lg:row-start-2">
           <DetailSection
             id="contacts"
             title="Nodal officers"

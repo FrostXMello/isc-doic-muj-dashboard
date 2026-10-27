@@ -35,14 +35,19 @@ const DAY = 86_400_000;
 const time = (iso: string) => new Date(`${iso}T00:00:00Z`).getTime();
 const year = (ms: number) => new Date(ms).getUTCFullYear();
 
-function Stats({ stats }: { stats: InsightStat[] }) {
+function Stats({ stats, compact }: { stats: InsightStat[]; compact?: boolean }) {
   return (
-    <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-hairline sm:grid-cols-3">
+    <dl className={cn("grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-hairline", !compact && "sm:grid-cols-3")}>
       {stats.map((stat) => {
         const body = (
           <>
-            <dt className="text-[11px] tracking-[0.08em] text-fg-faint uppercase">{stat.label}</dt>
-            <dd className="mt-1 flex items-center gap-1.5 text-[17px] leading-tight font-medium text-foreground tabular-nums [overflow-wrap:anywhere]">
+            <dt className="text-[10.5px] tracking-[0.08em] text-fg-faint uppercase">{stat.label}</dt>
+            <dd
+              className={cn(
+                "mt-1 flex items-center gap-1.5 leading-tight font-medium text-foreground tabular-nums [overflow-wrap:anywhere]",
+                compact ? "text-[14.5px]" : "text-[17px]",
+              )}
+            >
               {stat.tone ? <span aria-hidden className={cn("size-2 shrink-0 rounded-full", toneStyles[stat.tone].dot)} /> : null}
               {stat.value}
             </dd>
@@ -52,11 +57,11 @@ function Stats({ stats }: { stats: InsightStat[] }) {
         return (
           <div key={stat.label} className="min-w-0 bg-card">
             {stat.href ? (
-              <Link href={stat.href} className="block h-full px-3.5 py-3 transition-colors hover:bg-overlay">
+              <Link href={stat.href} className={cn("block h-full transition-colors hover:bg-overlay", compact ? "px-3 py-2.5" : "px-3.5 py-3")}>
                 {body}
               </Link>
             ) : (
-              <div className="px-3.5 py-3">{body}</div>
+              <div className={compact ? "px-3 py-2.5" : "px-3.5 py-3"}>{body}</div>
             )}
           </div>
         );
@@ -233,7 +238,20 @@ function Items({ items }: { items: InsightItem[] }) {
   );
 }
 
-export function InsightsCard({ title = "Insights", tabs, className }: { title?: string; tabs: InsightTab[]; className?: string }) {
+export function InsightsCard({
+  title = "Insights",
+  subtitle,
+  tabs,
+  compact = false,
+  className,
+}: {
+  title?: string;
+  subtitle?: string;
+  tabs: InsightTab[];
+  /** Narrow layout for a side column. */
+  compact?: boolean;
+  className?: string;
+}) {
   const [selected, setSelected] = useState(tabs[0]?.id);
   const id = useId();
   const tab = tabs.find((row) => row.id === selected) ?? tabs[0];
@@ -243,14 +261,35 @@ export function InsightsCard({ title = "Insights", tabs, className }: { title?: 
   );
 
   return (
-    <section aria-labelledby={`${id}-title`} className={cn("portal-surface overflow-hidden", className)}>
-      <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-4 sm:px-6">
-        <h2 id={`${id}-title`} className="flex items-center gap-2 text-[11px] font-medium tracking-[0.2em] text-muj-fg uppercase">
-          <Sparkles className="size-3.5" aria-hidden />
-          {title}
-        </h2>
+    <section aria-labelledby={`${id}-title`} className={cn("portal-surface relative overflow-hidden", className)}>
+      {compact ? (
+        <span
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-(--muj) via-(--reach-2) to-(--reach-3)"
+        />
+      ) : null}
+      <div
+        className={cn(
+          "flex gap-3",
+          compact ? "flex-col px-4 pt-5" : "flex-wrap items-center justify-between px-5 pt-4 sm:px-6",
+        )}
+      >
+        <div className="min-w-0">
+          <h2 id={`${id}-title`} className="flex items-center gap-2 text-[11px] font-medium tracking-[0.2em] text-muj-fg uppercase">
+            <Sparkles className="size-3.5" aria-hidden />
+            {title}
+          </h2>
+          {subtitle ? <p className="mt-1 truncate text-[12px] text-muted-foreground">{subtitle}</p> : null}
+        </div>
         {tabs.length > 1 ? (
-          <div role="tablist" aria-label={title} className="flex flex-wrap gap-1 rounded-full bg-overlay p-1">
+          <div
+            role="tablist"
+            aria-label={title}
+            className={cn(
+              "gap-1 rounded-full bg-overlay p-1",
+              compact ? "grid auto-cols-fr grid-flow-col" : "flex flex-wrap",
+            )}
+          >
             {tabs.map((row) => (
               <button
                 key={row.id}
@@ -261,7 +300,8 @@ export function InsightsCard({ title = "Insights", tabs, className }: { title?: 
                 aria-controls={`${id}-panel`}
                 onClick={() => setSelected(row.id)}
                 className={cn(
-                  "rounded-full px-3 py-1 text-[12px] transition-colors",
+                  "rounded-full py-1 transition-colors",
+                  compact ? "px-2 text-[11.5px]" : "px-3 text-[12px]",
                   row.id === tab.id ? "bg-card text-foreground shadow-sm" : "text-fg-subtle hover:text-foreground",
                 )}
               >
@@ -276,9 +316,9 @@ export function InsightsCard({ title = "Insights", tabs, className }: { title?: 
         id={`${id}-panel`}
         role="tabpanel"
         aria-labelledby={`${id}-tab-${tab.id}`}
-        className="dash-rise space-y-4 px-5 pt-4 pb-5 sm:px-6"
+        className={cn("dash-rise space-y-4", compact ? "px-4 pt-3 pb-4" : "px-5 pt-4 pb-5 sm:px-6")}
       >
-        {tab.stats?.length ? <Stats stats={tab.stats} /> : null}
+        {tab.stats?.length ? <Stats stats={tab.stats} compact={compact} /> : null}
         {tab.highlights?.length ? <Highlights items={tab.highlights} /> : null}
         {tab.timeline && (tab.timeline.bars.length || tab.timeline.undated.length) ? <Timeline {...tab.timeline} /> : null}
         {tab.counts?.length ? <Counts counts={tab.counts} /> : null}

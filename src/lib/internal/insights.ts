@@ -98,7 +98,7 @@ export function universityInsights({
   if (agreements.length > 0) {
     tabs.push({
       id: "timeline",
-      label: "MoU timeline",
+      label: "Timeline",
       timeline: {
         today,
         bars: agreements
