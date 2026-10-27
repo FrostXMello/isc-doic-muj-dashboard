@@ -5,29 +5,72 @@
  *
  *   npm run db:mou:snapshot
  *
- * Contains dates, statuses, faculty, department, scope, and programme notes
- * only. Nodal officers, contact details, remarks, and source rows stay in
- * data/private/ and the import SQL.
+ * Contains dates, statuses, faculty, department, scope, programme notes, and
+ * the register's source rows without their personal columns. Nodal officers,
+ * contact details, and remarks stay in data/private/ and the import SQL.
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { todayISO } from "@/lib/internal/dates";
+import { type CellValue, fieldsBeforeShift, hasShiftedColumns, mouList } from "@/lib/internal/workbook/source";
 import { loadExisting } from "./mou-workbook/existing";
 import { buildPlan, type Workbook } from "./mou-workbook/plan";
 
-const PERSONAL = /@|\+?\d[\d\s-]{8,}\d|\b(dr|prof|mr|mrs|ms)\.?\s+[A-Z]/i;
+const PERSONAL_TEXT = /[\w.+-]+@[\w-]+\.[\w.]+|\b(dr|prof|mr|mrs|ms)\.?\s+[A-Z]/i;
+const PHONE = /^\+?[\d\s()-]{10,}$/;
+const looksPersonal = (value: string) =>
+  PERSONAL_TEXT.test(value) || (PHONE.test(value.trim()) && (value.match(/\d/g) ?? []).length >= 10);
 
 const workbook = JSON.parse(readFileSync("data/private/mou_details_structured.json", "utf8")) as Workbook;
 const plan = buildPlan(workbook, loadExisting(), todayISO());
 
 const flagged: string[] = [];
 const clean = (code: string, field: string, value: string | null) => {
-  if (value && PERSONAL.test(value)) {
+  if (value && looksPersonal(value)) {
     flagged.push(`${code} ${field}: ${value.slice(0, 80)}`);
     return null;
   }
   return value;
 };
+
+/** Columns that name or reach a person; never exported. */
+const PERSONAL_COLUMNS = new Set<string>([
+  mouList.nodal,
+  mouList.revisedNodal,
+  mouList.nodalEmail,
+  mouList.nodalPhone,
+  mouList.partner,
+  mouList.partnerEmail,
+  mouList.partnerPhone,
+  mouList.remarks,
+  "Nodal officer Contact number Sunita",
+]);
+
+const rows = plan.rows
+  .filter((row) => row.institutionSlug && row.sheet !== "national-mous")
+  .map((row) => {
+    const values: Record<string, CellValue> = {};
+    const shifted = row.sheet === "mou-list" && hasShiftedColumns(row.values);
+    for (const [header, value] of Object.entries(row.values)) {
+      if (PERSONAL_COLUMNS.has(header)) continue;
+      if (shifted && !fieldsBeforeShift.includes(header)) continue;
+      if (typeof value === "string" && looksPersonal(value)) {
+        flagged.push(`${row.importKey} ${header}: ${value.slice(0, 80)}`);
+        continue;
+      }
+      values[header] = value;
+    }
+    return {
+      importKey: row.importKey,
+      sheet: row.sheet,
+      excelRow: row.excelRow,
+      values,
+      formulas: Object.fromEntries(Object.entries(row.formulas).filter(([header]) => header in values)),
+      institutionId: row.institutionSlug,
+      agreementId: row.agreementCode,
+      matchStatus: row.matchStatus,
+    };
+  });
 
 const snapshot = {
   source: plan.sourceFile,
@@ -69,6 +112,7 @@ const snapshot = {
       programmeReference: clean(a.code, "programme", a.details.programmeReference),
     },
   })),
+  rows,
 };
 
 writeFileSync("src/lib/internal/data/register-snapshot.json", `${JSON.stringify(snapshot, null, 1)}\n`);

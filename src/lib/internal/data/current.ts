@@ -11,7 +11,7 @@ import type { Agreement } from "@/lib/internal/types";
  * usually the same MoU listed without dates. A retired university's undated
  * agreements, programme offerings, and opportunities are retired with it;
  * activities and documents stay, unlinked from it. The same applies to a
- * university the DoIC MoU register does not name (see `listed` below).
+ * university the DoIC MoU register does not name (see `register` below).
  */
 
 export type Retired = { agreements: ReadonlySet<string>; institutions: ReadonlySet<string> };
@@ -35,21 +35,42 @@ const isUndated = (agreement: Agreement) => agreement.endDate === null && agreem
 /** Ids from the official records, the earlier directory, or the register import; portal-created ids have none. */
 const CATALOGUED = /^(ofc|dir|wb)-/;
 
+export type RegisterScope = {
+  /** Universities the DoIC MoU register names, on any sheet. */
+  listed: ReadonlySet<string>;
+  /** Agreements the register's MoU list records. */
+  agreements: ReadonlySet<string>;
+  /** Register agreements recorded "Expired" with no signing or expiry date. */
+  expired: ReadonlySet<string>;
+};
+
 /**
- * `listed`: universities the DoIC MoU register names. A catalogued university
- * it does not name is retired with all of its agreements; universities added
- * in the portal are kept.
+ * `register`: a catalogued university the register does not name is retired
+ * with all of its agreements (universities added in the portal are kept); an
+ * agreement it records as expired without dates is retired; and an undated
+ * agreement it does not record, at a university it records one for, is the
+ * same MoU listed again and is dropped.
  */
 export function retireStaleAgreements(
   data: Dataset,
   today: string,
-  listed?: ReadonlySet<string>,
+  register?: RegisterScope,
 ): { data: Dataset; retired: Retired } {
   const unlisted = new Set(
-    listed ? data.institutions.filter((row) => CATALOGUED.test(row.id) && !listed.has(row.id)).map((row) => row.id) : [],
+    register
+      ? data.institutions.filter((row) => CATALOGUED.test(row.id) && !register.listed.has(row.id)).map((row) => row.id)
+      : [],
   );
-  const stale = new Set(data.agreements.filter((a) => isRetiredAgreement(a, today)).map((a) => a.id));
-  if (stale.size === 0 && unlisted.size === 0) return { data, retired: noneRetired };
+  const stale = new Set(
+    data.agreements.filter((a) => isRetiredAgreement(a, today) || register?.expired.has(a.id)).map((a) => a.id),
+  );
+  const inRegister = new Set(
+    register ? data.agreements.filter((a) => register.agreements.has(a.id)).map((a) => a.institutionId) : [],
+  );
+  const duplicates = data.agreements.filter(
+    (a) => register && isUndated(a) && !register.agreements.has(a.id) && inRegister.has(a.institutionId),
+  );
+  if (stale.size === 0 && unlisted.size === 0 && duplicates.length === 0) return { data, retired: noneRetired };
 
   const parties = (agreement: Agreement) => [agreement.institutionId, ...(agreement.partnerInstitutionIds ?? [])];
   const current = new Set(
@@ -64,6 +85,7 @@ export function retireStaleAgreements(
   ]);
   const agreements = new Set([
     ...stale,
+    ...duplicates.map((a) => a.id),
     ...data.agreements
       .filter((a) => unlisted.has(a.institutionId) || (isUndated(a) && institutions.has(a.institutionId)))
       .map((a) => a.id),

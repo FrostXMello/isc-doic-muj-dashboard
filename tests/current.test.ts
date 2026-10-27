@@ -102,8 +102,31 @@ describe("MoUs that ended before this year", () => {
       ...dataset([agreement("a1", "ofc-listed"), agreement("a2", "ofc-unlisted"), agreement("a3", "added-x7k2")]),
       institutions: ["ofc-listed", "ofc-unlisted", "dir-unlisted", "added-x7k2"].map(institution),
     };
-    const { data: current } = retireStaleAgreements(data, today, new Set(["ofc-listed"]));
+    const register = { listed: new Set(["ofc-listed"]), agreements: new Set<string>(), expired: new Set<string>() };
+    const { data: current } = retireStaleAgreements(data, today, register);
     assert.deepEqual(current.institutions.map((i) => i.id), ["ofc-listed", "added-x7k2"]);
     assert.deepEqual(current.agreements.map((a) => a.id), ["a1", "a3"]);
+  });
+
+  it("retires undated MoUs the register records as expired, and undated repeats of a register MoU", () => {
+    const undated = { startDate: null, endDate: null, recordStatus: "not-stated" } as const;
+    const data: Dataset = {
+      ...dataset([
+        agreement("wb-1", "ofc-a"),
+        agreement("ofc-repeat", "ofc-a", undated),
+        agreement("wb-2", "ofc-b", undated),
+        agreement("ofc-only", "ofc-c", undated),
+      ]),
+      institutions: ["ofc-a", "ofc-b", "ofc-c"].map(institution),
+    };
+    const register = {
+      listed: new Set(["ofc-a", "ofc-b", "ofc-c"]),
+      agreements: new Set(["wb-1", "wb-2"]),
+      expired: new Set(["wb-2"]),
+    };
+    const { data: current, retired } = retireStaleAgreements(data, today, register);
+    assert.deepEqual(current.agreements.map((a) => a.id), ["wb-1", "ofc-only"]);
+    assert.deepEqual(current.institutions.map((i) => i.id), ["ofc-a", "ofc-c"]);
+    assert.equal(retired.institutions.has("ofc-a"), false);
   });
 });

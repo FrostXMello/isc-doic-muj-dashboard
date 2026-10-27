@@ -14,7 +14,8 @@ import { EmptyState } from "@/components/internal/ui/empty-state";
 import { canManage, ManageLink } from "@/components/internal/ui/manage-action";
 import Link from "next/link";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
+import { VerificationBadge } from "@/components/internal/ui/provenance";
+import { UniversityProvenance } from "@/components/internal/university-provenance";
 import {
   ContactRows,
   ExpiryIndicator,
@@ -60,6 +61,10 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
   const { today, institution, agreements, offerings, opportunities, activities, documents, peers, contactAccess, register, entry } =
     record;
   const registerByAgreement = new Map(entry.agreements.map((item) => [item.agreement.id, item]));
+  const registerRows = [
+    ...entry.agreements.flatMap(({ rows }) => [...rows.list, ...rows.status, ...rows.renewal, ...rows.link]),
+    ...entry.universityRows,
+  ];
   const openAgreement = readParam(query, "agreement");
   const notice = notices[readParam(query, "notice") ?? ""];
   const note =
@@ -106,7 +111,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
       {notice ? <SuccessNotice>{notice}</SuccessNotice> : null}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           <DetailSection
             title={`MoUs & agreements (${agreements.length})`}
             icon={FileText}
@@ -231,7 +236,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
           </DetailSection>
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <DetailSection title="Institution profile" icon={Globe}>
             <KeyValueList
               className="sm:grid-cols-1"
@@ -277,8 +282,8 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
             />
           </DetailSection>
 
-          <DetailSection title="Provenance" icon={Link2}>
-            <KeyValueList className="sm:grid-cols-1" items={provenanceItems(institution)} />
+          <DetailSection title="Provenance" icon={Link2} description="Where this record comes from.">
+            <UniversityProvenance institution={institution} rows={registerRows} register={register} />
           </DetailSection>
 
           <DetailSection

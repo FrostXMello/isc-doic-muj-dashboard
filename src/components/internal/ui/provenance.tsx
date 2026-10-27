@@ -19,10 +19,10 @@ export function SourceLink({ url, title }: { url: string; title: string | null }
       href={url}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex items-center gap-1 text-muj-fg underline-offset-4 hover:text-foreground hover:underline"
+      className="text-muj-fg underline-offset-4 [overflow-wrap:anywhere] hover:text-foreground hover:underline"
     >
       {title ?? url}
-      <ArrowUpRight className="size-3.5 shrink-0" aria-hidden />
+      <ArrowUpRight className="ml-1 inline size-3.5 align-[-2px]" aria-hidden />
     </a>
   );
 }

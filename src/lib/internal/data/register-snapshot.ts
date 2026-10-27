@@ -1,7 +1,9 @@
 import type { Dataset } from "@/lib/internal/data/dataset";
-import type { AgreementDetails } from "@/lib/internal/data/register";
+import type { RegisterScope } from "@/lib/internal/data/current";
+import type { AgreementDetails, MatchStatus, RegisterRow } from "@/lib/internal/data/register";
 import snapshot from "@/lib/internal/data/register-snapshot.json";
 import type { Agreement, AgreementRecordStatus, AgreementType, Institution, Region } from "@/lib/internal/types";
+import type { CellValue, SheetKey } from "@/lib/internal/workbook/source";
 import { officialCountries, referenceCountries } from "@/lib/official/countries";
 
 /**
@@ -100,8 +102,33 @@ export function withRegisterSnapshot(base: Dataset): Dataset {
   };
 }
 
-/** Universities the DoIC MoU register lists, on any sheet. */
-export const registerInstitutions: ReadonlySet<string> = new Set(snapshot.listedInstitutions);
+/** What the DoIC MoU register records, for `retireStaleAgreements`. */
+export const registerScope: RegisterScope = {
+  listed: new Set(snapshot.listedInstitutions),
+  agreements: new Set(snapshot.agreements.map((row) => row.code)),
+  expired: new Set(
+    snapshot.agreements
+      .filter((row) => !row.startDate && !row.endDate && /^expired$/i.test(row.details.recordedStatus?.trim() ?? ""))
+      .map((row) => row.code),
+  ),
+};
+
+/** Register source rows, without the columns that name or reach a person. */
+export function snapshotRows(): RegisterRow[] {
+  return snapshot.rows.map((row) => ({
+    importKey: row.importKey,
+    workbook: snapshot.source,
+    sheet: row.sheet as SheetKey,
+    excelRow: row.excelRow,
+    values: row.values as unknown as Record<string, CellValue>,
+    formulas: row.formulas as unknown as Record<string, string>,
+    issues: [],
+    institutionId: row.institutionId,
+    agreementId: row.agreementId,
+    matchStatus: row.matchStatus as MatchStatus,
+    matchNote: null,
+  }));
+}
 
 /** Register details by agreement id. */
 export function snapshotDetails(): Map<string, AgreementDetails> {

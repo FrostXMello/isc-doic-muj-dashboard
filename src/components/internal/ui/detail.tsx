@@ -88,19 +88,19 @@ export function KeyValueList({
   className?: string;
 }) {
   return (
-    <dl className={cn("grid grid-cols-1 gap-x-6 sm:grid-cols-2", className)}>
+    <dl className={cn("grid grid-cols-1 sm:grid-cols-2", className)}>
       {items.map((item) => (
         <div
           key={item.label}
           className={cn(
-            "border-t border-hairline px-6 py-4",
+            "min-w-0 border-t border-hairline px-6 py-4",
             item.wide && "sm:col-span-2",
           )}
         >
           <dt className="text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">
             {item.label}
           </dt>
-          <dd className="mt-1.5 text-[14px] leading-relaxed text-foreground">{item.value}</dd>
+          <dd className="mt-1.5 text-[14px] leading-relaxed [overflow-wrap:anywhere] text-foreground">{item.value}</dd>
         </div>
       ))}
     </dl>

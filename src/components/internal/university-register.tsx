@@ -241,7 +241,7 @@ export function WorkflowMilestones({ row }: { row: RegisterRow }) {
           {steps.map(({ header, cell }) => (
             <li
               key={header}
-              className="rounded-full border border-line-strong px-2.5 py-0.5 text-[11.5px] text-fg-soft"
+              className="max-w-full rounded-full border border-line-strong px-2.5 py-0.5 text-[11.5px] [overflow-wrap:anywhere] text-fg-soft"
             >
               <span className="text-fg-faint">{fieldLabel(header)}:</span>{" "}
               {cell.kind === "withheld" ? "formula output withheld" : cell.text}

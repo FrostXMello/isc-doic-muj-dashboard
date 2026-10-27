@@ -150,13 +150,17 @@ export async function AgreementCard({
                 </span>
               ),
             },
-            { label: "Start date", value: formatDate(agreement.startDate, "Not stated") },
-            { label: "Expiry date", value: formatDate(agreement.endDate, "Not stated") },
+            ...(register
+              ? []
+              : [
+                  { label: "Start date", value: formatDate(agreement.startDate, "Not stated") },
+                  { label: "Expiry date", value: formatDate(agreement.endDate, "Not stated") },
+                  {
+                    label: "Renewal",
+                    value: agreement.renewal ? renewalText[agreement.renewal] : <NotRecorded />,
+                  },
+                ]),
             { label: "Duration", value: duration ?? <NotRecorded>Not stated</NotRecorded> },
-            {
-              label: "Renewal",
-              value: agreement.renewal ? renewalText[agreement.renewal] : <NotRecorded />,
-            },
             { label: "Reference", value: <span className="font-mono">{agreement.reference}</span> },
             { label: "Verification", value: <VerificationBadge status={agreement.verification} /> },
             ...(agreement.sourceSection ? [{ label: "Listed under", value: agreement.sourceSection }] : []),
@@ -199,17 +203,21 @@ export async function AgreementCard({
                   "This university only"
                 ),
             },
-            {
-              label: "Collaboration areas",
-              wide: true,
-              value:
-                agreement.collaborationAreas.length > 0 ? (
-                  agreement.collaborationAreas.join(", ")
-                ) : (
-                  <NotRecorded />
-                ),
-            },
-            { label: "Notes", wide: true, value: agreement.notes ?? <NotRecorded /> },
+            ...(register
+              ? []
+              : [
+                  {
+                    label: "Collaboration areas",
+                    wide: true,
+                    value:
+                      agreement.collaborationAreas.length > 0 ? (
+                        agreement.collaborationAreas.join(", ")
+                      ) : (
+                        <NotRecorded />
+                      ),
+                  },
+                  { label: "Notes", wide: true, value: agreement.notes ?? <NotRecorded /> },
+                ]),
           ]}
         />
         <TermProgress agreement={agreement} today={today} />
@@ -221,44 +229,56 @@ export async function AgreementCard({
           </div>
         ) : null}
 
-        <div className="grid grid-cols-1 border-t border-hairline md:grid-cols-3 md:divide-x md:divide-hairline">
-          <RelatedBlock title="Documents">
-            <LinkedList
-              emptyTitle="No documents linked"
-              items={documents.map((doc) => ({
-                key: doc.id,
-                href: `/internal/documents/${doc.id}`,
-                title: doc.title,
-                meta: documentTypeLabel[doc.type],
-                badge: <DocumentStatusBadge status={doc.status} />,
-              }))}
-            />
-          </RelatedBlock>
-          <RelatedBlock title="Programme offerings">
-            <LinkedList
-              emptyTitle="No offerings cite it"
-              items={offerings.map((offering) => ({
-                key: offering.id,
-                href: `/internal/programs/${offering.id}`,
-                title: offering.program.name,
-                meta: offering.duration ?? "Duration not recorded",
-                badge: <AvailabilityBadge availability={offering.availability} />,
-              }))}
-            />
-          </RelatedBlock>
-          <RelatedBlock title="Activities">
-            <LinkedList
-              emptyTitle="No activities linked"
-              items={activities.map((activity) => ({
-                key: activity.id,
-                href: `/internal/activities/${activity.id}`,
-                title: activity.title,
-                meta: formatDateRange(activity.startDate, activity.endDate),
-                badge: <ActivityStatusBadge status={activity.status} />,
-              }))}
-            />
-          </RelatedBlock>
-        </div>
+        {documents.length + offerings.length + activities.length > 0 ? (
+          <div className="grid grid-cols-1 border-t border-hairline xl:grid-cols-2">
+            {documents.length > 0 ? (
+              <RelatedBlock title="Documents">
+                <LinkedList
+                  emptyTitle="No documents linked"
+                  items={documents.map((doc) => ({
+                    key: doc.id,
+                    href: `/internal/documents/${doc.id}`,
+                    title: doc.title,
+                    meta: documentTypeLabel[doc.type],
+                    badge: <DocumentStatusBadge status={doc.status} />,
+                  }))}
+                />
+              </RelatedBlock>
+            ) : null}
+            {offerings.length > 0 ? (
+              <RelatedBlock title="Programme offerings">
+                <LinkedList
+                  emptyTitle="No offerings cite it"
+                  items={offerings.map((offering) => ({
+                    key: offering.id,
+                    href: `/internal/programs/${offering.id}`,
+                    title: offering.program.name,
+                    meta: offering.duration ?? "Duration not recorded",
+                    badge: <AvailabilityBadge availability={offering.availability} />,
+                  }))}
+                />
+              </RelatedBlock>
+            ) : null}
+            {activities.length > 0 ? (
+              <RelatedBlock title="Activities">
+                <LinkedList
+                  emptyTitle="No activities linked"
+                  items={activities.map((activity) => ({
+                    key: activity.id,
+                    href: `/internal/activities/${activity.id}`,
+                    title: activity.title,
+                    meta: formatDateRange(activity.startDate, activity.endDate),
+                    badge: <ActivityStatusBadge status={activity.status} />,
+                  }))}
+                />
+              </RelatedBlock>
+            ) : null}
+          </div>
+        ) : (
+          <p className="border-t border-hairline px-6 py-3 text-[12px] text-fg-faint">
+            No documents, programme offerings, or activities are linked to this MoU yet.
+          </p>
+        )}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-hairline px-6 py-3">
           <ManageLink
@@ -293,8 +313,8 @@ export async function AgreementCard({
 
 function RelatedBlock({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="border-b border-hairline last:border-b-0 md:border-b-0">
-      <p className="px-6 pt-3 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">{title}</p>
+    <div className="min-w-0 pb-1">
+      <p className="px-6 pt-3 pb-2 text-[11px] font-medium tracking-[0.14em] text-fg-faint uppercase">{title}</p>
       {children}
     </div>
   );
