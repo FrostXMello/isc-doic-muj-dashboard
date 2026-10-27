@@ -1,6 +1,7 @@
 import { connection } from "next/server";
 import { cache } from "react";
 import { todayISO } from "@/lib/internal/dates";
+import { isRetiredRow, type Retired, retireStaleAgreements } from "@/lib/internal/data/current";
 import {
   canonicalDataset,
   type Dataset,
@@ -29,9 +30,22 @@ export type DataContext = {
   data: Dataset;
   views: Views;
   contactAccess: ContactAccess;
+  /** Agreements and universities left out because they ended before this year (see ./current.ts). */
+  retired: Retired;
 };
 
-let staticViews: { samples: boolean; local?: LocalRegister; data: Dataset; views: Views } | undefined;
+type Prepared = { data: Dataset; views: Views; retired: Retired };
+
+let staticViews: (Prepared & { samples: boolean; today: string; local?: LocalRegister }) | undefined;
+
+function prepare(raw: Dataset, today: string): Prepared {
+  const { data, retired } = retireStaleAgreements(canonicalDataset(raw), today);
+  return { data, views: createViews(data), retired };
+}
+
+function currentContacts(contacts: readonly InstitutionContact[], retired: Retired) {
+  return contacts.filter((contact) => !isRetiredRow(retired, contact));
+}
 
 /**
  * Entry point for every repository call.
@@ -52,15 +66,14 @@ export const openDataContext = cache(async (): Promise<DataContext> => {
     const { loadSupabaseDataset } = await import("@/lib/internal/data/supabase-source");
     const loaded = await loadSupabaseDataset();
     const { internalRole, contacts } = loaded;
-    const data = canonicalDataset(loaded.data);
+    const prepared = prepare(loaded.data, today);
     return {
       today,
       source,
       sampleData,
-      data,
-      views: createViews(data),
+      ...prepared,
       contactAccess: internalRole
-        ? { state: "granted", contacts }
+        ? { state: "granted", contacts: currentContacts(contacts, prepared.retired) }
         : { state: "restricted", reason: "no-internal-role" },
     };
   }
@@ -68,30 +81,32 @@ export const openDataContext = cache(async (): Promise<DataContext> => {
   const { localRegisterEnabled, loadLocalRegister } = await import("@/lib/internal/data/local-register");
   if (localRegisterEnabled()) {
     const local = loadLocalRegister(staticDataset(sampleData), today);
-    if (staticViews?.local !== local) {
-      const data = canonicalDataset(local.data);
-      staticViews = { samples: sampleData, local, data, views: createViews(data) };
+    if (staticViews?.local !== local || staticViews.today !== today) {
+      staticViews = { samples: sampleData, today, local, ...prepare(local.data, today) };
     }
+    const { data, views, retired } = staticViews;
     return {
       today,
       source,
       sampleData,
-      data: staticViews.data,
-      views: staticViews.views,
-      contactAccess: { state: "granted", contacts: local.contacts },
+      data,
+      views,
+      retired,
+      contactAccess: { state: "granted", contacts: currentContacts(local.contacts, retired) },
     };
   }
 
-  if (!staticViews || staticViews.samples !== sampleData || staticViews.local) {
-    const data = canonicalDataset(staticDataset(sampleData));
-    staticViews = { samples: sampleData, data, views: createViews(data) };
+  if (!staticViews || staticViews.samples !== sampleData || staticViews.local || staticViews.today !== today) {
+    staticViews = { samples: sampleData, today, ...prepare(staticDataset(sampleData), today) };
   }
+  const { data, views, retired } = staticViews;
   return {
     today,
     source,
     sampleData,
-    data: staticViews.data,
-    views: staticViews.views,
+    data,
+    views,
+    retired,
     contactAccess: { state: "restricted", reason: "static-source" },
   };
 });

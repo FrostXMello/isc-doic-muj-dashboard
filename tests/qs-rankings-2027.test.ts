@@ -16,7 +16,11 @@ import {
 describe("QS World University Rankings 2027 (published 18 June 2026)", () => {
   it("covers reviewed partner matches with published ranks only", () => {
     assert.equal(QS_RANKINGS_YEAR, 2027);
-    assert.equal(Object.keys(qsRankings2027ByInstitutionId).length, 65);
+    assert.equal(Object.keys(qsRankings2027ByInstitutionId).length, 71);
+    assert.equal(qs2027ForInstitution("wb-kasetsart-university")?.rank, "721-730");
+    assert.equal(qs2027ForInstitution("wb-virginia-commonwealth-university-usa")?.rank, "951-1000");
+    // IC-IMPACTS is a research network hosted by UBC, not UBC itself.
+    assert.equal(qs2027ForInstitution("wb-ic-impacts-university-of-british-columbia"), null);
     assert.deepEqual(qs2027ForInstitution("ofc-the-university-of-melbourne"), {
       rank: "22",
       qsName: "The University of Melbourne",
@@ -85,7 +89,8 @@ describe("QS World University Rankings 2027 (published 18 June 2026)", () => {
       ...officialInstitutionRecords.map((row) => row.id),
       ...legacyDirectoryInstitutions.map((row) => row.id),
     ]);
-    for (const id of Object.keys(qsRankings2027ByInstitutionId)) assert.ok(ids.has(id), id);
+    // wb- ids are universities the MoU register import adds (scripts/mou-workbook/plan.ts).
+    for (const id of Object.keys(qsRankings2027ByInstitutionId)) assert.ok(ids.has(id) || id.startsWith("wb-"), id);
 
     const page = readFileSync(new URL("../src/app/internal/universities/page.tsx", import.meta.url), "utf8");
     const bar = page.slice(page.indexOf("selects={["), page.indexOf("/>", page.indexOf("selects={[")));

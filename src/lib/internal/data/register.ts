@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { openDataContext } from "@/lib/internal/data/context";
+import { isRetiredRow } from "@/lib/internal/data/current";
 import type { CellValue, SheetKey } from "@/lib/internal/workbook/source";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -160,6 +161,16 @@ function missingRelation(error: { code?: string }) {
  * detail pages share one read.
  */
 export const loadRegister = cache(async (): Promise<RegisterAccess> => {
+  const [register, { retired }] = await Promise.all([readRegister(), openDataContext()]);
+  if (register.state !== "granted") return register;
+  return {
+    ...register,
+    details: new Map([...register.details].filter(([agreementId]) => !retired.agreements.has(agreementId))),
+    rows: register.rows.filter((row) => !isRetiredRow(retired, row)),
+  };
+});
+
+async function readRegister(): Promise<RegisterAccess> {
   const access = await registerClient();
   if ("local" in access) return access.local;
   if (!("client" in access)) return { state: "restricted", reason: access.restricted };
@@ -198,4 +209,4 @@ export const loadRegister = cache(async (): Promise<RegisterAccess> => {
       ]),
     ),
   };
-});
+}

@@ -88,6 +88,13 @@ export const qsRankings2027ByInstitutionId: Readonly<Record<string, Qs2027Entry>
   "dir-university-of-toronto": { rank: "32", qsName: "University of Toronto" },
   "dir-waseda-university": { rank: "201", qsName: "Waseda University" },
   "dir-yonsei-university": { rank: "42", qsName: "Yonsei University" },
+  // Universities added by the DoIC MoU register import (scripts/mou-workbook).
+  "wb-chiang-mai-university": { rank: "555", qsName: "Chiang Mai University" },
+  "wb-kasetsart-university": { rank: "721-730", qsName: "Kasetsart University" },
+  "wb-montanuniversitat-leoben": { rank: "851-900", qsName: "Montanuniversität Leoben" },
+  "wb-university-of-bucharest": { rank: "801-850", qsName: "University of Bucharest" },
+  "wb-university-of-santo-tomas-manila": { rank: "951-1000", qsName: "University of Santo Tomas" },
+  "wb-virginia-commonwealth-university-usa": { rank: "951-1000", qsName: "Virginia Commonwealth University" },
 };
 
 export function qs2027ForInstitution(institutionId: string): Qs2027Entry | null {
