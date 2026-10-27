@@ -200,6 +200,25 @@ function formulaIssues(formulas: Record<string, string>) {
     .map((header) => `Formula in "${header}" (${formulas[header]}); its computed value is withheld.`);
 }
 
+const OPEN_ENDED = /perpetual|until\s+cancel/i;
+
+/** Whole years from a Period cell such as "5 years" or "3 Year"; null for "perpetual", "NA", or blank. */
+function periodYears(value: CellValue | null): number | null {
+  const years = Number(cellText(value)?.match(/^(\d{1,2})\s*years?$/i)?.[1]);
+  return years > 0 ? years : null;
+}
+
+/**
+ * The register's usual convention: an N-year MoU ends the day before the
+ * N-th anniversary of signing (63 rows; 33 end on the anniversary itself).
+ */
+export function expiryFromPeriod(startDate: string, years: number): string {
+  const [y, m, d] = startDate.split("-").map(Number);
+  const anniversary = new Date(Date.UTC(y + years, m - 1, d));
+  anniversary.setUTCDate(anniversary.getUTCDate() - 1);
+  return anniversary.toISOString().slice(0, 10);
+}
+
 function slugify(text: string) {
   return text
     .normalize("NFKD")
@@ -488,6 +507,13 @@ export function buildPlan(workbook: Workbook, existing: Existing, today: string,
       issues.push(`Expiry ${endDate} is before signing ${startDate}; the expiry is not used as a date.`);
       endDate = null;
     }
+    let expiryNote: string | null = null;
+    const years = periodYears(get(mouList.period));
+    if (!endDate && startDate && years && !OPEN_ENDED.test(cellText(expiry) ?? "")) {
+      endDate = expiryFromPeriod(startDate, years);
+      expiryNote = `Calculated: signed ${startDate} + ${years}-year period`;
+      issues.push(`Expiry ${endDate} calculated from signing ${startDate} and the ${years}-year period.`);
+    }
     const status = parseStatus(get(mouList.status));
     const statusText = cellText(get(mouList.status));
     if (statusText && !status && !shifted) issues.push(`Status "${statusText}" is not Active, Expired, or Closed.`);
@@ -525,7 +551,7 @@ export function buildPlan(workbook: Workbook, existing: Existing, today: string,
         initiationYear: parseYear(year),
         renewalYear: parseYear(renewal),
         periodText: cellText(get(mouList.period)),
-        expiryText: expiry !== null && parseSourceDate(expiry) === null ? cellText(expiry) : null,
+        expiryText: expiryNote ?? (expiry !== null && parseSourceDate(expiry) === null ? cellText(expiry) : null),
         recordedStatus: statusText,
         // Workbook QS values predate QS 2027; the portal reads ranks from qs-rankings-2027.ts.
         qsRanking: null,

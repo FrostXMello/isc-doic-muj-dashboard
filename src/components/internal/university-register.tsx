@@ -361,6 +361,9 @@ export function AgreementRegisterFacts({ entry, showHeading = true }: { entry: A
                         {agreement.daysToExpiry < 0 ? "ended" : "ends"} {formatRelativeDays(agreement.daysToExpiry)}
                       </span>
                     ) : null}
+                    {details?.expiryText?.startsWith("Calculated") ? (
+                      <span className="block text-[11px] text-fg-faint">{details.expiryText}</span>
+                    ) : null}
                   </span>
                 ),
               }
