@@ -9,6 +9,7 @@ import {
   staticDataset,
 } from "@/lib/internal/data/dataset";
 import type { LocalRegister } from "@/lib/internal/data/local-register";
+import { withRegisterSnapshot } from "@/lib/internal/data/register-snapshot";
 import { type InternalDataSource, resolveInternalDataSource } from "@/lib/internal/data/source";
 import { createViews, type Views } from "@/lib/internal/data/views";
 import type { InstitutionContact } from "@/lib/internal/types";
@@ -66,7 +67,7 @@ export const openDataContext = cache(async (): Promise<DataContext> => {
     const { loadSupabaseDataset } = await import("@/lib/internal/data/supabase-source");
     const loaded = await loadSupabaseDataset();
     const { internalRole, contacts } = loaded;
-    const prepared = prepare(loaded.data, today);
+    const prepared = prepare(withRegisterSnapshot(loaded.data), today);
     return {
       today,
       source,
@@ -97,7 +98,7 @@ export const openDataContext = cache(async (): Promise<DataContext> => {
   }
 
   if (!staticViews || staticViews.samples !== sampleData || staticViews.local || staticViews.today !== today) {
-    staticViews = { samples: sampleData, today, ...prepare(staticDataset(sampleData), today) };
+    staticViews = { samples: sampleData, today, ...prepare(withRegisterSnapshot(staticDataset(sampleData)), today) };
   }
   const { data, views, retired } = staticViews;
   return {

@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { openDataContext } from "@/lib/internal/data/context";
 import { isRetiredRow } from "@/lib/internal/data/current";
+import { snapshotDetails } from "@/lib/internal/data/register-snapshot";
 import type { CellValue, SheetKey } from "@/lib/internal/workbook/source";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -161,7 +162,13 @@ function missingRelation(error: { code?: string }) {
  * detail pages share one read.
  */
 export const loadRegister = cache(async (): Promise<RegisterAccess> => {
-  const [register, { retired }] = await Promise.all([readRegister(), openDataContext()]);
+  const [read, { retired }] = await Promise.all([readRegister(), openDataContext()]);
+  const register: RegisterAccess =
+    read.state === "granted"
+      ? { ...read, details: new Map([...snapshotDetails(), ...read.details]) }
+      : read.reason === "no-internal-role"
+        ? read
+        : { state: "granted", details: snapshotDetails(), rows: [], contactNotes: new Map() };
   if (register.state !== "granted") return register;
   return {
     ...register,
