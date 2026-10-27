@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useActionState, useId } from "react";
 import {
@@ -14,6 +15,7 @@ import { type RecordFormState, verificationOptions } from "@/lib/internal/record
 import { verificationMeta } from "@/lib/internal/status";
 import type { VerificationStatus } from "@/lib/internal/types";
 
+/** Every university value the portal shows; the add and edit pages use the same form. */
 export type UniversityFormInitial = {
   slug: string | null;
   name: string;
@@ -25,11 +27,30 @@ export type UniversityFormInitial = {
   isPublic: boolean;
   verification: VerificationStatus;
   sourceUrl: string | null;
-  sourceTitle?: string | null;
-  sourceCheckedOn?: string | null;
-  latitude?: number | null;
-  longitude?: number | null;
+  sourceTitle: string | null;
+  sourceCheckedOn: string | null;
+  latitude: number | null;
+  longitude: number | null;
 };
+
+export const emptyUniversity: UniversityFormInitial = {
+  slug: null,
+  name: "",
+  normalizedName: null,
+  countrySlug: null,
+  city: null,
+  website: null,
+  note: null,
+  isPublic: false,
+  verification: "unverified",
+  sourceUrl: null,
+  sourceTitle: null,
+  sourceCheckedOn: null,
+  latitude: null,
+  longitude: null,
+};
+
+const optionalFields = ["normalizedName", "sourceUrl", "sourceTitle", "sourceCheckedOn", "latitude", "longitude"] as const;
 
 export function UniversityForm({
   initial,
@@ -45,35 +66,28 @@ export function UniversityForm({
   const errors = state.fieldErrors ?? {};
   const field = (name: string) => `${id}-${name}`;
   const isPublic = state.values ? state.values.isPublic === "on" : initial.isPublic;
+  const optionalOpen = optionalFields.some(
+    (name) => errors[name] || (state.values?.[name] ?? initial[name]?.toString() ?? "") !== "",
+  );
+
+  const text = (name: keyof UniversityFormInitial, label: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) => (
+    <Field id={field(name)} label={label} error={errors[name]}>
+      <input
+        {...describedBy(field(name), errors[name], false, "h-9")}
+        name={name}
+        defaultValue={valueOf(state, name, initial[name]?.toString() ?? null)}
+        {...props}
+      />
+    </Field>
+  );
 
   return (
-    <form action={action} className="space-y-5 px-6 pt-2 pb-6" aria-busy={pending} noValidate>
+    <form action={action} className="space-y-6 px-6 pt-2 pb-6" aria-busy={pending} noValidate>
       {initial.slug ? <input type="hidden" name="slug" value={initial.slug} /> : null}
       <FormStatus state={state} />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field id={field("name")} label="Name (as listed on the source)" error={errors.name} className="sm:col-span-2">
-          <input
-            {...describedBy(field("name"), errors.name, false, "h-9")}
-            name="name"
-            required
-            maxLength={200}
-            defaultValue={valueOf(state, "name", initial.name)}
-          />
-        </Field>
-        <Field
-          id={field("normalizedName")}
-          label="Normalised name (optional)"
-          error={errors.normalizedName}
-          hint="Corrected spelling for search and headings."
-        >
-          <input
-            {...describedBy(field("normalizedName"), errors.normalizedName, true, "h-9")}
-            name="normalizedName"
-            maxLength={200}
-            defaultValue={valueOf(state, "normalizedName", initial.normalizedName)}
-          />
-        </Field>
+        <div className="sm:col-span-2">{text("name", "Name", { required: true, maxLength: 200 })}</div>
         <Field id={field("country")} label="Country" error={errors.country}>
           <select
             {...describedBy(field("country"), errors.country, false, "h-9")}
@@ -89,25 +103,8 @@ export function UniversityForm({
             ))}
           </select>
         </Field>
-        <Field id={field("city")} label="Campus city (optional)" error={errors.city} hint="Leave blank unless a source states it.">
-          <input
-            {...describedBy(field("city"), errors.city, true, "h-9")}
-            name="city"
-            maxLength={120}
-            defaultValue={valueOf(state, "city", initial.city)}
-          />
-        </Field>
-        <Field id={field("website")} label="Website (optional)" error={errors.website}>
-          <input
-            {...describedBy(field("website"), errors.website, false, "h-9")}
-            name="website"
-            type="url"
-            inputMode="url"
-            placeholder="https://"
-            maxLength={500}
-            defaultValue={valueOf(state, "website", initial.website)}
-          />
-        </Field>
+        {text("city", "City", { maxLength: 120 })}
+        {text("website", "Website", { type: "url", inputMode: "url", placeholder: "https://", maxLength: 500 })}
         <Field id={field("verification")} label="Verification" error={errors.verification}>
           <select
             {...describedBy(field("verification"), errors.verification, false, "h-9")}
@@ -121,75 +118,42 @@ export function UniversityForm({
             ))}
           </select>
         </Field>
-        <Field id={field("sourceUrl")} label="Source link (optional)" error={errors.sourceUrl}>
-          <input
-            {...describedBy(field("sourceUrl"), errors.sourceUrl, false, "h-9")}
-            name="sourceUrl"
-            type="url"
-            inputMode="url"
-            placeholder="https://"
-            maxLength={500}
-            defaultValue={valueOf(state, "sourceUrl", initial.sourceUrl)}
-          />
-        </Field>
-        <Field id={field("sourceTitle")} label="Source title (optional)" error={errors.sourceTitle} hint="e.g. the page or register sheet name.">
-          <input
-            {...describedBy(field("sourceTitle"), errors.sourceTitle, true, "h-9")}
-            name="sourceTitle"
-            maxLength={300}
-            defaultValue={valueOf(state, "sourceTitle", initial.sourceTitle ?? null)}
-          />
-        </Field>
-        <Field id={field("sourceCheckedOn")} label="Source last checked (optional)" error={errors.sourceCheckedOn}>
-          <input
-            {...describedBy(field("sourceCheckedOn"), errors.sourceCheckedOn, false, "h-9")}
-            name="sourceCheckedOn"
-            type="date"
-            defaultValue={valueOf(state, "sourceCheckedOn", initial.sourceCheckedOn ?? null)}
-          />
-        </Field>
-        <Field
-          id={field("latitude")}
-          label="Latitude (optional)"
-          error={errors.latitude}
-          hint="Campus location, in decimal degrees. Enter both or neither."
-        >
-          <input
-            {...describedBy(field("latitude"), errors.latitude, true, "h-9 tabular-nums")}
-            name="latitude"
-            inputMode="decimal"
-            placeholder="26.84"
-            defaultValue={valueOf(state, "latitude", initial.latitude?.toString() ?? null)}
-          />
-        </Field>
-        <Field id={field("longitude")} label="Longitude (optional)" error={errors.longitude}>
-          <input
-            {...describedBy(field("longitude"), errors.longitude, false, "h-9 tabular-nums")}
-            name="longitude"
-            inputMode="decimal"
-            placeholder="75.56"
-            defaultValue={valueOf(state, "longitude", initial.longitude?.toString() ?? null)}
-          />
-        </Field>
-        <Field id={field("note")} label="Review note (optional)" error={errors.note} className="sm:col-span-2">
+        <Field id={field("note")} label="Note" error={errors.note} className="sm:col-span-2">
           <textarea
             {...describedBy(field("note"), errors.note, false, "py-2")}
             name="note"
-            rows={3}
+            rows={2}
             maxLength={2000}
             defaultValue={valueOf(state, "note", initial.note)}
           />
         </Field>
-        <div className="sm:col-span-2">
-          <label className="inline-flex items-center gap-2 text-[13px] text-foreground">
-            <input type="checkbox" name="isPublic" defaultChecked={isPublic} className="size-4 rounded accent-[var(--muj)]" />
-            Show on the public website
-          </label>
-          <p className="mt-1 text-[12px] text-fg-faint">
-            Only for partners DoIC has confirmed; the public site lists the university, never its contacts.
-          </p>
-        </div>
+        <label className="inline-flex items-center gap-2 text-[13px] text-foreground sm:col-span-2">
+          <input type="checkbox" name="isPublic" defaultChecked={isPublic} className="size-4 rounded accent-[var(--muj)]" />
+          Show on the public website <span className="text-fg-faint">(name only, never contacts)</span>
+        </label>
       </div>
+
+      <details open={optionalOpen} className="group rounded-xl border border-hairline">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-[13px] text-fg-soft hover:text-foreground [&::-webkit-details-marker]:hidden">
+          Source &amp; location <span className="text-fg-faint">(optional)</span>
+          <ChevronDown
+            className="ml-auto size-4 text-fg-dim transition-transform group-open:rotate-180 motion-reduce:transition-none"
+            aria-hidden
+          />
+        </summary>
+        <div className="grid gap-4 border-t border-hairline px-4 pt-3 pb-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            {text("normalizedName", "Corrected spelling", { maxLength: 200 })}
+          </div>
+          {text("sourceUrl", "Source link", { type: "url", inputMode: "url", placeholder: "https://", maxLength: 500 })}
+          {text("sourceTitle", "Source title", { maxLength: 300 })}
+          {text("sourceCheckedOn", "Source last checked", { type: "date" })}
+          <div className="grid grid-cols-2 gap-3">
+            {text("latitude", "Latitude", { inputMode: "decimal", placeholder: "26.84" })}
+            {text("longitude", "Longitude", { inputMode: "decimal", placeholder: "75.56" })}
+          </div>
+        </div>
+      </details>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-hairline pt-4">
         <SubmitButton pending={pending}>{initial.slug ? "Save changes" : "Add university"}</SubmitButton>

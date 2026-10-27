@@ -3,6 +3,7 @@ import { ChevronDown, FileText, GraduationCap, Trash2, UserRound } from "lucide-
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AgreementForm } from "@/components/internal/forms/agreement-form";
+import { SuccessNotice } from "@/components/internal/forms/form-fields";
 import { DeleteRecordForm } from "@/components/internal/forms/delete-record-form";
 import { AgreementDetailsForm, ContactForm } from "@/components/internal/forms/register-forms";
 import { UniversityForm } from "@/components/internal/forms/university-form";
@@ -12,12 +13,14 @@ import { canManage, ManageLink, ReadOnlySourceNotice, requireManage } from "@/co
 import { listCountryOptions } from "@/lib/internal/data/form-options";
 import { getInstitution, listInstitutionOptions } from "@/lib/internal/data/institutions";
 import { formatDateRange } from "@/lib/internal/dates";
-import type { IdParamsProp } from "@/lib/internal/query";
+import { readParam, type SearchParamsRecord } from "@/lib/internal/query";
 import { deleteInstitution } from "@/lib/internal/record-actions";
 import { agreementTypeLabel } from "@/lib/internal/status";
 import { qs2027ForInstitution } from "@/lib/official/qs-rankings-2027";
 
 export const metadata: Metadata = { title: "Edit university" };
+
+type Props = { params: Promise<{ id: string }>; searchParams: Promise<SearchParamsRecord> };
 
 /** A collapsed panel holding one record's forms. */
 function EditPanel({ title, meta, open, children }: { title: string; meta: string; open?: boolean; children: React.ReactNode }) {
@@ -44,12 +47,12 @@ function PanelHeading({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default async function EditUniversityPage({ params }: IdParamsProp) {
+export default async function EditUniversityPage({ params, searchParams }: Props) {
   const access = await requireManage("institutions:update");
-  const { id } = await params;
+  const [{ id }, query] = await Promise.all([params, searchParams]);
   const record = await getInstitution(id);
   if (!record) notFound();
-  const { institution, agreements, register, contactAccess, entry } = record;
+  const { institution, agreements, register, contactAccess } = record;
   const backHref = `/internal/universities/${institution.id}`;
 
   if (access === "static") {
@@ -87,31 +90,18 @@ export default async function EditUniversityPage({ params }: IdParamsProp) {
         backHref={backHref}
         backLabel={institution.name}
         title="Edit university"
-        subtitle={`${institution.name} — every value shown on the university page can be edited here.`}
+        subtitle={institution.name}
       />
 
-      <nav aria-label="Sections" className="flex flex-wrap gap-2 text-[12px]">
-        {[
-          ["#details", "University details"],
-          ["#mous", `MoUs & register (${lead.length})`],
-          ["#contacts", `Contacts (${contacts.length})`],
-        ].map(([href, label]) => (
-          <a
-            key={href}
-            href={href}
-            className="rounded-full border border-line-strong px-3 py-1 text-fg-subtle transition-colors hover:border-muj/60 hover:text-foreground"
-          >
-            {label}
-          </a>
-        ))}
-      </nav>
+      {readParam(query, "notice") === "university-created" ? (
+        <SuccessNotice>University added. Add its MoUs and contacts below.</SuccessNotice>
+      ) : null}
 
       <DetailSection
         id="details"
         title="University details"
         icon={GraduationCap}
-        description="Name, country, campus, website, provenance, verification, review note, and public visibility. The region follows the country."
-      >
+              >
         <UniversityForm
           cancelHref={backHref}
           countries={countries}
@@ -138,7 +128,7 @@ export default async function EditUniversityPage({ params }: IdParamsProp) {
         id="mous"
         title={`MoUs & register details (${lead.length})`}
         icon={FileText}
-        description="Open a MoU to edit its type, status, signing and expiry dates, renewal, notes, and its DoIC register details: reference, period, faculty, department, scope, programme, rankings, remarks, and file link."
+        description="Open a MoU to edit its dates, status, and register details."
         action={
           <ManageLink
             permission="agreements:create"
@@ -307,13 +297,6 @@ export default async function EditUniversityPage({ params }: IdParamsProp) {
           </>
         )}
       </DetailSection>
-
-      {entry.universityRows.length > 0 ? (
-        <p className="text-[12px] text-fg-faint">
-          {entry.universityRows.length} register row{entry.universityRows.length === 1 ? "" : "s"} for this university
-          name{entry.universityRows.length === 1 ? "s" : ""} no single MoU; they are kept as recorded in the workbook.
-        </p>
-      ) : null}
 
       {canDelete ? (
         <DetailSection

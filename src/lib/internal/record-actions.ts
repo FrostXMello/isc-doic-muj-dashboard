@@ -106,7 +106,11 @@ export async function saveInstitution(_state: RecordFormState, formData: FormDat
   }
 
   refreshPortal();
-  redirect(`/internal/universities/${slug}?notice=${editing ? "university-updated" : "university-created"}`);
+  redirect(
+    editing
+      ? `/internal/universities/${slug}?notice=university-updated`
+      : `/internal/universities/${slug}/edit?notice=university-created#mous`,
+  );
 }
 
 export async function deleteInstitution(_state: RecordFormState, formData: FormData): Promise<RecordFormState> {

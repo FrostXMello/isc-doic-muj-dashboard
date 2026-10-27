@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { GraduationCap } from "lucide-react";
-import { UniversityForm } from "@/components/internal/forms/university-form";
+import { emptyUniversity, UniversityForm } from "@/components/internal/forms/university-form";
 import { DetailHeader, DetailSection } from "@/components/internal/ui/detail";
 import { ReadOnlySourceNotice, requireManage } from "@/components/internal/ui/manage-action";
 import { listCountryOptions } from "@/lib/internal/data/form-options";
@@ -16,28 +16,13 @@ export default async function NewUniversityPage() {
         backHref="/internal/universities"
         backLabel="All universities"
         title="Add university"
-        subtitle="Institutional details only. Add its MoUs from the university's page once it is saved."
+        subtitle="Once saved, you can add its MoUs and contacts on the next page."
       />
       {access === "static" ? (
         <ReadOnlySourceNotice />
       ) : (
         <DetailSection title="University details" icon={GraduationCap}>
-          <UniversityForm
-            cancelHref="/internal/universities"
-            countries={await listCountryOptions()}
-            initial={{
-              slug: null,
-              name: "",
-              normalizedName: null,
-              countrySlug: null,
-              city: null,
-              website: null,
-              note: null,
-              isPublic: false,
-              verification: "unverified",
-              sourceUrl: null,
-            }}
-          />
+          <UniversityForm cancelHref="/internal/universities" countries={await listCountryOptions()} initial={emptyUniversity} />
         </DetailSection>
       )}
     </div>
