@@ -47,10 +47,9 @@ export default async function NationalCollaborationsPage() {
                     )}
                     {extra.map((header) => {
                       const cell = displayCell(header, row.values, row.formulas);
-                      return cell ? (
+                      return cell && cell.kind !== "withheld" ? (
                         <span key={header} className="block text-[12px] text-muted-foreground">
-                          {fieldLabel(header)}:{" "}
-                          {cell.kind === "withheld" ? "formula output withheld" : <RecordedText value={cell.text} />}
+                          {fieldLabel(header)}: <RecordedText value={cell.text} />
                         </span>
                       ) : null;
                     })}

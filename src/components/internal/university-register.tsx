@@ -199,52 +199,29 @@ export function RegisterRowFields({ row, skip = [] }: { row: RegisterRow; skip?:
     .filter((header) => !skipped.has(header))
     .flatMap((header) => {
       const cell = displayCell(header, row.values, row.formulas);
-      if (!cell) return [];
-      const value =
-        cell.kind === "withheld" ? (
-          <span className="text-fg-faint">Formula output withheld</span>
-        ) : (
-          <RecordedText value={cell.text} />
-        );
-      return [{ label: fieldLabel(header), value }];
+      if (!cell || cell.kind === "withheld") return [];
+      return [{ label: fieldLabel(header), value: <RecordedText value={cell.text} /> }];
     });
   return <Facts items={items} />;
-}
-
-function RowIssues({ rows }: { rows: readonly RegisterRow[] }) {
-  const issues = rows.flatMap((row) => row.issues.map((issue) => ({ key: `${row.importKey}-${issue}`, row, issue })));
-  if (issues.length === 0) return null;
-  return (
-    <ul className="space-y-1 text-[12px] text-warning-fg">
-      {issues.map(({ key, row, issue }) => (
-        <li key={key} className="flex items-start gap-1.5">
-          <TriangleAlert className="mt-0.5 size-3 shrink-0" aria-hidden />
-          <span>
-            {issue} <span className="text-fg-faint">({sheetLabel(row)})</span>
-          </span>
-        </li>
-      ))}
-    </ul>
-  );
 }
 
 /** Processing milestones from the MoU Status sheet, in workflow order. */
 export function WorkflowMilestones({ row }: { row: RegisterRow }) {
   const steps = workflowColumns.flatMap((header) => {
     const cell = displayCell(header, row.values, row.formulas);
-    return cell ? [{ header, cell }] : [];
+    return cell && cell.kind !== "withheld" ? [{ header, text: cell.text }] : [];
   });
   return (
     <div className="space-y-2">
       {steps.length > 0 ? (
         <ol className="flex flex-wrap gap-1.5">
-          {steps.map(({ header, cell }) => (
+          {steps.map(({ header, text }) => (
             <li
               key={header}
               className="max-w-full rounded-full border border-line-strong px-2.5 py-0.5 text-[11.5px] [overflow-wrap:anywhere] text-fg-soft"
             >
               <span className="text-fg-faint">{fieldLabel(header)}:</span>{" "}
-              {cell.kind === "withheld" ? "formula output withheld" : cell.text}
+              {text}
             </li>
           ))}
         </ol>
@@ -433,9 +410,6 @@ export function AgreementRegisterFacts({ entry, showHeading = true }: { entry: A
       ))}
 
       {listRow ? <RegisterRowFields row={listRow} skip={listColumnsShownElsewhere} /> : null}
-
-      <RowIssues rows={[...rows.list, ...rows.status, ...rows.renewal, ...rows.link]} />
-
       {[...rows.list, ...rows.status, ...rows.renewal, ...rows.link].length > 0 ? (
         <p className="text-[11px] text-fg-faint">
           Source: {[...rows.list, ...rows.status, ...rows.renewal, ...rows.link].map(sheetLabel).join(", ")} of the DoIC
@@ -464,7 +438,6 @@ export function UniversityRegisterRows({ rows }: { rows: readonly RegisterRow[] 
           ) : (
             <RegisterRowFields row={row} skip={[mouList.name]} />
           )}
-          <RowIssues rows={[row]} />
         </div>
       ))}
     </div>
