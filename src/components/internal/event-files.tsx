@@ -430,7 +430,7 @@ function FileRow({ file, actions }: { file: EventFile; actions: Actions }) {
         {file.name}
       </a>
       <span className="hidden shrink-0 text-[12px] text-fg-faint tabular-nums sm:inline">{formatBytes(file.sizeBytes)}</span>
-      <a href={fileHref(file, true)} className={iconButton} aria-label={`Download ${file.name}`}>
+      <a href={fileHref(file, true)} className={iconButton} aria-label={`Download ${file.name}`} title="Download">
         <Download className="size-3.5" aria-hidden />
       </a>
       {actions.canEdit ? (
