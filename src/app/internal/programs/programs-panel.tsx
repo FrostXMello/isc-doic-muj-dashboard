@@ -48,13 +48,9 @@ export async function ProgramsPanel({ params }: { params: SearchParamsRecord }) 
 
   return (
     <div className="space-y-8">
-      <DataNotice>
-        Offerings are recorded only where an official page names the institution for a programme;
-        details the page does not state are left <em>Not recorded</em>.
-        {mode.sampleData
-          ? " Sample offerings at fictional institutions are included because INTERNAL_SAMPLE_DATA is on."
-          : null}
-      </DataNotice>
+      {mode.sampleData ? (
+        <DataNotice>Sample offerings at fictional institutions are included because INTERNAL_SAMPLE_DATA is on.</DataNotice>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-x-10 gap-y-8 lg:grid-cols-2">
         {programAudiences

@@ -25,7 +25,7 @@ export default async function DocumentsPage({ searchParams }: SearchParamsProp) 
       <PageHeader
         eyebrow="Library"
         title="Documents & Reports"
-        description="Official DoIC documents, linked at their official URLs, and report documents."
+        description="Signed MoUs, policies, forms, newsletters, and reports."
         actions={
           tab === "reports" ? (
             <>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { BookMarked, BookOpen, CalendarDays, ChevronDown, FileText, FolderOpen, Globe, Link2, UserRound } from "lucide-react";
+import { BookMarked, BookOpen, CalendarDays, ChevronDown, FileText, FolderOpen, Globe, UserRound } from "lucide-react";
 import { notFound } from "next/navigation";
 import { AgreementCard } from "@/components/internal/agreement-card";
 import {
@@ -13,8 +13,6 @@ import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/compone
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { ManageLink } from "@/components/internal/ui/manage-action";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import { VerificationBadge } from "@/components/internal/ui/provenance";
-import { UniversityProvenance } from "@/components/internal/university-provenance";
 import {
   ContactRows,
   Facts,
@@ -26,7 +24,7 @@ import { getInstitution } from "@/lib/internal/data/institutions";
 import { formatDateRange } from "@/lib/internal/dates";
 import { universityInsights } from "@/lib/internal/insights";
 import { readParam, type SearchParamsRecord } from "@/lib/internal/query";
-import { documentTypeLabel, sourceMeta } from "@/lib/internal/status";
+import { documentTypeLabel } from "@/lib/internal/status";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -59,10 +57,6 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
   const { today, institution, agreements, offerings, opportunities, activities, documents, peers, contactAccess, register, entry } =
     record;
   const registerByAgreement = new Map(entry.agreements.map((item) => [item.agreement.id, item]));
-  const registerRows = [
-    ...entry.agreements.flatMap(({ rows }) => [...rows.list, ...rows.status, ...rows.renewal, ...rows.link]),
-    ...entry.universityRows,
-  ];
   const signedCopies = documents.filter((doc) => doc.storageKey && doc.type === "agreement");
   const openAgreement = readParam(query, "agreement");
   const notice = notices[readParam(query, "notice") ?? ""];
@@ -100,7 +94,6 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
         badges={
           <>
             <PartnershipBadge status={institution.partnershipStatus} />
-            <VerificationBadge status={institution.verification} />
           </>
         }
         actions={
@@ -133,7 +126,6 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
           <DetailSection
             title={`MoUs (${agreements.length})`}
             icon={FileText}
-            description="Open a MoU for its dates, scope, department, and register details."
           >
             {agreements.length > 0 ? (
               <div>
@@ -181,7 +173,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
           <span className="min-w-0 flex-1">
             <span className="block text-[14px] font-medium text-foreground">More details</span>
             <span className="block text-[12px] text-muted-foreground">
-              Events, programmes, register rows, profile, documents, sources, and other universities in {institution.country}
+              Events, programmes, register, profile, documents, and other partners in {institution.country}
             </span>
           </span>
           <ChevronDown
@@ -249,14 +241,8 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
                   : []),
                 { label: "City", value: institution.city ?? <NotRecorded /> },
                 { label: "Website", value: institution.website ?? <NotRecorded /> },
-                { label: "On public site", value: institution.isPublic ? "Yes" : "No" },
-                { label: "Record source", wide: true, value: sourceMeta[institution.source].label },
               ]}
             />
-          </DetailSection>
-
-          <DetailSection title="Provenance" icon={Link2}>
-            <UniversityProvenance institution={institution} rows={registerRows} register={register} />
           </DetailSection>
 
           <DetailSection title="University documents" icon={FolderOpen}>

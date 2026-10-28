@@ -26,7 +26,7 @@ export default async function SettingsPage() {
       <PageHeader
         eyebrow="Account & access"
         title="Settings"
-        description="Your account, where the portal's data comes from, and which switches are on. Administrators manage accounts and settings in Administration."
+        description="Your account and portal settings."
       />
 
       {account ? (

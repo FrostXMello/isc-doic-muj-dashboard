@@ -41,14 +41,9 @@ export async function OpportunitiesPanel({ params }: { params: SearchParamsRecor
 
   return (
     <div className="space-y-6">
-      <DataNotice>
-        Each call belongs to one programme and is for that programme&apos;s audience. Deadlines are
-        as published on MUJ&apos;s pages; status follows the dates, and calls within{" "}
-        {DEADLINE_WARNING_DAYS} days of the deadline are flagged.
-        {mode.sampleData
-          ? " Sample calls with invented deadlines are included because INTERNAL_SAMPLE_DATA is on."
-          : null}
-      </DataNotice>
+      {mode.sampleData ? (
+        <DataNotice>Sample calls with invented deadlines are included because INTERNAL_SAMPLE_DATA is on.</DataNotice>
+      ) : null}
 
       <FilterBar
         searchPlaceholder="Search call, programme, or institution"

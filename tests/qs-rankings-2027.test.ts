@@ -102,7 +102,6 @@ describe("QS World University Rankings 2027 (published 18 June 2026)", () => {
     assert.equal(bar.includes('name: "source"'), false);
     assert.equal(bar.includes('name: "status"'), false);
     assert.equal(page.includes("QS 2027"), true);
-    assert.equal(page.includes("18 June 2026"), true);
     assert.equal(page.includes("QS 2026"), false);
   });
 });

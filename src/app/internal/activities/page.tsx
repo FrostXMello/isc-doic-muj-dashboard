@@ -147,14 +147,9 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
       />
       <RecordNotice query={params} />
 
-      <DataNotice>
-        Activities are recorded only where an official MUJ page documents them (news, event, and
-        programme pages), with the source linked on each record. Details the page does not state,
-        such as participants or outcomes, are left <em>Not recorded</em>.
-        {mode.sampleData
-          ? " Fictional sample activities are included because INTERNAL_SAMPLE_DATA is on."
-          : null}
-      </DataNotice>
+      {mode.sampleData ? (
+        <DataNotice>Fictional sample activities are included because INTERNAL_SAMPLE_DATA is on.</DataNotice>
+      ) : null}
 
       <FilterBar
         searchPlaceholder="Search title, institution, or place"
@@ -208,7 +203,7 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
         id="shared-files"
         activityCode={null}
         title="Shared files & templates"
-        description="Templates and documents used across summer schools, winter schools, and Explore India programmes. Each event's own files are on its page."
+        description="Templates used across summer schools, winter schools, and Explore India."
       />
     </div>
   );

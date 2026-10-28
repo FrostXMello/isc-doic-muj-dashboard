@@ -190,7 +190,7 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
       <PageHeader
         eyebrow="Global network"
         title="MoUs"
-        description="Every partner university with each MoU's scope, signing department, expiry, and DoIC nodal officers at a glance. Expand a university for each MoU's reference, dates, rankings, partner officers, documents, workflow, and renewal history."
+        description="Partner universities, their MoUs, and expiry dates."
         actions={
           <>
             <Link
@@ -212,25 +212,17 @@ export default async function UniversitiesPage({ searchParams }: SearchParamsPro
 
       {deleted ? <SuccessNotice>University deleted.</SuccessNotice> : null}
 
-      <DataNotice>
-        Officers, contacts, and register details come from the official partner page and the DoIC
-        MoU register (0_MoU details.xlsx). They are internal and shown only to DoIC roles reading
-        the access-controlled database
-        {mode.source === "supabase" ? "" : "; this deployment reads the static dataset, so they show as Restricted"}.
-        The QS column is QS World University Rankings 2027, published on 18 June 2026; partners not
-        in that table show as not ranked. Values written as &ldquo;NA&rdquo; or similar are shown as recorded;
-        formula output is never shown.
-        {mode.sampleData ? (
-          <>
-            {" "}
-            <strong className="font-medium">Sample data</strong> institutions (&ldquo;Example
-            &hellip;&rdquo;) are fictional and shown because INTERNAL_SAMPLE_DATA is on.
-          </>
-        ) : null}
-        <span className="mt-1 block">
+      {mode.sampleData || register.state !== "granted" ? (
+        <DataNotice>
+          {mode.sampleData ? (
+            <>
+              <strong className="font-medium">Sample data</strong> institutions (&ldquo;Example &hellip;&rdquo;) are
+              fictional and shown because INTERNAL_SAMPLE_DATA is on.
+            </>
+          ) : null}
           <RegisterNotice register={register} />
-        </span>
-      </DataNotice>
+        </DataNotice>
+      ) : null}
 
       {regions.length > 0 ? <RegionIndex regions={regions} active={activeRegion} params={params} /> : null}
 

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { agreementHref } from "@/lib/internal/links";
-import { BookOpen, ClipboardList, FileText, FolderOpen, GraduationCap, Link2 } from "lucide-react";
+import { BookOpen, ClipboardList, FileText, FolderOpen, GraduationCap } from "lucide-react";
 import { notFound } from "next/navigation";
 import {
   AgreementStatusBadge,
@@ -11,7 +11,6 @@ import {
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { NotRecorded } from "@/components/internal/ui/page-header";
 import { ManageLink } from "@/components/internal/ui/manage-action";
-import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getOffering, getProgram } from "@/lib/internal/data/programs";
 import { ProgramOverview } from "./program-overview";
@@ -64,7 +63,6 @@ export default async function ProgramOfferingPage({ params, searchParams }: IdPa
             <AudienceBadge program={program.id} />
             <AvailabilityBadge availability={offering.availability} />
             <SourceBadge source={offering.source} />
-            <VerificationBadge status={offering.verification} />
           </>
         }
         actions={
@@ -122,9 +120,6 @@ export default async function ProgramOfferingPage({ params, searchParams }: IdPa
             </div>
           </DetailSection>
 
-          <DetailSection title="Provenance" icon={Link2}>
-            <KeyValueList items={provenanceItems(offering)} />
-          </DetailSection>
         </div>
 
         <div className="space-y-6">

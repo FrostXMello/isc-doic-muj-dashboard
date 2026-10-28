@@ -163,19 +163,11 @@ export async function DocumentsPanel({
           <Link href="/internal" className="text-muj-fg underline-offset-4 hover:underline">Dashboard</Link>.
         </p>
       ) : (
-        <DataNotice>
-          Official documents link to the file on jaipur.manipal.edu; the link was checked on the
-          source review date, and rows marked <em>Not publicly accessible</em> did not open without
-          signing in (or returned an error). Signed MoU copies are stored privately and open only
-          after signing in.
-          {mode.sampleData ? (
-            <>
-              {" "}
-              <strong className="font-medium">Sample</strong> document rows have no file and are
-              shown because INTERNAL_SAMPLE_DATA is on.
-            </>
-          ) : null}
-        </DataNotice>
+        mode.sampleData ? (
+          <DataNotice>
+            <strong className="font-medium">Sample</strong> document rows have no file and are shown because INTERNAL_SAMPLE_DATA is on.
+          </DataNotice>
+        ) : null
       )}
 
       {folder ? <FolderTrail folder={folder} country={country} /> : null}

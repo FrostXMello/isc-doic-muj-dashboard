@@ -9,7 +9,6 @@ import { AgreementRegisterFacts } from "@/components/internal/university-registe
 import { KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { ManageLink } from "@/components/internal/ui/manage-action";
 import { NotRecorded } from "@/components/internal/ui/page-header";
-import { VerificationBadge } from "@/components/internal/ui/provenance";
 import { toneStyles } from "@/components/internal/ui/status-badge";
 import type { UniversityAgreement } from "@/lib/internal/data/institutions";
 import {
@@ -17,7 +16,6 @@ import {
   EXPIRY_WARNING_DAYS,
   formatDate,
   formatDateRange,
-  formatDuration,
   formatRelativeDays,
 } from "@/lib/internal/dates";
 import { agreementStatusMeta, agreementTypeLabel, documentTypeLabel } from "@/lib/internal/status";
@@ -106,7 +104,6 @@ export async function AgreementCard({
     ...documents.filter((doc) => doc.storageKey && doc.type === "agreement"),
     ...signedCopies.filter((doc) => !documents.some((own) => own.id === doc.id)),
   ];
-  const duration = formatDuration(agreement.startDate, agreement.endDate);
   const otherParties = [
     ...(role === "partner" && agreement.institution ? [{ ...agreement.institution, lead: true }] : []),
     ...agreement.partners.filter((p) => p.id !== universityId).map((p) => ({ ...p, lead: false })),
@@ -167,28 +164,16 @@ export async function AgreementCard({
                     ))}
                   </span>
                 ) : (
-                  <NotRecorded>
+                  <span className="text-fg-faint italic">
                     Not uploaded yet. Add the signed copy on the{" "}
                     <Link href="/internal/documents" className="underline hover:text-foreground">
                       Documents
                     </Link>{" "}
                     page.
-                  </NotRecorded>
+                  </span>
                 ),
             },
-            {
-              label: "Type",
-              value: (
-                <span>
-                  {agreementTypeLabel[agreement.type]}
-                  {agreement.typeLabel ? (
-                    <span className="block text-[12px] text-muted-foreground">
-                      Stated on source: &ldquo;{agreement.typeLabel}&rdquo;
-                    </span>
-                  ) : null}
-                </span>
-              ),
-            },
+            { label: "Type", value: agreement.typeLabel ?? agreementTypeLabel[agreement.type] },
             {
               label: "Status",
               value: (
@@ -208,28 +193,7 @@ export async function AgreementCard({
                     value: agreement.renewal ? renewalText[agreement.renewal] : <NotRecorded />,
                   },
                 ]),
-            { label: "Duration", value: duration ?? <NotRecorded>Not stated</NotRecorded> },
             { label: "Reference", value: <span className="font-mono">{agreement.reference}</span> },
-            { label: "Verification", value: <VerificationBadge status={agreement.verification} /> },
-            ...(agreement.sourceSection ? [{ label: "Listed under", value: agreement.sourceSection }] : []),
-            ...(agreement.sourceUrl
-              ? [
-                  {
-                    label: "Source",
-                    value: (
-                      <a
-                        href={agreement.sourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-muj-fg hover:text-foreground"
-                      >
-                        {agreement.sourceTitle ?? "Open source"}
-                        <ExternalLink className="size-3" aria-hidden />
-                      </a>
-                    ),
-                  },
-                ]
-              : []),
             {
               label: otherParties.length > 0 ? "Other parties" : "Parties",
               wide: true,
@@ -321,11 +285,7 @@ export async function AgreementCard({
               </RelatedBlock>
             ) : null}
           </div>
-        ) : (
-          <p className="border-t border-hairline px-4 sm:px-6 py-3 text-[12px] text-fg-faint">
-            No documents, programme offerings, or activities are linked to this MoU yet.
-          </p>
-        )}
+        ) : null}
 
         <div className="flex flex-wrap items-center gap-2 border-t border-hairline px-4 sm:px-6 py-3">
           <ManageLink

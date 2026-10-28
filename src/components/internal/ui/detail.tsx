@@ -1,7 +1,8 @@
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { isValidElement } from "react";
 import { EmptyState } from "@/components/internal/ui/empty-state";
-import { Eyebrow, Panel, PanelHeader } from "@/components/internal/ui/page-header";
+import { Eyebrow, NotRecorded, Panel, PanelHeader } from "@/components/internal/ui/page-header";
 import { cn } from "@/lib/utils";
 
 export function BackLink({ href, children }: { href: string; children: React.ReactNode }) {
@@ -89,9 +90,16 @@ export function KeyValueList({
   items: readonly KeyValueItem[];
   className?: string;
 }) {
+  const shown = items.filter(
+    (item) =>
+      item.value != null &&
+      item.value !== "" &&
+      !(isValidElement(item.value) && item.value.type === NotRecorded),
+  );
+  if (shown.length === 0) return null;
   return (
     <dl className={cn("grid grid-cols-1 sm:grid-cols-2", className)}>
-      {items.map((item) => (
+      {shown.map((item) => (
         <div
           key={item.label}
           className={cn(

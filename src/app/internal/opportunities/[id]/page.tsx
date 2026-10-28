@@ -5,7 +5,7 @@ import { AvailabilityBadge, AudienceBadge, OpportunityStatusBadge } from "@/comp
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { NotRecorded } from "@/components/internal/ui/page-header";
 import { ManageLink } from "@/components/internal/ui/manage-action";
-import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
+import { provenanceItems } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getOpportunity } from "@/lib/internal/data/opportunities";
 import { DEADLINE_WARNING_DAYS, formatDate, formatRelativeDays } from "@/lib/internal/dates";
@@ -59,7 +59,6 @@ export default async function OpportunityDetailPage({ params, searchParams }: Id
             <AudienceBadge program={program.id} />
             <OpportunityStatusBadge status={opportunity.status} />
             <SourceBadge source={opportunity.source} />
-            <VerificationBadge status={opportunity.verification} />
           </>
         }
         actions={

@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { Download, FileQuestion, FileText, Link2, Globe } from "lucide-react";
+import { Download, FileText, Link2 } from "lucide-react";
 import { buttonClass } from "@/components/internal/ui/button-styles";
 import { notFound } from "next/navigation";
 import { DocumentStatusBadge } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
-import { EmptyState } from "@/components/internal/ui/empty-state";
 import { NotRecorded } from "@/components/internal/ui/page-header";
 import { ManageLink } from "@/components/internal/ui/manage-action";
-import { provenanceItems, SourceLink, VerificationBadge } from "@/components/internal/ui/provenance";
+import { SourceLink } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { getDocument } from "@/lib/internal/data/documents";
 import { formatDate } from "@/lib/internal/dates";
@@ -45,7 +44,6 @@ export default async function DocumentDetailPage({ params, searchParams }: IdPar
           <>
             <DocumentStatusBadge status={doc.status} />
             <SourceBadge source={doc.source} />
-            <VerificationBadge status={doc.verification} />
           </>
         }
         actions={
@@ -68,47 +66,23 @@ export default async function DocumentDetailPage({ params, searchParams }: IdPar
             <KeyValueList
               items={[
                 { label: "Type", value: documentTypeLabel[doc.type] },
-                { label: "Status", value: <DocumentStatusBadge status={doc.status} /> },
                 { label: "Last updated", value: formatDate(doc.updatedOn) },
                 {
                   label: "Official link",
                   wide: true,
                   value: doc.url ? <SourceLink url={doc.url} title={doc.url} /> : <NotRecorded />,
                 },
-                {
-                  label: "Publicly accessible",
-                  value: doc.url
-                    ? doc.publiclyAccessible
-                      ? "Yes — opened without signing in"
-                      : "No — requires sign-in or did not open"
-                    : "—",
-                },
-                { label: "Storage", value: doc.storageKey ?? <NotRecorded>No file stored</NotRecorded> },
+                ...(doc.url && !doc.publiclyAccessible
+                  ? [{ label: "Access", value: "Requires sign-in on the official site" }]
+                  : []),
+                ...(!doc.url && !doc.storageKey ? [{ label: "File", value: "No file uploaded yet" }] : []),
                 { label: "Description", wide: true, value: doc.description ?? <NotRecorded /> },
               ]}
             />
           </DetailSection>
-
-          <DetailSection title="Provenance" icon={Globe}>
-            <KeyValueList items={provenanceItems(doc)} />
-          </DetailSection>
-
-          {!doc.url && (
-            <DetailSection title="File preview">
-              <EmptyState
-                icon={FileQuestion}
-                title="No file available"
-                description="File storage is not connected, so there is nothing to preview. The record holds metadata only."
-              />
-            </DetailSection>
-          )}
         </div>
 
-        <DetailSection
-          title="Attached to"
-          icon={Link2}
-          description="A document can be linked to several records; each link targets exactly one."
-        >
+        <DetailSection title="Attached to" icon={Link2}>
           <LinkedList
             emptyTitle="Not linked to any record"
             emptyDescription="Standalone documents such as policies may have no link."
