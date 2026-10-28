@@ -1,6 +1,8 @@
 import {
   BookOpen,
+  ChevronRight,
   ClipboardList,
+  Folder,
   Download,
   FileBarChart,
   FileSignature,
@@ -27,6 +29,13 @@ import {
   type DocumentLinkFilter,
 } from "@/lib/internal/data/documents";
 import { formatDate } from "@/lib/internal/dates";
+import {
+  countryFolders,
+  findFolder,
+  folderCounts,
+  inCountry,
+  type DocumentFolder,
+} from "@/lib/internal/document-folders";
 import { readEnumParam, readParam, type SearchParamsRecord } from "@/lib/internal/query";
 import { documentStatusMeta, documentTypeLabel, optionsFrom } from "@/lib/internal/status";
 import type { DocumentView } from "@/lib/internal/types";
@@ -101,17 +110,33 @@ export async function DocumentsPanel({
   params: SearchParamsRecord;
   reportsOnly?: boolean;
 }) {
-  const fixedType = reportsOnly ? ("report" as const) : undefined;
-  const [rows, all, mode] = await Promise.all([
-    listDocuments({
-      q: readParam(params, "q"),
-      type: fixedType ?? readEnumParam(params, "type", documentTypes),
-      status: readEnumParam(params, "status", documentStatuses),
-      linked: readEnumParam(params, "linked", documentLinkFilters),
-    }),
+  const folder = reportsOnly ? undefined : findFolder(readParam(params, "folder"));
+  const fixedType = reportsOnly ? ("report" as const) : folder?.type;
+  const q = readParam(params, "q");
+  const status = readEnumParam(params, "status", documentStatuses);
+  const linked = readEnumParam(params, "linked", documentLinkFilters);
+  const type = fixedType ?? readEnumParam(params, "type", documentTypes);
+  const [matched, scope, mode] = await Promise.all([
+    listDocuments({ q, type, status, linked }),
     listDocuments({ type: fixedType }),
     getDataMode(),
   ]);
+  const filtering = Boolean(q || status || linked || (!folder && type));
+  const byCountry = folder?.type === "agreement";
+  const country = byCountry ? readParam(params, "sub") : undefined;
+  const rows = (country ? matched.filter((doc) => inCountry(doc, country)) : matched).sort((a, b) =>
+    folder ? a.title.localeCompare(b.title) : 0,
+  );
+  const all = country ? scope.filter((doc) => inCountry(doc, country)) : scope;
+  const view: "folders" | "countries" | "list" = reportsOnly
+    ? "list"
+    : !folder
+      ? filtering
+        ? "list"
+        : "folders"
+      : byCountry && !country && !filtering
+        ? "countries"
+        : "list";
 
   if (reportsOnly && all.length === 0) {
     return (
@@ -141,7 +166,8 @@ export async function DocumentsPanel({
         <DataNotice>
           Official documents link to the file on jaipur.manipal.edu; the link was checked on the
           source review date, and rows marked <em>Not publicly accessible</em> did not open without
-          signing in (or returned an error). No copies are stored here.
+          signing in (or returned an error). Signed MoU copies are stored privately and open only
+          after signing in.
           {mode.sampleData ? (
             <>
               {" "}
@@ -152,13 +178,21 @@ export async function DocumentsPanel({
         </DataNotice>
       )}
 
+      {folder ? <FolderTrail folder={folder} country={country} /> : null}
+
       <FilterBar
-        searchPlaceholder={reportsOnly ? "Search report title" : "Search title or linked record"}
+        searchPlaceholder={
+          reportsOnly
+            ? "Search report title"
+            : folder
+              ? `Search ${folder.label.toLowerCase()}`
+              : "Search all documents"
+        }
         noun={reportsOnly ? { singular: "report", plural: "reports" } : { singular: "document", plural: "documents" }}
         resultCount={rows.length}
         totalCount={all.length}
         selects={[
-          ...(reportsOnly
+          ...(reportsOnly || folder
             ? []
             : [
                 {
@@ -183,6 +217,26 @@ export async function DocumentsPanel({
         ]}
       />
 
+      {view === "folders" ? (
+        <FolderGrid
+          items={folderCounts(all).map((item) => ({
+            key: item.type,
+            href: `${SECTION}?folder=${item.type}`,
+            label: item.label,
+            description: item.description,
+            count: item.count,
+          }))}
+        />
+      ) : view === "countries" ? (
+        <FolderGrid
+          items={countryFolders(all).map((item) => ({
+            key: item.country,
+            href: `${SECTION}?folder=agreement&sub=${encodeURIComponent(item.country)}`,
+            label: item.country,
+            count: item.count,
+          }))}
+        />
+      ) : (
       <ResourceTable<DocumentView>
         caption="Documents"
         rows={rows}
@@ -247,6 +301,82 @@ export async function DocumentsPanel({
         )}
         renderCardActions={(row) => <FileCell doc={row} />}
       />
+      )}
     </div>
+  );
+}
+
+const SECTION = "/internal/documents";
+
+function FolderTrail({ folder, country }: { folder: DocumentFolder; country?: string }) {
+  const crumbs = [
+    { label: "All folders", href: SECTION },
+    { label: folder.label, href: country ? `${SECTION}?folder=${folder.type}` : null },
+    ...(country ? [{ label: country, href: null }] : []),
+  ];
+  return (
+    <nav aria-label="Folder" className="flex flex-wrap items-center gap-1.5 text-[13px]">
+      {crumbs.map((crumb, index) => (
+        <span key={crumb.label} className="inline-flex items-center gap-1.5">
+          {index > 0 ? <ChevronRight className="size-3.5 text-fg-faint" aria-hidden /> : null}
+          {crumb.href ? (
+            <Link href={crumb.href} className="text-muted-foreground hover:text-foreground">
+              {index === 0 ? <Folder className="mr-1 inline size-3.5 align-[-2px]" aria-hidden /> : null}
+              {crumb.label}
+            </Link>
+          ) : (
+            <span className="font-medium text-foreground" aria-current="page">
+              {crumb.label}
+            </span>
+          )}
+        </span>
+      ))}
+    </nav>
+  );
+}
+
+function FolderGrid({
+  items,
+}: {
+  items: { key: string; href: string; label: string; description?: string; count: number }[];
+}) {
+  if (items.length === 0) {
+    return (
+      <div className="portal-surface">
+        <EmptyState icon={SearchX} title="No documents here yet" />
+      </div>
+    );
+  }
+  return (
+    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      {items.map((item) => (
+        <li key={item.key}>
+          <Link
+            href={item.href}
+            className="group portal-surface flex h-full items-start gap-3 p-4 transition-colors hover:border-muj/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            <span
+              className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muj/[0.1] text-muj-fg transition-transform group-hover:-rotate-3 motion-reduce:transition-none"
+              aria-hidden
+            >
+              <Folder className="size-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[14px] font-medium text-foreground group-hover:text-muj-fg">{item.label}</span>
+              {item.description ? (
+                <span className="mt-0.5 block text-[12px] text-muted-foreground">{item.description}</span>
+              ) : null}
+              <span className="mt-1 block text-[12px] text-fg-faint tabular-nums">
+                {item.count} {item.count === 1 ? "document" : "documents"}
+              </span>
+            </span>
+            <ChevronRight
+              className="mt-0.5 size-4 shrink-0 text-fg-faint transition-transform group-hover:translate-x-0.5 group-hover:text-muj-fg motion-reduce:transition-none"
+              aria-hidden
+            />
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }

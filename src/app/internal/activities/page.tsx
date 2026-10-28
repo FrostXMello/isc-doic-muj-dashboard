@@ -121,7 +121,7 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
   const params = await searchParams;
   const [options, mode] = await Promise.all([getActivityFilterOptions(), getDataMode()]);
 
-  const [rows, all, fileCounts] = await Promise.all([
+  const [matched, all, fileCounts] = await Promise.all([
     listActivities({
       q: readParam(params, "q"),
       type: readEnumParam(params, "type", activityTypes),
@@ -131,6 +131,9 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
     listActivities(),
     eventFileCounts(),
   ]);
+  const years = [...new Set(all.map((row) => row.startDate.slice(0, 4)))].sort().reverse();
+  const year = readEnumParam(params, "year", years);
+  const rows = year ? matched.filter((row) => row.startDate.startsWith(year)) : matched;
 
   return (
     <div className="space-y-8">
@@ -159,6 +162,12 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
         resultCount={rows.length}
         totalCount={all.length}
         selects={[
+          {
+            name: "year",
+            label: "Year",
+            allLabel: "All years",
+            options: years.map((value) => ({ value, label: value })),
+          },
           {
             name: "when",
             label: "When",

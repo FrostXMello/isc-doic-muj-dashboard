@@ -165,6 +165,7 @@ export function createViews(data: Dataset) {
             kind: "institution",
             label: institution.name,
             href: `/internal/universities/${institution.id}`,
+            country: institution.country,
           });
         }
       } else if (link.agreementId) {
@@ -175,6 +176,7 @@ export function createViews(data: Dataset) {
             kind: "agreement",
             label: agreement.reference,
             href: agreementHref(agreement),
+            country: findInstitution(agreement.institutionId)?.country ?? null,
           });
         }
       } else if (link.availabilityId) {

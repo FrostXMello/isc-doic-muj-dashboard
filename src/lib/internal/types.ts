@@ -293,6 +293,8 @@ export type DocumentLinkView = {
   kind: "institution" | "agreement" | "program" | "availability";
   label: string;
   href: string;
+  /** Country of the linked university, for university and agreement links. */
+  country?: string | null;
 };
 
 export type ActivityView = Activity & {
