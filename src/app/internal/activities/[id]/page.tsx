@@ -10,7 +10,10 @@ import { provenanceItems, VerificationBadge } from "@/components/internal/ui/pro
 import { SourceBadge } from "@/components/internal/ui/source-badge";
 import { EventFilesSection } from "@/components/internal/event-files-section";
 import { InsightsCard } from "@/components/internal/insights-card";
+import { ParticipantList } from "@/components/internal/participant-list";
 import { getActivity, listActivities } from "@/lib/internal/data/activities";
+import { listEventParticipants } from "@/lib/internal/data/event-participants";
+import { participantInsights, participantSources } from "@/lib/internal/participants";
 import { eventInsights } from "@/lib/internal/insights";
 import { formatDateRange, formatRelativeDays } from "@/lib/internal/dates";
 import type { IdParamsProp, SearchParamsProp } from "@/lib/internal/query";
@@ -25,7 +28,7 @@ export async function generateMetadata({ params }: IdParamsProp): Promise<Metada
 
 export default async function ActivityDetailPage({ params, searchParams }: IdParamsProp & SearchParamsProp) {
   const { id } = await params;
-  const [record, all] = await Promise.all([getActivity(id), listActivities()]);
+  const [record, all, participants] = await Promise.all([getActivity(id), listActivities(), listEventParticipants(id)]);
   if (!record) notFound();
 
   const { activity, documents } = record;
@@ -51,7 +54,11 @@ export default async function ActivityDetailPage({ params, searchParams }: IdPar
       />
       <RecordNotice query={await searchParams} />
 
-      <InsightsCard tabs={eventInsights(activity, all)} />
+      <InsightsCard tabs={[...participantInsights(participants), ...eventInsights(activity, all)]} />
+
+      {participants.length > 0 ? (
+        <ParticipantList rows={participants} source={participantSources[id] ?? "DoIC participant list"} />
+      ) : null}
 
       <EventFilesSection
         id="files"
