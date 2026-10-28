@@ -1,4 +1,4 @@
-import { ChevronDown, ExternalLink } from "lucide-react";
+import { ChevronDown, ExternalLink, FileText } from "lucide-react";
 import Link from "next/link";
 import {
   AgreementStatusBadge,
@@ -22,7 +22,7 @@ import {
 } from "@/lib/internal/dates";
 import { agreementStatusMeta, agreementTypeLabel, documentTypeLabel } from "@/lib/internal/status";
 import type { AgreementEntry } from "@/lib/internal/register-view";
-import type { AgreementView } from "@/lib/internal/types";
+import type { AgreementView, DocumentRecord } from "@/lib/internal/types";
 import { cn } from "@/lib/utils";
 
 export function statusExplanation(agreement: AgreementView) {
@@ -90,6 +90,7 @@ export async function AgreementCard({
   today,
   open,
   register,
+  signedCopies = [],
 }: {
   entry: UniversityAgreement;
   universityId: string;
@@ -97,8 +98,14 @@ export async function AgreementCard({
   open: boolean;
   /** DoIC register details, officers, workflow, and renewal rows for this agreement. */
   register?: AgreementEntry;
+  /** Uploaded agreement files linked to the university rather than this MoU. */
+  signedCopies?: DocumentRecord[];
 }) {
   const { agreement, role, offerings, activities, documents } = entry;
+  const files = [
+    ...documents.filter((doc) => doc.storageKey && doc.type === "agreement"),
+    ...signedCopies.filter((doc) => !documents.some((own) => own.id === doc.id)),
+  ];
   const duration = formatDuration(agreement.startDate, agreement.endDate);
   const otherParties = [
     ...(role === "partner" && agreement.institution ? [{ ...agreement.institution, lead: true }] : []),
@@ -132,6 +139,43 @@ export async function AgreementCard({
       <div className="bg-overlay-subtle">
         <KeyValueList
           items={[
+            {
+              label: "Signed MoU",
+              wide: true,
+              value:
+                files.length > 0 ? (
+                  <span className="flex flex-col gap-2">
+                    {files.map((doc) => (
+                      <span key={doc.id} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <a
+                          href={`/internal/documents/${doc.id}/file`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-md border border-line-strong px-2.5 py-1 text-[13px] font-medium text-muj-fg transition-colors hover:border-muj/60 hover:text-foreground pointer-coarse:py-2"
+                        >
+                          <FileText className="size-3.5" aria-hidden />
+                          Open MoU
+                          <ExternalLink className="size-3" aria-hidden />
+                        </a>
+                        <Link
+                          href={`/internal/documents/${doc.id}`}
+                          className="min-w-0 text-[12px] text-muted-foreground hover:text-foreground [overflow-wrap:anywhere]"
+                        >
+                          {doc.title}
+                        </Link>
+                      </span>
+                    ))}
+                  </span>
+                ) : (
+                  <NotRecorded>
+                    Not uploaded yet. Add the signed copy on the{" "}
+                    <Link href="/internal/documents" className="underline hover:text-foreground">
+                      Documents
+                    </Link>{" "}
+                    page.
+                  </NotRecorded>
+                ),
+            },
             {
               label: "Type",
               value: (

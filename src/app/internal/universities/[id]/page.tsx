@@ -63,6 +63,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
     ...entry.agreements.flatMap(({ rows }) => [...rows.list, ...rows.status, ...rows.renewal, ...rows.link]),
     ...entry.universityRows,
   ];
+  const signedCopies = documents.filter((doc) => doc.storageKey && doc.type === "agreement");
   const openAgreement = readParam(query, "agreement");
   const notice = notices[readParam(query, "notice") ?? ""];
   const insights = universityInsights({
@@ -144,6 +145,7 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
                     today={today}
                     open={openAgreement === item.agreement.id || agreements.length === 1}
                     register={registerByAgreement.get(item.agreement.id)}
+                    signedCopies={signedCopies}
                   />
                 ))}
               </div>
