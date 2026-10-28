@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { getDataMode } from "@/lib/internal/data/context";
 import { ChevronRight, FolderOpen, SearchX } from "lucide-react";
 import Link from "next/link";
-import { ActivityStatusBadge } from "@/components/internal/badges";
 import { EventFilesSection } from "@/components/internal/event-files-section";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
@@ -11,7 +10,6 @@ import { ManageLink } from "@/components/internal/ui/manage-action";
 import { RecordNotice } from "@/components/internal/ui/record-notice";
 import { DataNotice } from "@/components/internal/ui/source-badge";
 import {
-  activityStatuses,
   activityTimeframes,
   activityTypes,
   getActivityFilterOptions,
@@ -20,18 +18,10 @@ import {
 import { eventFileCounts } from "@/lib/internal/data/event-files";
 import { formatDateRange, formatRelativeDays } from "@/lib/internal/dates";
 import { readEnumParam, readParam, type SearchParamsProp } from "@/lib/internal/query";
-import { activityStatusMeta, activityTypeLabel, optionsFrom } from "@/lib/internal/status";
+import { activityTypeLabel, optionsFrom } from "@/lib/internal/status";
 import type { ActivityView } from "@/lib/internal/types";
 
 export const metadata: Metadata = { title: "Flagship Events" };
-
-const statusColor: Record<ActivityView["status"], string> = {
-  "needs-update": "var(--warning)",
-  planned: "var(--reach-2)",
-  confirmed: "var(--reach-2)",
-  completed: "var(--success)",
-  cancelled: "var(--line-bold)",
-};
 
 const monthFormatter = new Intl.DateTimeFormat("en-GB", { month: "short", timeZone: "UTC" });
 
@@ -55,24 +45,9 @@ function groupByYear(rows: readonly ActivityView[]) {
   return groups;
 }
 
-const legend = [
-  { label: "Needs an update", color: statusColor["needs-update"] },
-  { label: "Planned or confirmed", color: statusColor.planned },
-  { label: "Completed", color: statusColor.completed },
-  { label: "Cancelled", color: statusColor.cancelled },
-];
-
 function Timeline({ rows, fileCounts }: { rows: readonly ActivityView[]; fileCounts: ReadonlyMap<string, number> }) {
   return (
     <div className="space-y-10">
-      <ul className="flex flex-wrap gap-x-5 gap-y-2 text-[12px] text-muted-foreground" aria-label="Timeline colours">
-        {legend.map((item) => (
-          <li key={item.label} className="flex items-center gap-2">
-            <span className="size-2.5 rounded-full" style={{ background: item.color }} aria-hidden />
-            {item.label}
-          </li>
-        ))}
-      </ul>
       {groupByYear(rows).map((group, groupIndex) => (
         <section
           key={`${group.year}-${groupIndex}`}
@@ -89,7 +64,6 @@ function Timeline({ rows, fileCounts }: { rows: readonly ActivityView[]; fileCou
           <ol className="relative mt-4 before:absolute before:top-4 before:bottom-4 before:left-[4.75rem] before:w-px before:bg-line sm:before:left-[5.375rem]">
             {group.items.map((row) => {
               const { day, month } = dayParts(row.startDate);
-              const color = statusColor[row.status];
               return (
                 <li key={row.id}>
                   <Link
@@ -105,7 +79,7 @@ function Timeline({ rows, fileCounts }: { rows: readonly ActivityView[]; fileCou
                     <span className="relative flex justify-center pt-1.5" aria-hidden>
                       <span
                         className="size-3 rounded-full ring-4 ring-background transition-transform group-hover:scale-125 motion-reduce:transition-none"
-                        style={{ background: color }}
+                        style={{ background: "var(--reach-2)" }}
                       />
                     </span>
                     <span className="min-w-0">
@@ -125,12 +99,8 @@ function Timeline({ rows, fileCounts }: { rows: readonly ActivityView[]; fileCou
                           {fileCounts.get(row.id)} {fileCounts.get(row.id) === 1 ? "file" : "files"}
                         </span>
                       ) : null}
-                      <span className="mt-2 flex sm:hidden">
-                        <ActivityStatusBadge status={row.status} />
-                      </span>
                     </span>
                     <span className="hidden items-center gap-2 pt-0.5 sm:flex">
-                      <ActivityStatusBadge status={row.status} />
                       <ChevronRight
                         className="size-4 text-fg-faint transition-transform group-hover:translate-x-0.5 group-hover:text-muj-fg motion-reduce:transition-none"
                         aria-hidden
@@ -155,7 +125,6 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
     listActivities({
       q: readParam(params, "q"),
       type: readEnumParam(params, "type", activityTypes),
-      status: readEnumParam(params, "status", activityStatuses),
       country: readEnumParam(params, "country", options.countries),
       timeframe: readEnumParam(params, "when", activityTimeframes),
     }),
@@ -168,7 +137,7 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
       <PageHeader
         eyebrow="Agenda"
         title="Flagship Events"
-        description="International visits, delegations, events, and meetings. Planned items whose date has passed are flagged for an update."
+        description="International visits, delegations, events, and meetings."
         actions={
           <ManageLink permission="activities:create" href="/internal/activities/new" label="Log activity" icon="add" variant="primary" />
         }
@@ -204,12 +173,6 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
             label: "Type",
             allLabel: "All types",
             options: optionsFrom(activityTypes, activityTypeLabel),
-          },
-          {
-            name: "status",
-            label: "Status",
-            allLabel: "All statuses",
-            options: optionsFrom(activityStatuses, activityStatusMeta),
           },
           {
             name: "country",

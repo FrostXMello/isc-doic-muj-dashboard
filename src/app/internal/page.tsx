@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { ActivityHighlights } from "@/components/internal/activity-highlights";
-import { ActivityStatusBadge } from "@/components/internal/badges";
 import { DataNotice } from "@/components/internal/ui/source-badge";
 import { toneStyles } from "@/components/internal/ui/status-badge";
 import { computeDashboard, type DashboardData } from "@/lib/internal/analytics";
@@ -23,7 +22,7 @@ const sectionTitle = "font-display text-[clamp(1.5rem,2.6vw,2rem)] leading-none 
 
 const snapshotAccents = ["var(--reach-1)", "var(--reach-4)", "var(--reach-3)", "var(--reach-2)", "var(--reach-5)"];
 const ringColors: Record<string, string> = { status: "var(--reach-2)", "end-date": "var(--reach-3)", type: "var(--muj)" };
-const tones = { overdue: "var(--warning)", upcoming: "var(--reach-2)", completed: "var(--success)" } as const;
+const tones = { upcoming: "var(--reach-2)", past: "var(--reach-4)" } as const;
 
 const monthFormatter = new Intl.DateTimeFormat("en-GB", { month: "short", year: "2-digit", timeZone: "UTC" });
 
@@ -179,7 +178,6 @@ function AgendaGroup({
   empty,
   meta,
   more,
-  showStatus,
 }: {
   title: string;
   color: string;
@@ -187,7 +185,6 @@ function AgendaGroup({
   empty: string;
   meta: (activity: ActivityView) => string;
   more: { count: number; href: string };
-  showStatus?: boolean;
 }) {
   return (
     <li className="relative pl-9">
@@ -229,7 +226,6 @@ function AgendaGroup({
                     <span className="block truncate text-[12px] text-muted-foreground">{meta(activity)}</span>
                   </span>
                   <span className="flex items-center gap-2">
-                    {showStatus ? <ActivityStatusBadge status={activity.status} /> : null}
                     <ArrowUpRight
                       aria-hidden
                       className="size-4 text-fg-faint opacity-0 transition-opacity group-hover:opacity-100 pointer-coarse:opacity-100"
@@ -259,37 +255,18 @@ function Activities({ activities }: Pick<DashboardData, "activities">) {
         <SectionLink href="/internal/activities">View all activities</SectionLink>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5 border-y border-hairline py-5 sm:grid-cols-4">
+      <div className="mt-6 grid grid-cols-3 gap-x-6 gap-y-5 border-y border-hairline py-5">
         <ActivityCount label="Total" value={activities.total} href="/internal/activities" />
-        <ActivityCount
-          label="Completed"
-          value={activities.completed.length}
-          color={tones.completed}
-          href="/internal/activities?status=completed"
-        />
         <ActivityCount
           label="Upcoming"
           value={activities.upcoming.length}
           color={tones.upcoming}
           href="/internal/activities?when=upcoming"
         />
-        <ActivityCount
-          label="Overdue"
-          value={activities.overdue.length}
-          color={tones.overdue}
-          href="/internal/activities?status=needs-update"
-        />
+        <ActivityCount label="Past" value={activities.past.length} color={tones.past} href="/internal/activities?when=past" />
       </div>
 
       <ol className="relative mt-7 space-y-8 before:absolute before:top-3 before:bottom-3 before:left-[8.5px] before:w-px before:bg-gradient-to-b before:from-line-bold before:via-line before:to-transparent">
-        <AgendaGroup
-          title="Needs an update"
-          color={tones.overdue}
-          items={activities.overdue.slice(0, LIST_SIZE)}
-          empty="No overdue activities."
-          meta={(a) => `${place(a)} · ${formatRelativeDays(a.daysFromToday)}`}
-          more={{ count: activities.overdue.length - LIST_SIZE, href: "/internal/activities?status=needs-update" }}
-        />
         <AgendaGroup
           title="Coming up"
           color={tones.upcoming}
@@ -297,15 +274,14 @@ function Activities({ activities }: Pick<DashboardData, "activities">) {
           empty="Nothing scheduled."
           meta={(a) => `${place(a)} · ${formatRelativeDays(a.daysFromToday)}`}
           more={{ count: activities.upcoming.length - LIST_SIZE, href: "/internal/activities?when=upcoming" }}
-          showStatus
         />
         <AgendaGroup
-          title="Recently completed"
-          color={tones.completed}
-          items={activities.completed.slice(0, LIST_SIZE)}
-          empty="No completed activities recorded."
-          meta={place}
-          more={{ count: activities.completed.length - LIST_SIZE, href: "/internal/activities?status=completed" }}
+          title="Recent events"
+          color={tones.past}
+          items={activities.past.slice(0, LIST_SIZE)}
+          empty="No past events recorded."
+          meta={(a) => `${place(a)} · ${formatRelativeDays(a.daysFromToday)}`}
+          more={{ count: activities.past.length - LIST_SIZE, href: "/internal/activities?when=past" }}
         />
       </ol>
     </section>

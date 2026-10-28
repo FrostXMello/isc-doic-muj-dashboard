@@ -3,7 +3,6 @@ import { BookMarked, BookOpen, CalendarDays, ChevronDown, FileText, FolderOpen, 
 import { notFound } from "next/navigation";
 import { AgreementCard } from "@/components/internal/agreement-card";
 import {
-  ActivityStatusBadge,
   AvailabilityBadge,
   DocumentStatusBadge,
   PartnershipBadge,
@@ -198,7 +197,6 @@ export default async function UniversityDetailPage({ params, searchParams }: Pro
                 href: `/internal/activities/${activity.id}`,
                 title: activity.title,
                 meta: formatDateRange(activity.startDate, activity.endDate),
-                badge: <ActivityStatusBadge status={activity.status} />,
               }))}
             />
           </DetailSection>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { agreementHref } from "@/lib/internal/links";
 import { CalendarDays, FileText, FolderOpen, GraduationCap, Link2 } from "lucide-react";
 import { notFound } from "next/navigation";
-import { ActivityStatusBadge, DocumentStatusBadge } from "@/components/internal/badges";
+import { DocumentStatusBadge } from "@/components/internal/badges";
 import { DetailHeader, DetailSection, KeyValueList, LinkedList } from "@/components/internal/ui/detail";
 import { NotRecorded } from "@/components/internal/ui/page-header";
 import { ManageLink } from "@/components/internal/ui/manage-action";
@@ -16,27 +16,11 @@ import { formatDateRange, formatRelativeDays } from "@/lib/internal/dates";
 import type { IdParamsProp, SearchParamsProp } from "@/lib/internal/query";
 import { RecordNotice } from "@/components/internal/ui/record-notice";
 import { activityTypeLabel, documentTypeLabel } from "@/lib/internal/status";
-import type { ActivityView } from "@/lib/internal/types";
 
 export async function generateMetadata({ params }: IdParamsProp): Promise<Metadata> {
   const { id } = await params;
   const record = await getActivity(id);
   return { title: record?.activity.title ?? "Activity not found" };
-}
-
-function statusExplanation(activity: ActivityView) {
-  switch (activity.status) {
-    case "needs-update":
-      return "The date has passed but the activity is still marked planned or confirmed. Record the outcome or cancellation.";
-    case "planned":
-      return "Planned; details are not yet confirmed.";
-    case "confirmed":
-      return "Confirmed with the participants.";
-    case "completed":
-      return "Completed.";
-    case "cancelled":
-      return "Cancelled.";
-  }
 }
 
 export default async function ActivityDetailPage({ params, searchParams }: IdParamsProp & SearchParamsProp) {
@@ -57,13 +41,12 @@ export default async function ActivityDetailPage({ params, searchParams }: IdPar
         subtitle={`${formatDateRange(activity.startDate, activity.endDate)} · ${formatRelativeDays(activity.daysFromToday)}`}
         badges={
           <>
-            <ActivityStatusBadge status={activity.status} />
             <SourceBadge source={activity.source} />
             <VerificationBadge status={activity.verification} />
           </>
         }
         actions={
-          <ManageLink permission="activities:update" href={`/internal/activities/${id}/edit`} label="Update outcome" icon="edit" />
+          <ManageLink permission="activities:update" href={`/internal/activities/${id}/edit`} label="Edit event" icon="edit" />
         }
       />
       <RecordNotice query={await searchParams} />
@@ -83,17 +66,6 @@ export default async function ActivityDetailPage({ params, searchParams }: IdPar
             <KeyValueList
               items={[
                 { label: "Type", value: activityTypeLabel[activity.type] },
-                {
-                  label: "Status",
-                  value: (
-                    <span className="space-y-1">
-                      <ActivityStatusBadge status={activity.status} />
-                      <span className="block text-[12px] text-muted-foreground">
-                        {statusExplanation(activity)}
-                      </span>
-                    </span>
-                  ),
-                },
                 { label: "Dates", value: formatDateRange(activity.startDate, activity.endDate) },
                 {
                   label: "Location",

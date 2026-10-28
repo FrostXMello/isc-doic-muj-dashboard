@@ -1,7 +1,6 @@
 import { ChevronDown, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import {
-  ActivityStatusBadge,
   AgreementStatusBadge,
   AvailabilityBadge,
   DocumentStatusBadge,
@@ -273,7 +272,6 @@ export async function AgreementCard({
                     href: `/internal/activities/${activity.id}`,
                     title: activity.title,
                     meta: formatDateRange(activity.startDate, activity.endDate),
-                    badge: <ActivityStatusBadge status={activity.status} />,
                   }))}
                 />
               </RelatedBlock>

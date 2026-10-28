@@ -34,11 +34,10 @@ export default async function EditActivityPage({ params }: IdParamsProp) {
         <RecordForm
           action={saveActivity}
           groups={activityGroups(await listEditOptions())}
-          hidden={{ existing: activity.code }}
+          hidden={{ existing: activity.code, recordStatus: activity.record_status }}
           initial={{
             title: activity.title,
             type: activity.activity_type,
-            recordStatus: activity.record_status,
             startDate: activity.start_date,
             endDate: activity.end_date,
             country: activity.country?.slug,

@@ -1,6 +1,5 @@
 import type { FieldGroup, FieldOption, FieldSpec } from "@/components/internal/forms/record-form";
 import {
-  activityStatusOptions,
   activityTypeOptions,
   availabilityOptions,
   documentStatusOptions,
@@ -11,7 +10,6 @@ import {
 import type { EditOptions } from "@/lib/internal/data/editable";
 import { verificationOptions } from "@/lib/internal/record-forms";
 import {
-  activityStatusMeta,
   activityTypeLabel,
   availabilityMeta,
   documentStatusMeta,
@@ -192,14 +190,6 @@ export function activityGroups(options: EditOptions): FieldGroup[] {
           required: true,
           placeholder: "Choose a type",
           options: opts(activityTypeOptions, (key) => activityTypeLabel[key]),
-        },
-        {
-          kind: "select",
-          name: "recordStatus",
-          label: "Status",
-          required: true,
-          options: opts(activityStatusOptions, (key) => activityStatusMeta[key].label),
-          hint: "Cancelling archives the activity without deleting it.",
         },
         { kind: "date", name: "startDate", label: "Start date", required: true },
         { kind: "date", name: "endDate", label: "End date (optional)" },

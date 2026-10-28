@@ -2,7 +2,7 @@ import type { InsightItem, InsightTab } from "@/components/internal/insights-car
 import { formatDate, formatDateRange, formatRelativeDays } from "@/lib/internal/dates";
 import { agreementHref } from "@/lib/internal/links";
 import type { UniversityEntry } from "@/lib/internal/register-view";
-import { activityStatusMeta, activityTypeLabel, agreementStatusMeta, partnershipStatusMeta } from "@/lib/internal/status";
+import { activityTypeLabel, agreementStatusMeta, partnershipStatusMeta } from "@/lib/internal/status";
 import type { ActivityView, AgreementView, InstitutionView, ProgramAvailabilityView } from "@/lib/internal/types";
 
 /**
@@ -20,8 +20,7 @@ const eventItem = (row: ActivityView, place = true): InsightItem => ({
     .filter(Boolean)
     .join(" · "),
   href: `/internal/activities/${row.id}`,
-  badge: activityStatusMeta[row.status].label,
-  tone: activityStatusMeta[row.status].tone,
+  badge: activityTypeLabel[row.type],
 });
 
 const latestFirst = (a: ActivityView, b: ActivityView) => b.startDate.localeCompare(a.startDate);
@@ -149,7 +148,6 @@ export function eventInsights(activity: ActivityView, all: readonly ActivityView
           label: activity.daysFromToday > 0 ? "Starts" : "Took place",
           value: formatRelativeDays(activity.daysFromToday),
           hint: formatDateRange(activity.startDate, activity.endDate),
-          tone: activityStatusMeta[activity.status].tone,
         },
         ...(activity.institution
           ? [

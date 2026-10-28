@@ -28,9 +28,9 @@ export default async function NewActivityPage({ searchParams }: SearchParamsProp
           <RecordForm
             action={saveActivity}
             groups={activityGroups(await listEditOptions())}
+            hidden={{ recordStatus: "planned" }}
             initial={{
               institution: readParam(query, "institution"),
-              recordStatus: "planned",
               verification: "needs-review",
             }}
             submitLabel="Log activity"
