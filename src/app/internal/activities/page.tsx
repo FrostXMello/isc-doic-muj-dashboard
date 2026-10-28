@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { getDataMode } from "@/lib/internal/data/context";
-import { ChevronRight, SearchX } from "lucide-react";
+import { ChevronRight, FolderOpen, SearchX } from "lucide-react";
 import Link from "next/link";
 import { ActivityStatusBadge } from "@/components/internal/badges";
+import { EventFilesSection } from "@/components/internal/event-files-section";
 import { EmptyState } from "@/components/internal/ui/empty-state";
 import { FilterBar } from "@/components/internal/ui/filter-bar";
 import { PageHeader } from "@/components/internal/ui/page-header";
@@ -16,6 +17,7 @@ import {
   getActivityFilterOptions,
   listActivities,
 } from "@/lib/internal/data/activities";
+import { eventFileCounts } from "@/lib/internal/data/event-files";
 import { formatDateRange, formatRelativeDays } from "@/lib/internal/dates";
 import { readEnumParam, readParam, type SearchParamsProp } from "@/lib/internal/query";
 import { activityStatusMeta, activityTypeLabel, optionsFrom } from "@/lib/internal/status";
@@ -60,7 +62,7 @@ const legend = [
   { label: "Cancelled", color: statusColor.cancelled },
 ];
 
-function Timeline({ rows }: { rows: readonly ActivityView[] }) {
+function Timeline({ rows, fileCounts }: { rows: readonly ActivityView[]; fileCounts: ReadonlyMap<string, number> }) {
   return (
     <div className="space-y-10">
       <ul className="flex flex-wrap gap-x-5 gap-y-2 text-[12px] text-muted-foreground" aria-label="Timeline colours">
@@ -117,6 +119,12 @@ function Timeline({ rows }: { rows: readonly ActivityView[] }) {
                       <span className="mt-1 block text-[12px] text-fg-faint">
                         {formatDateRange(row.startDate, row.endDate)} · {formatRelativeDays(row.daysFromToday)}
                       </span>
+                      {fileCounts.get(row.id) ? (
+                        <span className="mt-1 flex items-center gap-1.5 text-[12px] text-fg-faint">
+                          <FolderOpen className="size-3.5" aria-hidden />
+                          {fileCounts.get(row.id)} {fileCounts.get(row.id) === 1 ? "file" : "files"}
+                        </span>
+                      ) : null}
                       <span className="mt-2 flex sm:hidden">
                         <ActivityStatusBadge status={row.status} />
                       </span>
@@ -143,7 +151,7 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
   const params = await searchParams;
   const [options, mode] = await Promise.all([getActivityFilterOptions(), getDataMode()]);
 
-  const [rows, all] = await Promise.all([
+  const [rows, all, fileCounts] = await Promise.all([
     listActivities({
       q: readParam(params, "q"),
       type: readEnumParam(params, "type", activityTypes),
@@ -152,6 +160,7 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
       timeframe: readEnumParam(params, "when", activityTimeframes),
     }),
     listActivities(),
+    eventFileCounts(),
   ]);
 
   return (
@@ -212,7 +221,7 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
       />
 
       {rows.length > 0 ? (
-        <Timeline rows={rows} />
+        <Timeline rows={rows} fileCounts={fileCounts} />
       ) : (
         <div className="portal-surface">
           <EmptyState
@@ -222,6 +231,13 @@ export default async function ActivitiesPage({ searchParams }: SearchParamsProp)
           />
         </div>
       )}
+
+      <EventFilesSection
+        id="shared-files"
+        activityCode={null}
+        title="Shared files & templates"
+        description="Templates and documents used across summer schools, winter schools, and Explore India programmes. Each event's own files are on its page."
+      />
     </div>
   );
 }

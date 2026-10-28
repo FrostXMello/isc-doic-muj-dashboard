@@ -8,6 +8,7 @@ import { NotRecorded } from "@/components/internal/ui/page-header";
 import { ManageLink } from "@/components/internal/ui/manage-action";
 import { provenanceItems, VerificationBadge } from "@/components/internal/ui/provenance";
 import { SourceBadge } from "@/components/internal/ui/source-badge";
+import { EventFilesSection } from "@/components/internal/event-files-section";
 import { InsightsCard } from "@/components/internal/insights-card";
 import { getActivity, listActivities } from "@/lib/internal/data/activities";
 import { eventInsights } from "@/lib/internal/insights";
@@ -68,6 +69,13 @@ export default async function ActivityDetailPage({ params, searchParams }: IdPar
       <RecordNotice query={await searchParams} />
 
       <InsightsCard tabs={eventInsights(activity, all)} />
+
+      <EventFilesSection
+        id="files"
+        activityCode={id}
+        title="Event files"
+        description="The event's working folder: notesheets, budgets, brochures, certificates, photos, and reports."
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

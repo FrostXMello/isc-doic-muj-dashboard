@@ -19,6 +19,7 @@ export const auditTableLabels: Record<string, string> = {
   documents: "Documents",
   document_links: "Document links",
   activities: "Activities",
+  activity_files: "Event files",
   applications: "Applications",
   regions: "Regions",
   countries: "Countries",
